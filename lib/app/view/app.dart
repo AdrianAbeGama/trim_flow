@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trim_flow/core/theme/app_theme.dart';
+import 'package:trim_flow/features/home/view/home_page.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -10,18 +11,8 @@ class App extends StatelessWidget {
       title: 'TrimFlow',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'TrimFlow',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w200,
-              letterSpacing: 2,
-            ),
-          ),
-        ),
-      ),
+      debugShowCheckedModeBanner: false,
+      home: const HomePage(),
     );
   }
 }

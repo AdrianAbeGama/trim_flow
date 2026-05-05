@@ -1,30 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:trim_flow/core/constants/app_colors.dart';
 
 class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF1A1A1A),
+        seedColor: AppColors.gold,
         brightness: Brightness.light,
-        primary: const Color(0xFF1A1A1A),
+        primary: AppColors.black,
+        secondary: AppColors.gold,
+        surface: AppColors.white,
       ),
-      scaffoldBackgroundColor: Colors.white,
+      scaffoldBackgroundColor: AppColors.white,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.black,
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Colors.black,
+          color: AppColors.black,
         ),
         bodyLarge: TextStyle(
           fontSize: 16,
-          color: Colors.black87,
+          color: AppColors.black,
         ),
       ),
     );
@@ -34,26 +37,28 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.white,
+        seedColor: AppColors.gold,
         brightness: Brightness.dark,
-        primary: Colors.white,
+        primary: AppColors.white,
+        secondary: AppColors.gold,
+        surface: AppColors.black,
       ),
-      scaffoldBackgroundColor: const Color(0xFF0D0D0D),
+      scaffoldBackgroundColor: AppColors.black,
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Color(0xFF0D0D0D),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.black,
+        foregroundColor: AppColors.white,
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: AppColors.white,
         ),
         bodyLarge: TextStyle(
           fontSize: 16,
-          color: Colors.white70,
+          color: AppColors.white,
         ),
       ),
     );
