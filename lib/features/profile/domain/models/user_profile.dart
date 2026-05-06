@@ -25,6 +25,7 @@ class UserProfile extends Equatable {
     required this.phone,
     required this.birthDate,
     required this.notificationsEnabled,
+    this.completedCuts = 2,
     this.history = const [],
   });
 
@@ -36,6 +37,7 @@ class UserProfile extends Equatable {
   final String phone;
   final String birthDate;
   final bool notificationsEnabled;
+  final int completedCuts;
   final List<CuttingRecord> history;
 
   UserProfile copyWith({
@@ -44,6 +46,7 @@ class UserProfile extends Equatable {
     String? phone,
     String? birthDate,
     bool? notificationsEnabled,
+    int? completedCuts,
     List<CuttingRecord>? history,
   }) {
     return UserProfile(
@@ -55,6 +58,7 @@ class UserProfile extends Equatable {
       phone: phone ?? this.phone,
       birthDate: birthDate ?? this.birthDate,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      completedCuts: completedCuts ?? this.completedCuts,
       history: history ?? this.history,
     );
   }
@@ -69,6 +73,7 @@ class UserProfile extends Equatable {
         phone,
         birthDate,
         notificationsEnabled,
+        completedCuts,
         history,
       ];
 }

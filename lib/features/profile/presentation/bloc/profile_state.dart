@@ -8,24 +8,32 @@ class ProfileState extends Equatable {
     this.status = ProfileStatus.initial,
     this.user,
     this.isEditing = false,
+    this.completedCuts = 2,
+    this.isRewardAvailable = false,
   });
 
   final ProfileStatus status;
   final UserProfile? user;
   final bool isEditing;
+  final int completedCuts;
+  final bool isRewardAvailable;
 
   ProfileState copyWith({
     ProfileStatus? status,
     UserProfile? user,
     bool? isEditing,
+    int? completedCuts,
+    bool? isRewardAvailable,
   }) {
     return ProfileState(
       status: status ?? this.status,
       user: user ?? this.user,
       isEditing: isEditing ?? this.isEditing,
+      completedCuts: completedCuts ?? this.completedCuts,
+      isRewardAvailable: isRewardAvailable ?? this.isRewardAvailable,
     );
   }
 
   @override
-  List<Object?> get props => [status, user, isEditing];
+  List<Object?> get props => [status, user, isEditing, completedCuts, isRewardAvailable];
 }

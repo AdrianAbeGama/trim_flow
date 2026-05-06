@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+enum ProfileNotificationType { offer, birthday, reservation }
+
 abstract class ProfileEvent extends Equatable {
   const ProfileEvent();
 
@@ -9,8 +11,8 @@ abstract class ProfileEvent extends Equatable {
 
 class LoadProfileEvent extends ProfileEvent {}
 
-class UpdateProfileEvent extends ProfileEvent {
-  const UpdateProfileEvent({
+class SaveProfileData extends ProfileEvent {
+  const SaveProfileData({
     required this.firstName,
     required this.lastName,
     required this.phone,
@@ -26,6 +28,19 @@ class UpdateProfileEvent extends ProfileEvent {
   List<Object?> get props => [firstName, lastName, phone, birthDate];
 }
 
+class ClaimReward extends ProfileEvent {}
+
+class RequestNotificationPermissionEvent extends ProfileEvent {}
+
+class TestNotificationEvent extends ProfileEvent {
+  const TestNotificationEvent({required this.type});
+
+  final ProfileNotificationType type;
+
+  @override
+  List<Object?> get props => [type];
+}
+
 class ToggleNotificationsEvent extends ProfileEvent {
   const ToggleNotificationsEvent({required this.enabled});
 
@@ -34,5 +49,3 @@ class ToggleNotificationsEvent extends ProfileEvent {
   @override
   List<Object?> get props => [enabled];
 }
-
-class ToggleEditModeEvent extends ProfileEvent {}

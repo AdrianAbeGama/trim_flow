@@ -41,6 +41,11 @@ dependencies:
   flutter_floating_bottom_bar: 2.0.0
   permission_handler: ^12.0.1
   intl: ^0.20.2
+  smooth_sheets: 1.0.2
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
