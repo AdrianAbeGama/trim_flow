@@ -1,0 +1,68 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/features/reservations/domain/reservation_mock_data.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_event.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_state.dart';
+import 'package:core/core.dart';
+
+class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
+  ReservationBloc() : super(const ReservationState(
+    reservation: Reservation(tenantId: ReservationMockData.tenantId)
+  )) {
+    on<ReservationEvent>((event, emit) async {
+      await event.map(
+        selectCenter: (e) async {
+          final updatedReservation = state.reservation.copyWith(center: e.center);
+          emit(state.copyWith(
+            reservation: updatedReservation,
+          ));
+        },
+        toggleService: (e) async {
+          final services = List.of(state.reservation.services);
+          if (services.any((s) => s.id == e.service.id)) {
+            services.removeWhere((s) => s.id == e.service.id);
+          } else {
+            services.add(e.service);
+          }
+          
+          final totalPrice = services.fold(0.0, (sum, item) => sum + item.price);
+          final totalDuration = services.fold(0, (sum, item) => sum + item.durationInMinutes);
+
+          emit(state.copyWith(
+            reservation: state.reservation.copyWith(
+              services: services,
+              totalPrice: totalPrice,
+              totalDurationInMinutes: totalDuration,
+            ),
+          ));
+        },
+        selectProfessional: (e) async {
+          emit(state.copyWith(
+            reservation: state.reservation.copyWith(professional: e.professional),
+            professionalSelected: true, // Mark as selected
+          ));
+        },
+        selectDateTime: (e) async {
+          emit(state.copyWith(
+            reservation: state.reservation.copyWith(
+              date: e.date,
+              time: e.time,
+            ),
+          ));
+        },
+        goToPhase: (e) async {
+          emit(state.copyWith(currentPhase: e.phase));
+        },
+        confirmReservation: (e) async {
+          emit(state.copyWith(status: ReservationStatus.loading));
+          await Future.delayed(const Duration(seconds: 2)); // Simulate network request
+          emit(state.copyWith(status: ReservationStatus.success));
+        },
+        reset: (e) async {
+          emit(const ReservationState(
+            reservation: Reservation(tenantId: ReservationMockData.tenantId)
+          ));
+        },
+      );
+    });
+  }
+}

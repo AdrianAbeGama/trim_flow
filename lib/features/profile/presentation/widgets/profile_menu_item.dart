@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trim_flow/core/constants/app_colors.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 
 class ProfileMenuItem extends StatelessWidget {
   const ProfileMenuItem({
@@ -25,13 +25,13 @@ class ProfileMenuItem extends StatelessWidget {
       onTap: onTap,
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : AppColors.gold,
+        color: isDestructive ? Colors.red : context.primaryGold,
         size: 24,
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isDestructive ? Colors.red : AppColors.white,
+          color: isDestructive ? Colors.red : Colors.white,
           fontSize: 16,
           fontWeight: FontWeight.w400,
         ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:trim_flow/core/constants/app_colors.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 
 class ObInputField extends StatelessWidget {
   const ObInputField({
@@ -45,7 +45,7 @@ class ObInputField extends StatelessWidget {
             Text(
               label.toUpperCase(),
               style: TextStyle(
-                color: errorText != null ? Colors.redAccent : AppColors.gold,
+                color: errorText != null ? Colors.redAccent : context.primaryGold,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -83,7 +83,7 @@ class ObInputField extends StatelessWidget {
           keyboardType: keyboardType,
           maxLength: maxLength,
           style: const TextStyle(color: Colors.white, fontSize: 16),
-          cursorColor: AppColors.gold,
+          cursorColor: context.primaryGold,
           decoration: InputDecoration(
             counterText: "", // Hide default counter
             prefixIcon: prefix != null
@@ -119,7 +119,7 @@ class ObInputField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.redAccent : AppColors.gold,
+                color: errorText != null ? Colors.redAccent : context.primaryGold,
                 width: 1.5,
               ),
             ),
