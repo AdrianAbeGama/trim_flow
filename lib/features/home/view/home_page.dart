@@ -1,4 +1,7 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -140,6 +143,23 @@ class _HomePageState extends State<HomePage>
     tabController.animateTo(0);
   }
 
+  void _checkProfileCompletion() {
+    final profileState = context.read<ProfileBloc>().state;
+    final user = profileState.user;
+    if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
+      if (tabController.index != 4) {
+        tabController.animateTo(4);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor, completa tu WhatsApp y Fecha de Nacimiento primero.'),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     tabController.dispose();
@@ -149,117 +169,147 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.backgroundBlack,
-      body: Stack(
-        children: [
-          BottomBar(
-            controller: _barController,
-            layout: BottomBarLayout(
-              width: MediaQuery.of(context).size.width * 0.9,
-              borderRadius: BorderRadius.circular(500),
-              offset: 20,
-              alignment: Alignment.bottomCenter,
-            ),
-            scrollBehavior: const BottomBarScrollBehavior(
-              hideOnScroll: true,
-            ),
-            theme: BottomBarThemeData(
-              barDecoration: BoxDecoration(
-                color: const Color(0xFF111111),
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        final user = state.user;
+        if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
+          if (tabController.index != 4) {
+            tabController.animateTo(4);
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: context.backgroundBlack,
+        body: Stack(
+          children: [
+            BottomBar(
+              controller: _barController,
+              layout: BottomBarLayout(
+                width: MediaQuery.of(context).size.width * 0.9,
                 borderRadius: BorderRadius.circular(500),
-                border: Border.all(
-                  color: context.primaryGold.withValues(alpha: 0.15),
-                  width: 1,
-                ),
+                offset: 20,
+                alignment: Alignment.bottomCenter,
               ),
-            ),
-            showIcon: false,
-            body: TabBarView(
-              controller: tabController,
-              dragStartBehavior: DragStartBehavior.down,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                const _SectionView(title: 'Inicio', icon: Icons.home_filled),
-                const _SectionView(
-                  title: 'Galería',
-                  icon: Icons.grid_view_rounded,
-                ),
-                ReservationView(onGoHome: goToHome),
-                const _SectionView(
-                  title: 'Productos',
-                  icon: Icons.shopping_bag_rounded,
-                ),
-                const ProfileView(),
-              ],
-            ),
-            child: TabBar(
-              controller: tabController,
-              indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(color: context.primaryGold, width: 2),
-                insets: const EdgeInsets.symmetric(horizontal: 20),
+              scrollBehavior: const BottomBarScrollBehavior(
+                hideOnScroll: true,
               ),
-              labelPadding: EdgeInsets.zero,
-              dividerColor: Colors.transparent,
-              overlayColor: WidgetStateProperty.all(Colors.transparent),
-              tabs: [
-                const Tab(icon: Icon(Icons.home_filled, size: 22)),
-                const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                _buildReservarTab(Icons.content_cut_rounded, 2),
-                const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                const Tab(icon: Icon(Icons.person_rounded, size: 22)),
-              ],
-            ),
-          ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeInOutCubic,
-            bottom: _barVisible ? -80 : 28,
-            right: 20,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 300),
-              opacity: _barVisible ? 0 : 1,
-              child: GestureDetector(
-                onTap: () => _barController.show(),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: context.primaryGold.withValues(alpha: 0.4),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: context.primaryGold.withValues(alpha: 0.15),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                    ],
+              theme: BottomBarThemeData(
+                barDecoration: BoxDecoration(
+                  color: const Color(0xFF111111),
+                  borderRadius: BorderRadius.circular(500),
+                  border: Border.all(
+                    color: context.primaryGold.withValues(alpha: 0.15),
+                    width: 1,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                ),
+              ),
+              showIcon: false,
+              body: BlocBuilder<ProfileBloc, ProfileState>(
+                builder: (context, state) {
+                  final user = state.user;
+                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
+                  
+                  return TabBarView(
+                    controller: tabController,
+                    dragStartBehavior: DragStartBehavior.down,
+                    physics: isIncomplete ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
                     children: [
-                      Icon(Icons.menu_rounded, color: context.primaryGold, size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Abrir',
-                        style: TextStyle(
-                          color: context.primaryGold,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
+                      const _SectionView(title: 'Inicio', icon: Icons.home_filled),
+                      const _SectionView(
+                        title: 'Galería',
+                        icon: Icons.grid_view_rounded,
                       ),
+                      ReservationView(onGoHome: goToHome),
+                      const _SectionView(
+                        title: 'Productos',
+                        icon: Icons.shopping_bag_rounded,
+                      ),
+                      const ProfileView(),
                     ],
+                  );
+                },
+              ),
+              child: BlocBuilder<ProfileBloc, ProfileState>(
+                builder: (context, state) {
+                  final user = state.user;
+                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
+                  
+                  return TabBar(
+                    controller: tabController,
+                    onTap: (index) {
+                      if (isIncomplete && index != 4) {
+                        tabController.animateTo(4);
+                        _checkProfileCompletion();
+                      }
+                    },
+                    indicator: UnderlineTabIndicator(
+                      borderSide: BorderSide(color: context.primaryGold, width: 2),
+                      insets: const EdgeInsets.symmetric(horizontal: 20),
+                    ),
+                    labelPadding: EdgeInsets.zero,
+                    dividerColor: Colors.transparent,
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    tabs: [
+                      const Tab(icon: Icon(Icons.home_filled, size: 22)),
+                      const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                      _buildReservarTab(Icons.content_cut_rounded, 2),
+                      const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
+                      const Tab(icon: Icon(Icons.person_rounded, size: 22)),
+                    ],
+                  );
+                },
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOutCubic,
+              bottom: _barVisible ? -80 : 28,
+              right: 20,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: _barVisible ? 0 : 1,
+                child: GestureDetector(
+                  onTap: () => _barController.show(),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: context.primaryGold.withValues(alpha: 0.4),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.primaryGold.withValues(alpha: 0.15),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.menu_rounded, color: context.primaryGold, size: 18),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Abrir',
+                          style: TextStyle(
+                            color: context.primaryGold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

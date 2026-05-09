@@ -30,6 +30,8 @@ _UserProfile _$UserProfileFromJson(Map<String, dynamic> json) => _UserProfile(
   phone: json['phone'] as String,
   birthDate: json['birthDate'] as String,
   notificationsEnabled: json['notificationsEnabled'] as bool,
+  customerId: json['customerId'] as String?,
+  barberId: json['barberId'] as String?,
   completedCuts: (json['completedCuts'] as num?)?.toInt() ?? 2,
   history:
       (json['history'] as List<dynamic>?)
@@ -49,6 +51,8 @@ Map<String, dynamic> _$UserProfileToJson(_UserProfile instance) =>
       'phone': instance.phone,
       'birthDate': instance.birthDate,
       'notificationsEnabled': instance.notificationsEnabled,
+      'customerId': instance.customerId,
+      'barberId': instance.barberId,
       'completedCuts': instance.completedCuts,
       'history': instance.history,
     };

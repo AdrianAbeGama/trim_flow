@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
+import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
+import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/utils/date_input_formatter.dart';
 import 'package:core/core.dart';
@@ -11,29 +13,24 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart'
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/ob_input_field.dart';
 
-import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
-import 'package:trim_flow/core/app_mode/app_mode_event.dart';
-
-class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+class BarberProfileView extends StatelessWidget {
+  const BarberProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const ProfileContent();
+    return const BarberProfileContent();
   }
 }
 
-class ProfileContent extends StatefulWidget {
-  const ProfileContent({super.key});
+class BarberProfileContent extends StatefulWidget {
+  const BarberProfileContent({super.key});
 
   @override
-  State<ProfileContent> createState() => _ProfileContentState();
+  State<BarberProfileContent> createState() => _BarberProfileContentState();
 }
 
-class _ProfileContentState extends State<ProfileContent> {
-  bool _isLoyaltyExpanded = false;
-  bool _isHistoryExpanded = false;
-
+class _BarberProfileContentState extends State<BarberProfileContent> {
+  
   void _showEditSheet(BuildContext context, UserProfile user) {
     final nameController = TextEditingController(text: user.firstName);
     final lastNameController = TextEditingController(text: user.lastName);
@@ -94,7 +91,7 @@ class _ProfileContentState extends State<ProfileContent> {
                           ),
                           const SizedBox(height: 32),
                           Text(
-                            'EDITAR PERFIL',
+                            'EDITAR PERFIL BARBERO',
                             style: TextStyle(
                               color: context.primaryGold,
                               fontSize: 16,
@@ -223,7 +220,7 @@ class _ProfileContentState extends State<ProfileContent> {
           if (user == null) return const SizedBox.shrink();
 
           return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             child: Column(
               children: [
                 const SizedBox(height: 24),
@@ -269,11 +266,28 @@ class _ProfileContentState extends State<ProfileContent> {
                   ),
                 ]),
 
-                const SizedBox(height: 32),
-                _buildLoyaltyCard(context, state),
-
-                const SizedBox(height: 20),
-                _buildHistoryCard(context, user.history),
+                const SizedBox(height: 40),
+                
+                // Botón de Cambio de Módulo
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      context.read<AppModeBloc>().add(const AppModeEvent.changeMode(AppMode.client));
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: context.primaryGold.withValues(alpha: 0.5)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      minimumSize: const Size(double.infinity, 0),
+                    ),
+                    child: const Text(
+                      'CAMBIAR A MODO CLIENTE',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: 48),
                 _buildLogout(context),
@@ -313,22 +327,27 @@ class _ProfileContentState extends State<ProfileContent> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
                   color: context.primaryGold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: context.primaryGold.withValues(alpha: 0.3)),
                 ),
                 child: Text(
-                  'ID: ${user.customerId?.substring(0, 8) ?? user.id.substring(0, 8)}',
-                  style: TextStyle(color: context.primaryGold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2),
+                  'BARBERO ID: ${user.barberId?.substring(0, 8) ?? user.id.substring(0, 8)}',
+                  style: TextStyle(
+                    color: context.primaryGold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                  ),
                 ),
               ),
               TextButton.icon(
                 onPressed: () => _showEditSheet(context, user),
-                icon: const Icon(Icons.edit_rounded, size: 14, color: Colors.white60),
+                icon: const Icon(Icons.settings_outlined, size: 14, color: Colors.white60),
                 label: const Text(
-                  'EDITAR PERFIL',
+                  'CONFIGURACIÓN',
                   style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
                 ),
                 style: TextButton.styleFrom(
@@ -349,8 +368,28 @@ class _ProfileContentState extends State<ProfileContent> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildAvatar(context, user.photoUrl),
-                const SizedBox(height: 24),
-                _buildIdentity(context, user),
+                const SizedBox(height: 20),
+
+                // Nombre
+                Text(
+                  '${user.firstName} ${user.lastName}'.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                // Correo
+                Text(
+                  user.email,
+                  style: const TextStyle(
+                    color: Colors.white38,
+                    fontSize: 14,
+                  ),
+                ),
               ],
             ),
           ),
@@ -382,30 +421,6 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildIdentity(BuildContext context, UserProfile user) {
-    return Column(
-      children: [
-        Text(
-          '${user.firstName} ${user.lastName}'.toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          user.email,
-          style: const TextStyle(
-            color: Colors.white38,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSection(BuildContext context, String title, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,150 +443,6 @@ class _ProfileContentState extends State<ProfileContent> {
           child: Column(children: children),
         ),
       ],
-    );
-  }
-
-  Widget _buildLoyaltyCard(BuildContext context, ProfileState state) {
-    return _buildPremiumCard(
-      context: context,
-      title: 'VIP MEMBER',
-      subtitle: 'Cartilla de Fidelización',
-      isExpanded: _isLoyaltyExpanded,
-      onTap: () => setState(() => _isLoyaltyExpanded = !_isLoyaltyExpanded),
-      children: [
-        const SizedBox(height: 32),
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          alignment: WrapAlignment.center,
-          children: List.generate(7, (index) {
-            final isCompleted = index < state.completedCuts;
-            return Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted ? context.primaryGold : Colors.transparent,
-                border: Border.all(color: context.primaryGold.withValues(alpha: isCompleted ? 1 : 0.3), width: 1.5),
-              ),
-              child: Center(
-                child: isCompleted
-                    ? Icon(Icons.check_rounded, color: context.backgroundBlack, size: 20)
-                    : Text('${index + 1}', style: const TextStyle(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          onPressed: state.isRewardAvailable ? () => context.read<ProfileBloc>().add(const ClaimReward()) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.primaryGold,
-            foregroundColor: context.backgroundBlack,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
-            disabledForegroundColor: Colors.white10,
-            elevation: 0,
-          ),
-          child: const Text('RECLAMAR RECOMPENSA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistoryCard(BuildContext context, List<CuttingRecord> history) {
-    return _buildPremiumCard(
-      context: context,
-      title: 'HISTORIAL',
-      subtitle: 'Tus últimos cortes realizados',
-      isExpanded: _isHistoryExpanded,
-      onTap: () => setState(() => _isHistoryExpanded = !_isHistoryExpanded),
-      children: [
-        const SizedBox(height: 16),
-        ...history.map((record) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.02),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(record.day, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                      Text(record.time, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(record.price, style: TextStyle(color: context.primaryGold, fontSize: 13, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white10, size: 20),
-                    ],
-                  ),
-                ],
-              ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildPremiumCard({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required bool isExpanded,
-    required VoidCallback onTap,
-    required List<Widget> children,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF121212),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: context.primaryGold.withValues(alpha: 0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: context.primaryGold.withValues(alpha: 0.05),
-                blurRadius: 20,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: TextStyle(color: context.primaryGold, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
-                    ],
-                  ),
-                  Icon(
-                    isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                    color: context.primaryGold,
-                  ),
-                ],
-              ),
-              if (isExpanded) ...children,
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -611,13 +482,13 @@ class _ProfileContentState extends State<ProfileContent> {
 
   Widget _buildTestNotificationMenu(BuildContext context) {
     return PopupMenuButton<ProfileNotificationType>(
-      onSelected: (type) => context.read<ProfileBloc>().add(TestNotificationEvent(type: type, mode: AppMode.client)),
+      onSelected: (type) => context.read<ProfileBloc>().add(TestNotificationEvent(type: type, mode: AppMode.barber)),
       color: const Color(0xFF1A1A1A),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       itemBuilder: (context) => [
-        _buildPopupItem(context, ProfileNotificationType.offer, 'Prueba de Oferta', Icons.local_offer_rounded),
-        _buildPopupItem(context, ProfileNotificationType.birthday, 'Prueba de Cumpleaños', Icons.cake_rounded),
-        _buildPopupItem(context, ProfileNotificationType.reservation, 'Prueba de Reserva', Icons.alarm_rounded),
+        _buildPopupItem(context, ProfileNotificationType.offer, 'Nuevo Pedido', Icons.shopping_basket_rounded),
+        _buildPopupItem(context, ProfileNotificationType.birthday, 'Cita Finalizada', Icons.check_circle_rounded),
+        _buildPopupItem(context, ProfileNotificationType.reservation, 'Recordatorio de Turno', Icons.alarm_rounded),
       ],
       child: Container(
         width: double.infinity,
@@ -638,14 +509,14 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  PopupMenuItem<ProfileNotificationType> _buildPopupItem(BuildContext context, ProfileNotificationType value, String text, IconData icon) {
+  PopupMenuItem<ProfileNotificationType> _buildPopupItem(BuildContext context, ProfileNotificationType type, String label, IconData icon) {
     return PopupMenuItem(
-      value: value,
+      value: type,
       child: Row(
         children: [
           Icon(icon, color: context.primaryGold, size: 18),
           const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 13)),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
         ],
       ),
     );
@@ -655,26 +526,29 @@ class _ProfileContentState extends State<ProfileContent> {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.all(24),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(icon, color: context.primaryGold, size: 18),
-                const SizedBox(width: 12),
-                Text(label, style: const TextStyle(color: Colors.white70, fontSize: 15)),
-              ],
-            ),
-            Row(
-              children: [
-                Text(value, style: TextStyle(color: value == 'Pendiente' ? Colors.redAccent.withValues(alpha: 0.5) : Colors.white38, fontSize: 15)),
-                if (onTap != null) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.white10, size: 18),
+            Icon(icon, color: context.primaryGold.withValues(alpha: 0.4), size: 20),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
+                  const SizedBox(height: 2),
+                  Text(
+                    value, 
+                    style: TextStyle(
+                      color: value == 'Pendiente' ? Colors.redAccent.withValues(alpha: 0.5) : Colors.white, 
+                      fontSize: 14, 
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
-              ],
+              ),
             ),
+            if (onTap != null) const Icon(Icons.chevron_right_rounded, color: Colors.white10, size: 20),
           ],
         ),
       ),
@@ -682,9 +556,15 @@ class _ProfileContentState extends State<ProfileContent> {
   }
 
   Widget _buildLogout(BuildContext context) {
-    return TextButton(
-      onPressed: () => context.read<AppModeBloc>().add(const AppModeEvent.requestLogout()),
-      child: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent, fontSize: 15)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: TextButton(
+        onPressed: () => context.read<AppModeBloc>().add(const AppModeEvent.requestLogout()),
+        child: const Text(
+          'CERRAR SESIÓN',
+          style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2),
+        ),
+      ),
     );
   }
 }

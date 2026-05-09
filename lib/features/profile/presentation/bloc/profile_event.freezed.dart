@@ -134,14 +134,14 @@ return toggleNotifications(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function( ProfileNotificationType type)?  testNotification,TResult Function( bool enabled)?  toggleNotifications,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult Function( bool enabled)?  toggleNotifications,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward() when claimReward != null:
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
-return testNotification(_that.type);case ToggleNotificationsEvent() when toggleNotifications != null:
+return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that.enabled);case _:
   return orElse();
 
@@ -160,14 +160,14 @@ return toggleNotifications(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function( ProfileNotificationType type)  testNotification,required TResult Function( bool enabled)  toggleNotifications,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function( ProfileNotificationType type,  AppMode mode)  testNotification,required TResult Function( bool enabled)  toggleNotifications,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent():
 return load();case SaveProfileData():
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward():
 return claimReward();case RequestNotificationPermissionEvent():
 return requestNotificationPermission();case TestNotificationEvent():
-return testNotification(_that.type);case ToggleNotificationsEvent():
+return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent():
 return toggleNotifications(_that.enabled);case _:
   throw StateError('Unexpected subclass');
 
@@ -185,14 +185,14 @@ return toggleNotifications(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function( ProfileNotificationType type)?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward() when claimReward != null:
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
-return testNotification(_that.type);case ToggleNotificationsEvent() when toggleNotifications != null:
+return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that.enabled);case _:
   return null;
 
@@ -373,10 +373,11 @@ String toString() {
 
 
 class TestNotificationEvent implements ProfileEvent {
-  const TestNotificationEvent({required this.type});
+  const TestNotificationEvent({required this.type, this.mode = AppMode.client});
   
 
  final  ProfileNotificationType type;
+@JsonKey() final  AppMode mode;
 
 /// Create a copy of ProfileEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -388,16 +389,16 @@ $TestNotificationEventCopyWith<TestNotificationEvent> get copyWith => _$TestNoti
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestNotificationEvent&&(identical(other.type, type) || other.type == type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestNotificationEvent&&(identical(other.type, type) || other.type == type)&&(identical(other.mode, mode) || other.mode == mode));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,type);
+int get hashCode => Object.hash(runtimeType,type,mode);
 
 @override
 String toString() {
-  return 'ProfileEvent.testNotification(type: $type)';
+  return 'ProfileEvent.testNotification(type: $type, mode: $mode)';
 }
 
 
@@ -408,7 +409,7 @@ abstract mixin class $TestNotificationEventCopyWith<$Res> implements $ProfileEve
   factory $TestNotificationEventCopyWith(TestNotificationEvent value, $Res Function(TestNotificationEvent) _then) = _$TestNotificationEventCopyWithImpl;
 @useResult
 $Res call({
- ProfileNotificationType type
+ ProfileNotificationType type, AppMode mode
 });
 
 
@@ -425,10 +426,11 @@ class _$TestNotificationEventCopyWithImpl<$Res>
 
 /// Create a copy of ProfileEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? type = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? type = null,Object? mode = null,}) {
   return _then(TestNotificationEvent(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as ProfileNotificationType,
+as ProfileNotificationType,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
+as AppMode,
   ));
 }
 

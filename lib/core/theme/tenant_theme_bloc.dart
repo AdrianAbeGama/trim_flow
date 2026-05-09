@@ -1,6 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'package:trim_flow/core/theme/default_tenant_colors.dart';
 
 class TenantThemeState {
@@ -52,6 +53,7 @@ class TenantThemeState {
   }
 }
 
+@lazySingleton
 class TenantThemeBloc extends Cubit<TenantThemeState> {
   TenantThemeBloc() : super(TenantThemeState.initial());
 
