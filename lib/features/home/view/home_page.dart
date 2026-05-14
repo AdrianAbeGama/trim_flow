@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/features/home/presentation/views/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
@@ -143,22 +144,6 @@ class _HomePageState extends State<HomePage>
     tabController.animateTo(0);
   }
 
-  void _checkProfileCompletion() {
-    final profileState = context.read<ProfileBloc>().state;
-    final user = profileState.user;
-    if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
-      if (tabController.index != 4) {
-        tabController.animateTo(4);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor, completa tu WhatsApp y Fecha de Nacimiento primero.'),
-            backgroundColor: Colors.redAccent,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -169,16 +154,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileBloc, ProfileState>(
-      listener: (context, state) {
-        final user = state.user;
-        if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
-          if (tabController.index != 4) {
-            tabController.animateTo(4);
-          }
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: context.backgroundBlack,
         body: Stack(
           children: [
@@ -206,15 +182,16 @@ class _HomePageState extends State<HomePage>
               showIcon: false,
               body: BlocBuilder<ProfileBloc, ProfileState>(
                 builder: (context, state) {
-                  final user = state.user;
-                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
-                  
                   return TabBarView(
                     controller: tabController,
                     dragStartBehavior: DragStartBehavior.down,
-                    physics: isIncomplete ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(),
                     children: [
-                      const _SectionView(title: 'Inicio', icon: Icons.home_filled),
+                      HomeView(
+                        onNavigateToServices: () => tabController.animateTo(2), // Reservas index
+                        onNavigateToProducts: () => tabController.animateTo(3),
+                        onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                      ),
                       const _SectionView(
                         title: 'Galería',
                         icon: Icons.grid_view_rounded,
@@ -231,16 +208,10 @@ class _HomePageState extends State<HomePage>
               ),
               child: BlocBuilder<ProfileBloc, ProfileState>(
                 builder: (context, state) {
-                  final user = state.user;
-                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
-                  
                   return TabBar(
                     controller: tabController,
                     onTap: (index) {
-                      if (isIncomplete && index != 4) {
-                        tabController.animateTo(4);
-                        _checkProfileCompletion();
-                      }
+                      // Navegación libre
                     },
                     indicator: UnderlineTabIndicator(
                       borderSide: BorderSide(color: context.primaryGold, width: 2),
@@ -260,6 +231,8 @@ class _HomePageState extends State<HomePage>
                 },
               ),
             ),
+            
+            // Mini Bar Trigger (Abrir bar flotante)
             AnimatedPositioned(
               duration: const Duration(milliseconds: 350),
               curve: Curves.easeInOutCubic,
@@ -271,8 +244,7 @@ class _HomePageState extends State<HomePage>
                 child: GestureDetector(
                   onTap: () => _barController.show(),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(24),
@@ -291,7 +263,7 @@ class _HomePageState extends State<HomePage>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.menu_rounded, color: context.primaryGold, size: 18),
+                        Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
                         const SizedBox(width: 6),
                         Text(
                           'Abrir',
@@ -310,7 +282,6 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-      ),
     );
   }
 

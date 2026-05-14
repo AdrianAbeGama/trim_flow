@@ -1,3 +1,4 @@
+import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => getIt<TenantThemeBloc>()..loadTenant('barberia_alpha')),
         BlocProvider(create: (_) => getIt<AppModeBloc>()..add(const AppModeEvent.initialize())),
         BlocProvider(create: (_) => ProfileBloc()..add(const LoadProfileEvent())),
+        BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
       ],
       child: BlocBuilder<TenantThemeBloc, TenantThemeState>(
         builder: (context, themeState) {

@@ -87,11 +87,15 @@ class _AccessCodeViewState extends State<AccessCodeView> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final result = await Navigator.push<String>(
                           context,
                           MaterialPageRoute(builder: (context) => const QrScannerFacade()),
                         );
+                        
+                        if (result != null) {
+                          widget.onCodeValidated(result);
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),

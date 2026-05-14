@@ -17,6 +17,9 @@ class ObInputField extends StatelessWidget {
     this.showCounter = false,
     this.hasPrefixDivider = false,
     this.onChanged,
+    this.validator,
+    this.maxLines = 1,
+    this.minLines,
     super.key,
   });
 
@@ -33,6 +36,9 @@ class ObInputField extends StatelessWidget {
   final bool showCounter;
   final bool hasPrefixDivider;
   final ValueChanged<String>? onChanged;
+  final String? Function(String?)? validator;
+  final int? maxLines;
+  final int? minLines;
 
   @override
   Widget build(BuildContext context) {
@@ -74,18 +80,21 @@ class ObInputField extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           readOnly: readOnly,
           onTap: onTap,
           onChanged: onChanged,
+          validator: validator,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           maxLength: maxLength,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          maxLines: maxLines,
+          minLines: minLines,
+          style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
           cursorColor: context.primaryGold,
           decoration: InputDecoration(
-            counterText: "", // Hide default counter
+            counterText: "", 
             prefixIcon: prefix != null
                 ? Container(
                     padding: const EdgeInsets.only(left: 16, right: 12),
@@ -110,6 +119,7 @@ class ObInputField extends StatelessWidget {
             filled: true,
             fillColor: const Color(0xFF1A1A1A),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 10),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
@@ -122,6 +132,14 @@ class ObInputField extends StatelessWidget {
                 color: errorText != null ? Colors.redAccent : context.primaryGold,
                 width: 1.5,
               ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
             ),
           ),
         ),

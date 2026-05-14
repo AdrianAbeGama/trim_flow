@@ -1,18 +1,22 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smooth_sheets/smooth_sheets.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/core/utils/date_input_formatter.dart';
 import 'package:core/core.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
-import 'package:trim_flow/features/profile/presentation/widgets/ob_input_field.dart';
-
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+
+import '../widgets/profile_header.dart';
+import '../widgets/profile_loyalty_card.dart';
+import '../widgets/profile_history_card.dart';
+import '../widgets/profile_notifications_section.dart';
+import '../widgets/profile_detail_item.dart';
+import '../widgets/profile_edit_sheet.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -35,178 +39,17 @@ class _ProfileContentState extends State<ProfileContent> {
   bool _isHistoryExpanded = false;
 
   void _showEditSheet(BuildContext context, UserProfile user) {
-    final nameController = TextEditingController(text: user.firstName);
-    final lastNameController = TextEditingController(text: user.lastName);
-    final phoneController = TextEditingController(text: user.phone);
-    final birthDateController = TextEditingController(text: user.birthDate);
-    
-    final profileBloc = context.read<ProfileBloc>();
-
-    showModalSheet(
+    showMaterialModalBottomSheet(
       context: context,
-      swipeDismissible: true,
-      builder: (sheetContext) => BlocProvider.value(
-        value: profileBloc,
-        child: Sheet(
-          initialOffset: const RelativeSheetOffset(0.85),
-          physics: const ClampingSheetPhysics(),
-          decoration: const MaterialSheetDecoration(
-            size: SheetSize.fit,
-            color: Color(0xFF121212),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: StatefulBuilder(
-            builder: (context, setSheetState) {
-              final name = nameController.text.trim();
-              final lastName = lastNameController.text.trim();
-              final phone = phoneController.text.trim();
-              final birthDate = birthDateController.text.trim();
-
-              final isNameValid = name.isNotEmpty && name.length <= 15;
-              final isLastNameValid = lastName.isNotEmpty && lastName.length <= 10;
-              final isPhoneValid = phone.length == 9 && RegExp(r'^\d+$').hasMatch(phone);
-              final isBirthDateValid = _isValidDate(birthDate);
-
-              final canSave = isNameValid && isLastNameValid && isPhoneValid && isBirthDateValid;
-
-              return BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  final isLoading = state.status == ProfileStatus.loading;
-
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      top: 12,
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 40,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            'EDITAR PERFIL',
-                            style: TextStyle(
-                              color: context.primaryGold,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          ObInputField(
-                            label: 'Nombre',
-                            controller: nameController,
-                            maxLength: 15,
-                            showCounter: true,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'Apellido',
-                            controller: lastNameController,
-                            maxLength: 10,
-                            showCounter: true,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'WhatsApp',
-                            controller: phoneController,
-                            prefix: '+51',
-                            hasPrefixDivider: true,
-                            maxLength: 9,
-                            keyboardType: TextInputType.phone,
-                            errorText: (phone.isNotEmpty && !isPhoneValid) ? 'Este no es un número válido' : null,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'Fecha de Nacimiento',
-                            controller: birthDateController,
-                            hintText: 'DD / MM / AAAA',
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [DateInputFormatter()],
-                            errorText: (birthDate.isNotEmpty && !isBirthDateValid) ? 'Esta no es una fecha válida' : null,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          const SizedBox(height: 32),
-                          ElevatedButton(
-                            onPressed: (isLoading || !canSave)
-                                ? null
-                                : () {
-                                    context.read<ProfileBloc>().add(SaveProfileData(
-                                          firstName: nameController.text,
-                                          lastName: lastNameController.text,
-                                          phone: phoneController.text,
-                                          birthDate: birthDateController.text,
-                                        ));
-                                    Navigator.pop(context);
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.primaryGold,
-                              foregroundColor: context.backgroundBlack,
-                              minimumSize: const Size(double.infinity, 56),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              elevation: 0,
-                              disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
-                              disabledForegroundColor: Colors.white10,
-                            ),
-                            child: isLoading
-                                ? CupertinoActivityIndicator(color: context.backgroundBlack)
-                                : const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
+      backgroundColor: const Color(0xFF121212),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      builder: (_) => ProfileEditSheet(
+        user: user,
+        profileBloc: context.read<ProfileBloc>(),
       ),
     );
-  }
-
-  bool _isValidDate(String date) {
-    final cleanDate = date.replaceAll(' ', '');
-    final regExp = RegExp(r'^\d{2}/\d{2}/\d{4}$');
-    if (!regExp.hasMatch(cleanDate)) return false;
-
-    try {
-      final parts = cleanDate.split('/');
-      final d = int.parse(parts[0]);
-      final m = int.parse(parts[1]);
-      final y = int.parse(parts[2]);
-
-      if (m < 1 || m > 12) return false;
-      if (d < 1 || d > 31) return false;
-
-      if (m == 2) {
-        final isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
-        if (d > (isLeap ? 29 : 28)) return false;
-      } else if ([4, 6, 9, 11].contains(m)) {
-        if (d > 30) return false;
-      }
-
-      final now = DateTime.now();
-      if (y < now.year - 100 || y > now.year) return false;
-      if (y == now.year) {
-        if (m > now.month) return false;
-        if (m == now.month && d > now.day) return false;
-      }
-
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 
   @override
@@ -215,65 +58,62 @@ class _ProfileContentState extends State<ProfileContent> {
       backgroundColor: context.backgroundBlack,
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
-          if (state.status == ProfileStatus.loading && state.user == null) {
-            return Center(child: CupertinoActivityIndicator(color: context.primaryGold));
+          if (state.status == ProfileStatus.loading) {
+            return _buildLoading(context);
           }
 
           final user = state.user;
-          if (user == null) return const SizedBox.shrink();
+          if (user == null) {
+            return _buildError(context);
+          }
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
                 const SizedBox(height: 24),
-                _buildHeader(context, user),
+                ProfileHeader(
+                  user: user,
+                  onEdit: () => _showEditSheet(context, user),
+                ),
                 const SizedBox(height: 40),
 
                 _buildSection(context, 'NOTIFICACIONES', [
-                  _buildNotificationControls(context, user),
+                  ProfileNotificationsSection(user: user),
                 ]),
 
                 const SizedBox(height: 32),
 
                 _buildSection(context, 'DATOS PERSONALES', [
-                  if (user.phone.isEmpty || user.birthDate.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Completa tu Número de WhatsApp y Nacimiento para continuar',
-                              style: TextStyle(color: Colors.redAccent.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  _buildDetailItem(
-                    context, 
-                    'Número de WhatsApp', 
-                    user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}', 
-                    Icons.chat_bubble_outline_rounded,
-                    onTap: user.phone.isEmpty ? () => _showEditSheet(context, user) : null,
+                  ProfileDetailItem(
+                    label: 'Número de WhatsApp', 
+                    value: user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}', 
+                    icon: FontAwesomeIcons.whatsapp,
+                    onTap: () => _showEditSheet(context, user),
                   ),
-                  _buildDetailItem(
-                    context, 
-                    'Nacimiento', 
-                    user.birthDate.isEmpty ? 'Pendiente' : user.birthDate, 
-                    Icons.cake_outlined,
-                    onTap: user.birthDate.isEmpty ? () => _showEditSheet(context, user) : null,
+                  ProfileDetailItem(
+                    label: 'Fecha de Nacimiento', 
+                    value: user.birthDate.isEmpty ? 'Pendiente' : user.birthDate, 
+                    icon: FontAwesomeIcons.calendarDays,
+                    onTap: () => _showEditSheet(context, user),
                   ),
                 ]),
 
                 const SizedBox(height: 32),
-                _buildLoyaltyCard(context, state),
+                ProfileLoyaltyCard(
+                  completedCuts: state.completedCuts,
+                  isRewardAvailable: state.isRewardAvailable,
+                  isExpanded: _isLoyaltyExpanded,
+                  onTap: () => setState(() => _isLoyaltyExpanded = !_isLoyaltyExpanded),
+                  onClaimReward: () => context.read<ProfileBloc>().add(const ClaimReward()),
+                ),
 
                 const SizedBox(height: 20),
-                _buildHistoryCard(context, user.history),
+                ProfileHistoryCard(
+                  history: user.history,
+                  isExpanded: _isHistoryExpanded,
+                  onTap: () => setState(() => _isHistoryExpanded = !_isHistoryExpanded),
+                ),
 
                 const SizedBox(height: 48),
                 _buildLogout(context),
@@ -286,123 +126,41 @@ class _ProfileContentState extends State<ProfileContent> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, UserProfile user) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+  Widget _buildLoading(BuildContext context) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_rounded, color: context.primaryGold, size: 28),
-          const SizedBox(height: 10),
-          const Text(
-            'PERFIL',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 42,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Container(width: 40, height: 2, color: context.primaryGold),
-          const SizedBox(height: 32),
-          
-          // ID y Editar Fila
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.primaryGold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: context.primaryGold.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  'ID: ${user.customerId?.substring(0, 8) ?? user.id.substring(0, 8)}',
-                  style: TextStyle(color: context.primaryGold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2),
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () => _showEditSheet(context, user),
-                icon: const Icon(Icons.edit_rounded, size: 14, color: Colors.white60),
-                label: const Text(
-                  'EDITAR PERFIL',
-                  style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 40),
-          
-          // Información Centrada
-          SizedBox(
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildAvatar(context, user.photoUrl),
-                const SizedBox(height: 24),
-                _buildIdentity(context, user),
-              ],
-            ),
+          CupertinoActivityIndicator(color: context.primaryGold, radius: 15),
+          const SizedBox(height: 16),
+          Text(
+            'CARGANDO PERFIL...',
+            style: TextStyle(color: context.primaryGold, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAvatar(BuildContext context, String url) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: context.primaryGold.withValues(alpha: 0.2), width: 1),
+  Widget _buildError(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.person_outline_rounded, color: Colors.white24, size: 64),
+          const SizedBox(height: 16),
+          const Text(
+            'No se encontró información del perfil',
+            style: TextStyle(color: Colors.white38),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => context.read<ProfileBloc>().add(const LoadProfileEvent()),
+            style: ElevatedButton.styleFrom(backgroundColor: context.primaryGold),
+            child: const Text('REINTENTAR', style: TextStyle(color: Colors.black)),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(5),
-      child: ClipOval(
-        child: CachedNetworkImage(
-          imageUrl: url,
-          width: 96,
-          height: 96,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(
-            color: Colors.white10,
-            child: const Center(child: CupertinoActivityIndicator(radius: 10)),
-          ),
-          errorWidget: (context, url, error) => const Icon(Icons.person, color: Colors.white24, size: 40),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIdentity(BuildContext context, UserProfile user) {
-    return Column(
-      children: [
-        Text(
-          '${user.firstName} ${user.lastName}'.toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          user.email,
-          style: const TextStyle(
-            color: Colors.white38,
-            fontSize: 14,
-          ),
-        ),
-      ],
     );
   }
 
@@ -428,256 +186,6 @@ class _ProfileContentState extends State<ProfileContent> {
           child: Column(children: children),
         ),
       ],
-    );
-  }
-
-  Widget _buildLoyaltyCard(BuildContext context, ProfileState state) {
-    return _buildPremiumCard(
-      context: context,
-      title: 'VIP MEMBER',
-      subtitle: 'Cartilla de Fidelización',
-      isExpanded: _isLoyaltyExpanded,
-      onTap: () => setState(() => _isLoyaltyExpanded = !_isLoyaltyExpanded),
-      children: [
-        const SizedBox(height: 32),
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          alignment: WrapAlignment.center,
-          children: List.generate(7, (index) {
-            final isCompleted = index < state.completedCuts;
-            return Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted ? context.primaryGold : Colors.transparent,
-                border: Border.all(color: context.primaryGold.withValues(alpha: isCompleted ? 1 : 0.3), width: 1.5),
-              ),
-              child: Center(
-                child: isCompleted
-                    ? Icon(Icons.check_rounded, color: context.backgroundBlack, size: 20)
-                    : Text('${index + 1}', style: const TextStyle(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 32),
-        ElevatedButton(
-          onPressed: state.isRewardAvailable ? () => context.read<ProfileBloc>().add(const ClaimReward()) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: context.primaryGold,
-            foregroundColor: context.backgroundBlack,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
-            disabledForegroundColor: Colors.white10,
-            elevation: 0,
-          ),
-          child: const Text('RECLAMAR RECOMPENSA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistoryCard(BuildContext context, List<CuttingRecord> history) {
-    return _buildPremiumCard(
-      context: context,
-      title: 'HISTORIAL',
-      subtitle: 'Tus últimos cortes realizados',
-      isExpanded: _isHistoryExpanded,
-      onTap: () => setState(() => _isHistoryExpanded = !_isHistoryExpanded),
-      children: [
-        const SizedBox(height: 16),
-        ...history.map((record) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.02),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(record.day, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                      Text(record.time, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(record.price, style: TextStyle(color: context.primaryGold, fontSize: 13, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.chevron_right_rounded, color: Colors.white10, size: 20),
-                    ],
-                  ),
-                ],
-              ),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildPremiumCard({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required bool isExpanded,
-    required VoidCallback onTap,
-    required List<Widget> children,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF121212),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: context.primaryGold.withValues(alpha: 0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: context.primaryGold.withValues(alpha: 0.05),
-                blurRadius: 20,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: TextStyle(color: context.primaryGold, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
-                    ],
-                  ),
-                  Icon(
-                    isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                    color: context.primaryGold,
-                  ),
-                ],
-              ),
-              if (isExpanded) ...children,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNotificationControls(BuildContext context, UserProfile user) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Notificaciones de Sistema', style: TextStyle(color: Colors.white, fontSize: 15)),
-              TextButton(
-                onPressed: () => context.read<ProfileBloc>().add(const RequestNotificationPermissionEvent()),
-                style: TextButton.styleFrom(
-                  backgroundColor: user.notificationsEnabled ? Colors.green.withValues(alpha: 0.05) : context.primaryGold.withValues(alpha: 0.05),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text(
-                  user.notificationsEnabled ? 'HABILITADO' : 'HABILITAR',
-                  style: TextStyle(
-                    color: user.notificationsEnabled ? Colors.greenAccent : context.primaryGold,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildTestNotificationMenu(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTestNotificationMenu(BuildContext context) {
-    return PopupMenuButton<ProfileNotificationType>(
-      onSelected: (type) => context.read<ProfileBloc>().add(TestNotificationEvent(type: type, mode: AppMode.client)),
-      color: const Color(0xFF1A1A1A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      itemBuilder: (context) => [
-        _buildPopupItem(context, ProfileNotificationType.offer, 'Prueba de Oferta', Icons.local_offer_rounded),
-        _buildPopupItem(context, ProfileNotificationType.birthday, 'Prueba de Cumpleaños', Icons.cake_rounded),
-        _buildPopupItem(context, ProfileNotificationType.reservation, 'Prueba de Reserva', Icons.alarm_rounded),
-      ],
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.notifications_active_rounded, color: context.primaryGold, size: 16),
-            const SizedBox(width: 12),
-            const Text('PRUEBA DE NOTIFICACIONES', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  PopupMenuItem<ProfileNotificationType> _buildPopupItem(BuildContext context, ProfileNotificationType value, String text, IconData icon) {
-    return PopupMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          Icon(icon, color: context.primaryGold, size: 18),
-          const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailItem(BuildContext context, String label, String value, IconData icon, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: context.primaryGold, size: 18),
-                const SizedBox(width: 12),
-                Text(label, style: const TextStyle(color: Colors.white70, fontSize: 15)),
-              ],
-            ),
-            Row(
-              children: [
-                Text(value, style: TextStyle(color: value == 'Pendiente' ? Colors.redAccent.withValues(alpha: 0.5) : Colors.white38, fontSize: 15)),
-                if (onTap != null) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.white10, size: 18),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
     );
   }
 

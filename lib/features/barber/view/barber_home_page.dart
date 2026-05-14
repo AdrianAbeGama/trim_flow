@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/features/home/presentation/views/home_view.dart';
+import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
@@ -18,6 +20,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
   late int currentPage;
   late TabController tabController;
   final BottomBarController _barController = BottomBarController();
+  bool _barVisible = true;
 
   @override
   void initState() {
@@ -31,24 +34,14 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
         });
       }
     });
-    super.initState();
-  }
-
-  void _checkProfileCompletion() {
-    final profileState = context.read<ProfileBloc>().state;
-    final user = profileState.user;
-    if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
-      if (tabController.index != 4) {
-        tabController.animateTo(4);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor, completa tu WhatsApp y Fecha de Nacimiento primero.'),
-            backgroundColor: Colors.redAccent,
-            duration: Duration(seconds: 2),
-          ),
-        );
+    _barController.addListener(() {
+      if (mounted) {
+        setState(() {
+          _barVisible = _barController.isVisible;
+        });
       }
-    }
+    });
+    super.initState();
   }
 
   @override
@@ -60,113 +53,205 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileBloc, ProfileState>(
-      listener: (context, state) {
-        final user = state.user;
-        if (user != null && (user.phone.isEmpty || user.birthDate.isEmpty)) {
-          if (tabController.index != 4) {
-            tabController.animateTo(4);
-          }
-        }
-      },
-      child: Scaffold(
-        backgroundColor: context.backgroundBlack,
-        body: Stack(
-          children: [
-            BottomBar(
-              controller: _barController,
-              layout: BottomBarLayout(
-                width: MediaQuery.of(context).size.width * 0.9,
+    return Scaffold(
+      backgroundColor: context.backgroundBlack,
+      body: Stack(
+        children: [
+          BottomBar(
+            controller: _barController,
+            layout: BottomBarLayout(
+              width: MediaQuery.of(context).size.width * 0.9,
+              borderRadius: BorderRadius.circular(500),
+              offset: 20,
+              alignment: Alignment.bottomCenter,
+            ),
+            scrollBehavior: const BottomBarScrollBehavior(
+              hideOnScroll: true,
+            ),
+            theme: BottomBarThemeData(
+              barDecoration: BoxDecoration(
+                color: const Color(0xFF111111),
                 borderRadius: BorderRadius.circular(500),
-                offset: 20,
-                alignment: Alignment.bottomCenter,
-              ),
-              theme: BottomBarThemeData(
-                barDecoration: BoxDecoration(
-                  color: const Color(0xFF111111),
-                  borderRadius: BorderRadius.circular(500),
-                  border: Border.all(
-                    color: context.primaryGold.withValues(alpha: 0.6),
-                    width: 1.5,
+                border: Border.all(
+                  color: context.primaryGold.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.primaryGold.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    spreadRadius: 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.primaryGold.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      spreadRadius: 2,
+                ],
+              ),
+            ),
+            showIcon: false,
+            body: BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                return TabBarView(
+                  controller: tabController,
+                  dragStartBehavior: DragStartBehavior.down,
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    HomeView(
+                      onNavigateToServices: () => tabController.animateTo(1), // Assuming Gallery or maybe you want another tab?
+                      onNavigateToProducts: () => tabController.animateTo(3),
+                      onNavigateToAppointments: () => tabController.animateTo(2),
                     ),
+                    const _BarberSectionView(title: 'Galería', icon: Icons.grid_view_rounded),
+                    const _BarberSectionView(title: 'Citas', icon: Icons.calendar_today_rounded),
+                    const _BarberSectionView(title: 'Productos', icon: Icons.shopping_bag_rounded),
+                    const BarberProfileView(),
                   ],
-                ),
-              ),
-              showIcon: false,
-              body: BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  final user = state.user;
-                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
-                  
-                  return TabBarView(
-                    controller: tabController,
-                    dragStartBehavior: DragStartBehavior.down,
-                    physics: isIncomplete ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-                    children: [
-                      _BarberSectionView(title: 'Inicio', icon: Icons.home_filled),
-                      _BarberSectionView(title: 'Galería', icon: Icons.grid_view_rounded),
-                      _BarberSectionView(title: 'Citas', icon: Icons.calendar_today_rounded),
-                      _BarberSectionView(title: 'Productos', icon: Icons.shopping_bag_rounded),
-                      const BarberProfileView(),
+                );
+              },
+            ),
+            child: BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                return TabBar(
+                  controller: tabController,
+                  onTap: (index) {
+                    // Navegación libre
+                  },
+                  indicator: UnderlineTabIndicator(
+                    borderSide: BorderSide(color: context.primaryGold, width: 3),
+                    insets: const EdgeInsets.symmetric(horizontal: 20),
+                  ),
+                  labelPadding: EdgeInsets.zero,
+                  dividerColor: Colors.transparent,
+                  tabs: [
+                    const Tab(icon: Icon(Icons.home_filled, size: 22)),
+                    const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                    const Tab(icon: Icon(Icons.calendar_today_rounded, size: 22)),
+                    const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
+                    const Tab(icon: Icon(Icons.person_rounded, size: 22)),
+                  ],
+                );
+              },
+            ),
+          ),
+          
+          // Etiqueta sutil de MODO BARBERO
+          Positioned(
+            top: 60,
+            right: 24,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: context.primaryGold.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
-                  );
-                },
-              ),
-              child: BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  final user = state.user;
-                  final isIncomplete = user != null && (user.phone.isEmpty || user.birthDate.isEmpty);
-                  
-                  return TabBar(
-                    controller: tabController,
-                    onTap: (index) {
-                      if (isIncomplete && index != 4) {
-                        tabController.animateTo(4);
-                        _checkProfileCompletion();
-                      }
-                    },
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(color: context.primaryGold, width: 3),
-                      insets: const EdgeInsets.symmetric(horizontal: 20),
+                  ),
+                  child: const Text(
+                    'MODO BARBERO',
+                    style: TextStyle(
+                      color: Colors.black, 
+                      fontSize: 10, 
+                      fontWeight: FontWeight.w900, 
+                      letterSpacing: 1
                     ),
-                    labelPadding: EdgeInsets.zero,
-                    dividerColor: Colors.transparent,
-                    tabs: [
-                      const Tab(icon: Icon(Icons.home_filled, size: 22)),
-                      const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                      const Tab(icon: Icon(Icons.calendar_today_rounded, size: 22)),
-                      const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                      const Tab(icon: Icon(Icons.person_rounded, size: 22)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                BlocBuilder<HomeBloc, HomeState>(
+                  builder: (context, state) {
+                    return GestureDetector(
+                      onTap: () {
+                        context.read<HomeBloc>().add(const HomeEvent.toggleEditMode());
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: state.isEditing ? Colors.white : const Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: context.primaryGold.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              state.isEditing ? Icons.check_circle_rounded : Icons.edit_rounded, 
+                              color: state.isEditing ? Colors.black : context.primaryGold, 
+                              size: 12
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              state.isEditing ? 'LISTO' : 'EDITAR INICIO',
+                              style: TextStyle(
+                                color: state.isEditing ? Colors.black : context.primaryGold, 
+                                fontSize: 9, 
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Mini Bar Trigger (Abrir bar flotante) - Sincronizado con Cliente
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutCubic,
+            bottom: _barVisible ? -80 : 28,
+            right: 20,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: _barVisible ? 0 : 1,
+              child: GestureDetector(
+                onTap: () => _barController.show(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: context.primaryGold.withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.primaryGold.withValues(alpha: 0.15),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
                     ],
-                  );
-                },
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Abrir',
+                        style: TextStyle(
+                          color: context.primaryGold,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            
-            // Etiqueta flotante de MODO BARBERO
-            Positioned(
-              top: 60,
-              right: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.primaryGold,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'MODO BARBERO',
-                  style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

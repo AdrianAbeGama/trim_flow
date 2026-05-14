@@ -23,4 +23,5 @@ abstract class ProfileEvent with _$ProfileEvent {
   const factory ProfileEvent.toggleNotifications({
     required bool enabled,
   }) = ToggleNotificationsEvent;
+  const factory ProfileEvent.toggleEditMode() = ToggleEditMode;
 }

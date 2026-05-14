@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -9,6 +11,8 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart'
 
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/di/injection.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final AuthService _authService = getIt<AuthService>();
@@ -16,6 +20,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ProfileBloc() : super(const ProfileState()) {
     on<LoadProfileEvent>(_onLoadProfile);
     on<SaveProfileData>(_onSaveProfileData);
+    on<ToggleEditMode>(_onToggleEditMode);
     on<ToggleNotificationsEvent>(_onToggleNotifications);
     on<RequestNotificationPermissionEvent>(_onRequestPermission);
     on<TestNotificationEvent>(_onTestNotification);
@@ -25,48 +30,34 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   void _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(status: ProfileStatus.loading));
     
-    final authUser = _authService.currentUser;
-    if (authUser == null) {
-      emit(state.copyWith(status: ProfileStatus.loaded, user: null));
-      return;
-    }
-
     try {
+      final authUser = _authService.currentUser;
+      if (authUser == null) {
+        emit(state.copyWith(status: ProfileStatus.initial, user: null));
+        return;
+      }
+
       final supabase = Supabase.instance.client;
       
-      // Intentar cargar perfil con joins
       final response = await supabase
           .from('profiles')
-          .select('*, customers(customer_id), barbers(barber_id)')
+          .select()
           .eq('id', authUser.id)
           .maybeSingle();
 
       if (response != null) {
-        final customerData = response['customers'] as List?;
-        final barberData = response['barbers'] as List?;
-        
-        final customerId = (customerData != null && customerData.isNotEmpty) 
-            ? customerData.first['customer_id']?.toString() 
-            : null;
-            
-        final barberId = (barberData != null && barberData.isNotEmpty) 
-            ? barberData.first['barber_id']?.toString() 
-            : null;
-
         final realUser = UserProfile(
           tenantId: 'barberia_alpha',
           id: response['id'] ?? authUser.id,
-          firstName: response['first_name'] ?? authUser.userMetadata?['full_name']?.split(' ').first ?? 'Usuario',
-          lastName: response['last_name'] ?? authUser.userMetadata?['full_name']?.split(' ').last ?? '',
+          firstName: response['full_name']?.split(' ').first ?? authUser.userMetadata?['full_name']?.split(' ').first ?? 'Usuario',
+          lastName: (response['full_name'] as String?)?.split(' ').skip(1).join(' ') ?? authUser.userMetadata?['full_name']?.split(' ').last ?? '',
           email: response['email'] ?? authUser.email ?? '',
           photoUrl: response['avatar_url'] ?? authUser.userMetadata?['avatar_url'] ?? 'https://www.w3schools.com/howto/img_avatar.png',
           phone: response['phone'] ?? '',
           birthDate: response['birth_date'] ?? '',
           notificationsEnabled: response['notifications_enabled'] ?? true,
-          customerId: customerId,
-          barberId: barberId,
           completedCuts: response['completed_cuts'] ?? 0,
-          history: [], // Aquí cargaríamos el historial real después
+          history: [],
         );
         
         emit(state.copyWith(
@@ -75,8 +66,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           completedCuts: realUser.completedCuts,
         ));
       } else {
-        // Si no existe el perfil, crear uno básico o manejar error
-        // Por ahora cargamos el mock pero avisamos que no hay perfil real
         final mockUser = UserProfile(
           tenantId: 'barberia_alpha',
           id: authUser.id,
@@ -88,6 +77,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           birthDate: '',
           notificationsEnabled: true,
         );
+        
         emit(state.copyWith(status: ProfileStatus.loaded, user: mockUser));
       }
     } catch (e) {
@@ -98,17 +88,51 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   void _onSaveProfileData(SaveProfileData event, Emitter<ProfileState> emit) async {
     if (state.user == null) return;
 
+    emit(state.copyWith(status: ProfileStatus.loading));
+    
     try {
       final supabase = Supabase.instance.client;
+      final fullName = '${event.firstName} ${event.lastName}'.trim();
       
-      await supabase.from('profiles').upsert({
-        'id': state.user!.id,
-        'first_name': event.firstName,
-        'last_name': event.lastName,
-        'phone': event.phone,
-        'birth_date': event.birthDate,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
+      // Obtenemos el modo actual (Barbero o Cliente)
+      final currentMode = getIt<AppModeBloc>().state.mode ?? AppMode.client;
+      
+      // Obtenemos el tenantId actual
+      final currentTenantId = getIt<TenantThemeBloc>().state.tenantId;
+      final effectiveTenantId = (currentTenantId == 'default' || currentTenantId == 'barberia_alpha') 
+          ? 'bbbbbbbb-2222-4222-8222-222222222222' 
+          : currentTenantId;
+
+      if (currentMode == AppMode.barber) {
+        // Intentar ACTUALIZAR como BARBERO (profiles)
+        // No usamos upsert porque el SQL no tiene políticas de INSERT para usuarios
+        final response = await supabase.from('profiles').update({
+          'full_name': fullName,
+          'phone': event.phone,
+          'tenant_id': effectiveTenantId,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', state.user!.id).select();
+
+        if (response.isEmpty) {
+          debugPrint('DEBUG: El perfil no existe en "profiles". Verificando en "customers"...');
+          // Si no existe en profiles, intentamos en customers (algunos usuarios se crean ahí)
+          await supabase.from('customers').update({
+            'full_name': fullName,
+            'whatsapp': '+51${event.phone}',
+            'tenant_id': effectiveTenantId,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('auth_user_id', state.user!.id);
+        }
+      } else {
+        // Modo CLIENTE: Solo Update
+        await supabase.from('customers').update({
+          'full_name': fullName,
+          'whatsapp': '+51${event.phone}',
+          'birth_date': event.birthDate.isEmpty ? null : event.birthDate,
+          'tenant_id': effectiveTenantId,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('auth_user_id', state.user!.id);
+      }
 
       final updatedUser = state.user!.copyWith(
         firstName: event.firstName,
@@ -117,21 +141,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         birthDate: event.birthDate,
       );
 
-      emit(state.copyWith(
-        status: ProfileStatus.updated, 
-        user: updatedUser,
-        isEditing: false,
-      ));
-      
-      emit(state.copyWith(status: ProfileStatus.loaded));
+      emit(state.copyWith(status: ProfileStatus.loaded, user: updatedUser, isEditing: false));
     } catch (e) {
+      debugPrint('DEBUG: Error al guardar perfil en modo ${getIt<AppModeBloc>().state.mode}: $e');
       emit(state.copyWith(status: ProfileStatus.error));
     }
   }
 
+  void _onToggleEditMode(ToggleEditMode event, Emitter<ProfileState> emit) {
+    emit(state.copyWith(isEditing: !state.isEditing));
+  }
+
   void _onClaimReward(ClaimReward event, Emitter<ProfileState> emit) {
     if (state.isRewardAvailable) {
-      // Lógica de reclamo de recompensa
       emit(state.copyWith(
         completedCuts: 0,
         isRewardAvailable: false,

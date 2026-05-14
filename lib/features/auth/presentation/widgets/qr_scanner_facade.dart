@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/core/di/injection.dart';
 
 class QrScannerFacade extends StatefulWidget {
   const QrScannerFacade({super.key});
@@ -9,7 +11,36 @@ class QrScannerFacade extends StatefulWidget {
 }
 
 class _QrScannerFacadeState extends State<QrScannerFacade> {
-  bool _isFlashOn = false;
+  final MobileScannerController controller = MobileScannerController();
+  bool _hasScanned = false;
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_hasScanned) return;
+
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      final String? code = barcode.rawValue;
+      if (code != null) {
+        // Aceptamos el código de Elite o cualquier UUID
+        if (code.contains('-') || code == "1" || code == "2") {
+          _hasScanned = true;
+          
+          // Actualizamos el Tenant
+          getIt<TenantThemeBloc>().loadTenant(code);
+          
+          // Feedback sutil y salida inmediata
+          Navigator.pop(context, code);
+          break;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,105 +48,74 @@ class _QrScannerFacadeState extends State<QrScannerFacade> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Fondo oscuro simulando cámara apagada o blur
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.8),
-                  Colors.black,
+          // Cámara con filtro oscuro premium
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withValues(alpha: 0.3),
+              BlendMode.darken,
+            ),
+            child: MobileScanner(
+              controller: controller,
+              onDetect: _onDetect,
+            ),
+          ),
+
+          // Guía minimalista
+          Center(
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Stack(
+                children: [
+                  _buildCorner(top: 0, left: 0, isTop: true, isLeft: true),
+                  _buildCorner(top: 0, right: 0, isTop: true, isLeft: false),
+                  _buildCorner(bottom: 0, left: 0, isTop: false, isLeft: true),
+                  _buildCorner(bottom: 0, right: 0, isTop: false, isLeft: false),
+                  const ScanningLineAnimation(),
                 ],
               ),
             ),
           ),
 
-          // Guía del escáner
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 250,
-                  height: 250,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: context.primaryGold.withValues(alpha: 0.5), width: 2),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Esquinas resaltadas
-                      _buildCorner(top: 0, left: 0, borderRadius: const BorderRadius.only(topLeft: Radius.circular(30))),
-                      _buildCorner(top: 0, right: 0, borderRadius: const BorderRadius.only(topRight: Radius.circular(30))),
-                      _buildCorner(bottom: 0, left: 0, borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(30))),
-                      _buildCorner(bottom: 0, right: 0, borderRadius: const BorderRadius.only(bottomRight: Radius.circular(30))),
-                      
-                      // Línea de escaneo animada (simulada)
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.0, end: 1.0),
-                        duration: const Duration(seconds: 2),
-                        builder: (context, value, child) {
-                          return Positioned(
-                            top: 250 * value,
-                            left: 20,
-                            right: 20,
-                            child: Container(
-                              height: 2,
-                              decoration: BoxDecoration(
-                                color: context.primaryGold,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: context.primaryGold.withValues(alpha: 0.5),
-                                    blurRadius: 10,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        onEnd: () {}, // Re-loop logic would go here if it was a real animation controller
-                      ),
-                    ],
-                  ),
+          // Texto informativo minimalista
+          const Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                'ESCANEANDO CÓDIGO QR',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.w300,
                 ),
-                const SizedBox(height: 40),
-                const Text(
-                  'Escanea el código QR de tu barbero',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
+              ),
             ),
           ),
 
-          // Controles superiores
+          // Botón de cerrar elegante
           Positioned(
             top: 60,
-            left: 20,
-            right: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            left: 30,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  shape: BoxShape.circle,
                 ),
-                const Text(
-                  'ESCANEAR QR',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2),
-                ),
-                IconButton(
-                  onPressed: () => setState(() => _isFlashOn = !_isFlashOn),
-                  icon: Icon(
-                    _isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                    color: _isFlashOn ? context.primaryGold : Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ],
+                child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+              ),
             ),
           ),
         ],
@@ -123,20 +123,83 @@ class _QrScannerFacadeState extends State<QrScannerFacade> {
     );
   }
 
-  Widget _buildCorner({double? top, double? bottom, double? left, double? right, required BorderRadius borderRadius}) {
+  Widget _buildCorner({double? top, double? bottom, double? left, double? right, required bool isTop, required bool isLeft}) {
     return Positioned(
       top: top,
       bottom: bottom,
       left: left,
       right: right,
       child: Container(
-        width: 40,
-        height: 40,
+        width: 30,
+        height: 30,
         decoration: BoxDecoration(
-          color: context.primaryGold,
-          borderRadius: borderRadius,
+          border: Border(
+            top: isTop ? const BorderSide(color: Colors.white, width: 1.5) : BorderSide.none,
+            bottom: !isTop ? const BorderSide(color: Colors.white, width: 1.5) : BorderSide.none,
+            left: isLeft ? const BorderSide(color: Colors.white, width: 1.5) : BorderSide.none,
+            right: !isLeft ? const BorderSide(color: Colors.white, width: 1.5) : BorderSide.none,
+          ),
+          borderRadius: BorderRadius.only(
+            topLeft: isTop && isLeft ? const Radius.circular(15) : Radius.zero,
+            topRight: isTop && !isLeft ? const Radius.circular(15) : Radius.zero,
+            bottomLeft: !isTop && isLeft ? const Radius.circular(15) : Radius.zero,
+            bottomRight: !isTop && !isLeft ? const Radius.circular(15) : Radius.zero,
+          ),
         ),
       ),
+    );
+  }
+}
+
+class ScanningLineAnimation extends StatefulWidget {
+  const ScanningLineAnimation({super.key});
+
+  @override
+  State<ScanningLineAnimation> createState() => _ScanningLineAnimationState();
+}
+
+class _ScanningLineAnimationState extends State<ScanningLineAnimation> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Positioned(
+          top: 260 * _animationController.value,
+          left: 30,
+          right: 30,
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

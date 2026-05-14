@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smooth_sheets/smooth_sheets.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -32,6 +33,7 @@ class BarberProfileContent extends StatefulWidget {
 class _BarberProfileContentState extends State<BarberProfileContent> {
   
   void _showEditSheet(BuildContext context, UserProfile user) {
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: user.firstName);
     final lastNameController = TextEditingController(text: user.lastName);
     final phoneController = TextEditingController(text: user.phone);
@@ -39,133 +41,103 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
     
     final profileBloc = context.read<ProfileBloc>();
 
-    showModalSheet(
+    showMaterialModalBottomSheet(
       context: context,
-      swipeDismissible: true,
+      backgroundColor: const Color(0xFF121212),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
       builder: (sheetContext) => BlocProvider.value(
         value: profileBloc,
-        child: Sheet(
-          initialOffset: const RelativeSheetOffset(0.85),
-          physics: const ClampingSheetPhysics(),
-          decoration: const MaterialSheetDecoration(
-            size: SheetSize.fit,
-            color: Color(0xFF121212),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        child: Container(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 12,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 40,
           ),
-          child: StatefulBuilder(
-            builder: (context, setSheetState) {
-              final name = nameController.text.trim();
-              final lastName = lastNameController.text.trim();
-              final phone = phoneController.text.trim();
-              final birthDate = birthDateController.text.trim();
-
-              final isNameValid = name.isNotEmpty && name.length <= 15;
-              final isLastNameValid = lastName.isNotEmpty && lastName.length <= 10;
-              final isPhoneValid = phone.length == 9 && RegExp(r'^\d+$').hasMatch(phone);
-              final isBirthDateValid = _isValidDate(birthDate);
-
-              final canSave = isNameValid && isLastNameValid && isPhoneValid && isBirthDateValid;
-
-              return BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  final isLoading = state.status == ProfileStatus.loading;
-
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      top: 12,
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 40,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            'EDITAR PERFIL BARBERO',
-                            style: TextStyle(
-                              color: context.primaryGold,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          ObInputField(
-                            label: 'Nombre',
-                            controller: nameController,
-                            maxLength: 15,
-                            showCounter: true,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'Apellido',
-                            controller: lastNameController,
-                            maxLength: 10,
-                            showCounter: true,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'WhatsApp',
-                            controller: phoneController,
-                            prefix: '+51',
-                            hasPrefixDivider: true,
-                            maxLength: 9,
-                            keyboardType: TextInputType.phone,
-                            errorText: (phone.isNotEmpty && !isPhoneValid) ? 'Este no es un número válido' : null,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          ObInputField(
-                            label: 'Fecha de Nacimiento',
-                            controller: birthDateController,
-                            hintText: 'DD / MM / AAAA',
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [DateInputFormatter()],
-                            errorText: (birthDate.isNotEmpty && !isBirthDateValid) ? 'Esta no es una fecha válida' : null,
-                            onChanged: (_) => setSheetState(() {}),
-                          ),
-                          const SizedBox(height: 32),
-                          ElevatedButton(
-                            onPressed: (isLoading || !canSave)
-                                ? null
-                                : () {
-                                    context.read<ProfileBloc>().add(SaveProfileData(
-                                          firstName: nameController.text,
-                                          lastName: lastNameController.text,
-                                          phone: phoneController.text,
-                                          birthDate: birthDateController.text,
-                                        ));
-                                    Navigator.pop(context);
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.primaryGold,
-                              foregroundColor: context.backgroundBlack,
-                              minimumSize: const Size(double.infinity, 56),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              elevation: 0,
-                              disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
-                              disabledForegroundColor: Colors.white10,
-                            ),
-                            child: isLoading
-                                ? CupertinoActivityIndicator(color: context.backgroundBlack)
-                                : const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+          child: SingleChildScrollView(
+            controller: ModalScrollController.of(sheetContext),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10))),
+                  const SizedBox(height: 32),
+                  Text('EDITAR PERFIL', style: TextStyle(color: context.primaryGold, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                  const SizedBox(height: 40),
+                  ObInputField(
+                    label: 'Nombre',
+                    controller: nameController,
+                    maxLength: 15,
+                    showCounter: true,
+                    validator: (val) => (val == null || val.isEmpty) ? 'Campo requerido' : null,
+                  ),
+                  ObInputField(
+                    label: 'Apellido',
+                    controller: lastNameController,
+                    maxLength: 10,
+                    showCounter: true,
+                    validator: (val) => (val == null || val.isEmpty) ? 'Campo requerido' : null,
+                  ),
+                  ObInputField(
+                    label: 'WhatsApp',
+                    controller: phoneController,
+                    prefix: '+51',
+                    hasPrefixDivider: true,
+                    maxLength: 9,
+                    keyboardType: TextInputType.phone,
+                    validator: (val) {
+                      if (val == null || val.isEmpty) return 'Campo requerido';
+                      if (val.length != 9 || !RegExp(r'^\d+$').hasMatch(val)) return 'Número no válido';
+                      return null;
+                    },
+                  ),
+                  ObInputField(
+                    label: 'Fecha de Nacimiento',
+                    controller: birthDateController,
+                    hintText: 'DD / MM / AAAA',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [DateInputFormatter()],
+                    validator: (val) {
+                      if (val == null || val.isEmpty) return 'Campo requerido';
+                      if (!_isValidDate(val)) return 'Fecha no válida';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  BlocBuilder<ProfileBloc, ProfileState>(
+                    builder: (context, state) {
+                      final isLoading = state.status == ProfileStatus.loading;
+                      return ElevatedButton(
+                        onPressed: isLoading ? null : () {
+                          if (formKey.currentState?.validate() ?? false) {
+                            context.read<ProfileBloc>().add(SaveProfileData(
+                              firstName: nameController.text,
+                              lastName: lastNameController.text,
+                              phone: phoneController.text,
+                              birthDate: birthDateController.text,
+                            ));
+                            Navigator.pop(context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.primaryGold,
+                          foregroundColor: context.backgroundBlack,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                          disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
+                          disabledForegroundColor: Colors.white10,
+                        ),
+                        child: isLoading
+                            ? CupertinoActivityIndicator(color: context.backgroundBlack)
+                            : const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -212,12 +184,44 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
       backgroundColor: context.backgroundBlack,
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
-          if (state.status == ProfileStatus.loading && state.user == null) {
-            return Center(child: CupertinoActivityIndicator(color: context.primaryGold));
+          if (state.status == ProfileStatus.loading) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoActivityIndicator(color: context.primaryGold, radius: 15),
+                  const SizedBox(height: 16),
+                  Text(
+                    'CARGANDO PERFIL...',
+                    style: TextStyle(color: context.primaryGold, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            );
           }
 
           final user = state.user;
-          if (user == null) return const SizedBox.shrink();
+          if (user == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_outline_rounded, color: Colors.white24, size: 64),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No se encontró información del perfil',
+                    style: TextStyle(color: Colors.white38),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => context.read<ProfileBloc>().add(const LoadProfileEvent()),
+                    style: ElevatedButton.styleFrom(backgroundColor: context.primaryGold),
+                    child: const Text('REINTENTAR', style: TextStyle(color: Colors.black)),
+                  ),
+                ],
+              ),
+            );
+          }
 
           return SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
@@ -234,35 +238,19 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
                 const SizedBox(height: 32),
 
                 _buildSection(context, 'DATOS PERSONALES', [
-                  if (user.phone.isEmpty || user.birthDate.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Completa tu Número de WhatsApp y Nacimiento para continuar',
-                              style: TextStyle(color: Colors.redAccent.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   _buildDetailItem(
                     context, 
                     'Número de WhatsApp', 
                     user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}', 
-                    Icons.chat_bubble_outline_rounded,
-                    onTap: user.phone.isEmpty ? () => _showEditSheet(context, user) : null,
+                    FontAwesomeIcons.whatsapp,
+                    onTap: () => _showEditSheet(context, user),
                   ),
                   _buildDetailItem(
                     context, 
-                    'Nacimiento', 
+                    'Fecha de Nacimiento', 
                     user.birthDate.isEmpty ? 'Pendiente' : user.birthDate, 
-                    Icons.cake_outlined,
-                    onTap: user.birthDate.isEmpty ? () => _showEditSheet(context, user) : null,
+                    FontAwesomeIcons.calendarDays,
+                    onTap: () => _showEditSheet(context, user),
                   ),
                 ]),
 
@@ -345,9 +333,9 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
               ),
               TextButton.icon(
                 onPressed: () => _showEditSheet(context, user),
-                icon: const Icon(Icons.settings_outlined, size: 14, color: Colors.white60),
+                icon: const Icon(Icons.edit_note_rounded, size: 14, color: Colors.white60),
                 label: const Text(
-                  'CONFIGURACIÓN',
+                  'EDITAR PERFIL',
                   style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
                 ),
                 style: TextButton.styleFrom(
@@ -368,8 +356,8 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildAvatar(context, user.photoUrl),
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 24),
+                
                 // Nombre
                 Text(
                   '${user.firstName} ${user.lastName}'.toUpperCase(),
@@ -522,14 +510,14 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
     );
   }
 
-  Widget _buildDetailItem(BuildContext context, String label, String value, IconData icon, {VoidCallback? onTap}) {
+  Widget _buildDetailItem(BuildContext context, String label, String value, dynamic icon, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Row(
           children: [
-            Icon(icon, color: context.primaryGold.withValues(alpha: 0.4), size: 20),
+            FaIcon(icon, color: context.primaryGold.withValues(alpha: 0.4), size: 20),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

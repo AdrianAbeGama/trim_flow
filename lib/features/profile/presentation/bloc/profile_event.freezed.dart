@@ -55,7 +55,7 @@ extension ProfileEventPatterns on ProfileEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult Function( ToggleEditMode value)?  toggleEditMode,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -64,7 +64,8 @@ return save(_that);case ClaimReward() when claimReward != null:
 return claimReward(_that);case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission(_that);case TestNotificationEvent() when testNotification != null:
 return testNotification(_that);case ToggleNotificationsEvent() when toggleNotifications != null:
-return toggleNotifications(_that);case _:
+return toggleNotifications(_that);case ToggleEditMode() when toggleEditMode != null:
+return toggleEditMode(_that);case _:
   return orElse();
 
 }
@@ -82,7 +83,7 @@ return toggleNotifications(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,required TResult Function( ToggleEditMode value)  toggleEditMode,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent():
@@ -91,7 +92,8 @@ return save(_that);case ClaimReward():
 return claimReward(_that);case RequestNotificationPermissionEvent():
 return requestNotificationPermission(_that);case TestNotificationEvent():
 return testNotification(_that);case ToggleNotificationsEvent():
-return toggleNotifications(_that);case _:
+return toggleNotifications(_that);case ToggleEditMode():
+return toggleEditMode(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -108,7 +110,7 @@ return toggleNotifications(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult? Function( ToggleEditMode value)?  toggleEditMode,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -117,7 +119,8 @@ return save(_that);case ClaimReward() when claimReward != null:
 return claimReward(_that);case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission(_that);case TestNotificationEvent() when testNotification != null:
 return testNotification(_that);case ToggleNotificationsEvent() when toggleNotifications != null:
-return toggleNotifications(_that);case _:
+return toggleNotifications(_that);case ToggleEditMode() when toggleEditMode != null:
+return toggleEditMode(_that);case _:
   return null;
 
 }
@@ -134,7 +137,7 @@ return toggleNotifications(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult Function( bool enabled)?  toggleNotifications,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult Function( bool enabled)?  toggleNotifications,TResult Function()?  toggleEditMode,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
@@ -142,7 +145,8 @@ return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case Cla
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
 return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
-return toggleNotifications(_that.enabled);case _:
+return toggleNotifications(_that.enabled);case ToggleEditMode() when toggleEditMode != null:
+return toggleEditMode();case _:
   return orElse();
 
 }
@@ -160,7 +164,7 @@ return toggleNotifications(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function( ProfileNotificationType type,  AppMode mode)  testNotification,required TResult Function( bool enabled)  toggleNotifications,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function( ProfileNotificationType type,  AppMode mode)  testNotification,required TResult Function( bool enabled)  toggleNotifications,required TResult Function()  toggleEditMode,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent():
 return load();case SaveProfileData():
@@ -168,7 +172,8 @@ return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case Cla
 return claimReward();case RequestNotificationPermissionEvent():
 return requestNotificationPermission();case TestNotificationEvent():
 return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent():
-return toggleNotifications(_that.enabled);case _:
+return toggleNotifications(_that.enabled);case ToggleEditMode():
+return toggleEditMode();case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -185,7 +190,7 @@ return toggleNotifications(_that.enabled);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,TResult? Function()?  toggleEditMode,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
@@ -193,7 +198,8 @@ return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case Cla
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
 return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
-return toggleNotifications(_that.enabled);case _:
+return toggleNotifications(_that.enabled);case ToggleEditMode() when toggleEditMode != null:
+return toggleEditMode();case _:
   return null;
 
 }
@@ -502,5 +508,37 @@ as bool,
 
 
 }
+
+/// @nodoc
+
+
+class ToggleEditMode implements ProfileEvent {
+  const ToggleEditMode();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ToggleEditMode);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ProfileEvent.toggleEditMode()';
+}
+
+
+}
+
+
+
 
 // dart format on
