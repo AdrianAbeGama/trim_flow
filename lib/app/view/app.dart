@@ -15,6 +15,8 @@ import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred a
 import 'package:trim_flow/features/auth/presentation/views/access_code_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
+import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
 import 'package:core/core.dart';
 
 class DeferredWidget extends StatefulWidget {
@@ -63,6 +65,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => getIt<AppModeBloc>()..add(const AppModeEvent.initialize())),
         BlocProvider(create: (_) => ProfileBloc()..add(const LoadProfileEvent())),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
+        BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
       ],
       child: BlocBuilder<TenantThemeBloc, TenantThemeState>(
         builder: (context, themeState) {

@@ -41,12 +41,12 @@ class HomeLocationSection extends StatelessWidget {
   Widget _buildLocationRow(BuildContext context, Map<String, String> location, int index) {
     return Row(
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.location_on_rounded, color: context.primaryGold, size: 32),
-            const Icon(Icons.location_on_outlined, color: Colors.white, size: 32),
-          ],
+        Image.asset(
+          'images/location_pin.png',
+          width: 32,
+          height: 32,
+          color: context.primaryGold,
+          fit: BoxFit.contain,
         ),
         const SizedBox(width: 16),
         Expanded(

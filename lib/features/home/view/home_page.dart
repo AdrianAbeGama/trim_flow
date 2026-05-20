@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/features/home/presentation/views/home_view.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,10 @@ import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_view.dart';
 import 'package:trim_flow/features/reservations/presentation/views/reservation_view.dart';
+import 'package:trim_flow/features/products/presentation/views/products_view.dart';
+import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
+import 'package:trim_flow/features/products/data/repositories/product_repository_impl.dart';
+import 'package:trim_flow/features/products/domain/usecases/product_usecases.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -197,9 +202,19 @@ class _HomePageState extends State<HomePage>
                         icon: Icons.grid_view_rounded,
                       ),
                       ReservationView(onGoHome: goToHome),
-                      const _SectionView(
-                        title: 'Productos',
-                        icon: Icons.shopping_bag_rounded,
+                      BlocProvider(
+                        create: (_) {
+                          final repo = ProductRepositoryImpl();
+                          return ProductBloc(
+                            getProducts: GetProductsUseCase(repo),
+                            getCategories: GetCategoriesUseCase(repo),
+                            searchProducts: SearchProductsUseCase(repo),
+                            filterByCategory: FilterByCategoryUseCase(repo),
+                            saveProduct: SaveProductUseCase(repo),
+                            deleteProduct: DeleteProductUseCase(repo),
+                          );
+                        },
+                        child: const ProductsView(),
                       ),
                       const ProfileView(),
                     ],
@@ -223,7 +238,7 @@ class _HomePageState extends State<HomePage>
                     tabs: [
                       const Tab(icon: Icon(Icons.home_filled, size: 22)),
                       const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                      _buildReservarTab(Icons.content_cut_rounded, 2),
+                      _buildReservarTab(2),
                       const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
                       const Tab(icon: Icon(Icons.person_rounded, size: 22)),
                     ],
@@ -285,31 +300,33 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildReservarTab(IconData icon, int index) {
+  Widget _buildReservarTab(int index) {
     final isSelected = currentPage == index;
     return Tab(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: isSelected
               ? context.primaryGold
-              : context.primaryGold.withValues(alpha: 0.1),
+              : context.primaryGold.withOpacity(0.1),
           shape: BoxShape.circle,
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: context.primaryGold.withValues(alpha: 0.3),
+                    color: context.primaryGold.withOpacity(0.3),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
                 ]
               : null,
         ),
-        child: Icon(
-          icon,
+        child: Image.asset(
+          'images/mustache.png',
           color: isSelected ? context.backgroundBlack : context.primaryGold,
-          size: 24,
+          width: 32,
+          height: 32,
+          fit: BoxFit.contain,
         ),
       ),
     );

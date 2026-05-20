@@ -1,8 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/safe_image.dart';
 import '../../domain/models/home_content.dart';
 
 class HomeProductsCarousel extends StatelessWidget {
@@ -186,31 +185,18 @@ class HomeProductsCarousel extends StatelessWidget {
   }
 
   Widget _buildProductImage(String url) {
-    Widget image;
-    if (url.startsWith('http')) {
-      image = CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        placeholder: (context, url) => const Center(child: Icon(Icons.shopping_bag_outlined, color: Colors.white10, size: 24)),
-        errorWidget: (context, url, error) => const Center(child: Icon(Icons.shopping_bag_outlined, color: Colors.white10, size: 24)),
-      );
-    } else if (url.startsWith('assets/')) {
-      image = Image.asset(url, fit: BoxFit.cover);
-    } else if (url.isNotEmpty && File(url).existsSync()) {
-      image = Image.file(File(url), fit: BoxFit.cover);
-    } else {
-      image = Container(
-        color: Colors.white.withValues(alpha: 0.02),
-        child: const Center(child: Icon(Icons.shopping_bag_outlined, color: Colors.white10, size: 24)),
-      );
-    }
-
     return ClipRRect(
       borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.02)),
-        child: image,
+        child: SafeImage(
+          url: url,
+          fit: BoxFit.cover,
+          errorWidget: const Center(
+            child: Icon(Icons.shopping_bag_outlined, color: Colors.white10, size: 24),
+          ),
+        ),
       ),
     );
   }

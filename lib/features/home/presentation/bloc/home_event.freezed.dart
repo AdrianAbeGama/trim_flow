@@ -55,7 +55,7 @@ extension HomeEventPatterns on HomeEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadHomeEvent value)?  load,TResult Function( ToggleHomeEditMode value)?  toggleEditMode,TResult Function( UpdateHomeContent value)?  updateContent,TResult Function( UpdateHomeHero value)?  updateHero,TResult Function( UpdateHomeAboutUs value)?  updateAboutUs,TResult Function( UpdateHomeSocialLink value)?  updateSocialLink,TResult Function( RemoveHomeSocialLink value)?  removeSocialLink,TResult Function( UpdateHomeLocation value)?  updateLocation,TResult Function( AddHomeStory value)?  addStory,TResult Function( RemoveHomeStory value)?  removeStory,TResult Function( AddHomeService value)?  addService,TResult Function( UpdateHomeService value)?  updateService,TResult Function( RemoveHomeService value)?  removeService,TResult Function( AddHomeProduct value)?  addProduct,TResult Function( UpdateHomeProduct value)?  updateProduct,TResult Function( RemoveHomeProduct value)?  removeProduct,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadHomeEvent value)?  load,TResult Function( ToggleHomeEditMode value)?  toggleEditMode,TResult Function( UpdateHomeContent value)?  updateContent,TResult Function( UpdateHomeHero value)?  updateHero,TResult Function( UpdateHomeAboutUs value)?  updateAboutUs,TResult Function( UpdateHomeSocialLink value)?  updateSocialLink,TResult Function( UpdateHomeLocation value)?  updateLocation,TResult Function( AddHomeStory value)?  addStory,TResult Function( RemoveHomeStory value)?  removeStory,TResult Function( AddHomeService value)?  addService,TResult Function( UpdateHomeService value)?  updateService,TResult Function( RemoveHomeService value)?  removeService,TResult Function( AddHomeProduct value)?  addProduct,TResult Function( UpdateHomeProduct value)?  updateProduct,TResult Function( RemoveHomeProduct value)?  removeProduct,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case LoadHomeEvent() when load != null:
@@ -64,8 +64,7 @@ return toggleEditMode(_that);case UpdateHomeContent() when updateContent != null
 return updateContent(_that);case UpdateHomeHero() when updateHero != null:
 return updateHero(_that);case UpdateHomeAboutUs() when updateAboutUs != null:
 return updateAboutUs(_that);case UpdateHomeSocialLink() when updateSocialLink != null:
-return updateSocialLink(_that);case RemoveHomeSocialLink() when removeSocialLink != null:
-return removeSocialLink(_that);case UpdateHomeLocation() when updateLocation != null:
+return updateSocialLink(_that);case UpdateHomeLocation() when updateLocation != null:
 return updateLocation(_that);case AddHomeStory() when addStory != null:
 return addStory(_that);case RemoveHomeStory() when removeStory != null:
 return removeStory(_that);case AddHomeService() when addService != null:
@@ -92,7 +91,7 @@ return removeProduct(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadHomeEvent value)  load,required TResult Function( ToggleHomeEditMode value)  toggleEditMode,required TResult Function( UpdateHomeContent value)  updateContent,required TResult Function( UpdateHomeHero value)  updateHero,required TResult Function( UpdateHomeAboutUs value)  updateAboutUs,required TResult Function( UpdateHomeSocialLink value)  updateSocialLink,required TResult Function( RemoveHomeSocialLink value)  removeSocialLink,required TResult Function( UpdateHomeLocation value)  updateLocation,required TResult Function( AddHomeStory value)  addStory,required TResult Function( RemoveHomeStory value)  removeStory,required TResult Function( AddHomeService value)  addService,required TResult Function( UpdateHomeService value)  updateService,required TResult Function( RemoveHomeService value)  removeService,required TResult Function( AddHomeProduct value)  addProduct,required TResult Function( UpdateHomeProduct value)  updateProduct,required TResult Function( RemoveHomeProduct value)  removeProduct,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadHomeEvent value)  load,required TResult Function( ToggleHomeEditMode value)  toggleEditMode,required TResult Function( UpdateHomeContent value)  updateContent,required TResult Function( UpdateHomeHero value)  updateHero,required TResult Function( UpdateHomeAboutUs value)  updateAboutUs,required TResult Function( UpdateHomeSocialLink value)  updateSocialLink,required TResult Function( UpdateHomeLocation value)  updateLocation,required TResult Function( AddHomeStory value)  addStory,required TResult Function( RemoveHomeStory value)  removeStory,required TResult Function( AddHomeService value)  addService,required TResult Function( UpdateHomeService value)  updateService,required TResult Function( RemoveHomeService value)  removeService,required TResult Function( AddHomeProduct value)  addProduct,required TResult Function( UpdateHomeProduct value)  updateProduct,required TResult Function( RemoveHomeProduct value)  removeProduct,}){
 final _that = this;
 switch (_that) {
 case LoadHomeEvent():
@@ -101,8 +100,7 @@ return toggleEditMode(_that);case UpdateHomeContent():
 return updateContent(_that);case UpdateHomeHero():
 return updateHero(_that);case UpdateHomeAboutUs():
 return updateAboutUs(_that);case UpdateHomeSocialLink():
-return updateSocialLink(_that);case RemoveHomeSocialLink():
-return removeSocialLink(_that);case UpdateHomeLocation():
+return updateSocialLink(_that);case UpdateHomeLocation():
 return updateLocation(_that);case AddHomeStory():
 return addStory(_that);case RemoveHomeStory():
 return removeStory(_that);case AddHomeService():
@@ -128,7 +126,7 @@ return removeProduct(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadHomeEvent value)?  load,TResult? Function( ToggleHomeEditMode value)?  toggleEditMode,TResult? Function( UpdateHomeContent value)?  updateContent,TResult? Function( UpdateHomeHero value)?  updateHero,TResult? Function( UpdateHomeAboutUs value)?  updateAboutUs,TResult? Function( UpdateHomeSocialLink value)?  updateSocialLink,TResult? Function( RemoveHomeSocialLink value)?  removeSocialLink,TResult? Function( UpdateHomeLocation value)?  updateLocation,TResult? Function( AddHomeStory value)?  addStory,TResult? Function( RemoveHomeStory value)?  removeStory,TResult? Function( AddHomeService value)?  addService,TResult? Function( UpdateHomeService value)?  updateService,TResult? Function( RemoveHomeService value)?  removeService,TResult? Function( AddHomeProduct value)?  addProduct,TResult? Function( UpdateHomeProduct value)?  updateProduct,TResult? Function( RemoveHomeProduct value)?  removeProduct,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadHomeEvent value)?  load,TResult? Function( ToggleHomeEditMode value)?  toggleEditMode,TResult? Function( UpdateHomeContent value)?  updateContent,TResult? Function( UpdateHomeHero value)?  updateHero,TResult? Function( UpdateHomeAboutUs value)?  updateAboutUs,TResult? Function( UpdateHomeSocialLink value)?  updateSocialLink,TResult? Function( UpdateHomeLocation value)?  updateLocation,TResult? Function( AddHomeStory value)?  addStory,TResult? Function( RemoveHomeStory value)?  removeStory,TResult? Function( AddHomeService value)?  addService,TResult? Function( UpdateHomeService value)?  updateService,TResult? Function( RemoveHomeService value)?  removeService,TResult? Function( AddHomeProduct value)?  addProduct,TResult? Function( UpdateHomeProduct value)?  updateProduct,TResult? Function( RemoveHomeProduct value)?  removeProduct,}){
 final _that = this;
 switch (_that) {
 case LoadHomeEvent() when load != null:
@@ -137,8 +135,7 @@ return toggleEditMode(_that);case UpdateHomeContent() when updateContent != null
 return updateContent(_that);case UpdateHomeHero() when updateHero != null:
 return updateHero(_that);case UpdateHomeAboutUs() when updateAboutUs != null:
 return updateAboutUs(_that);case UpdateHomeSocialLink() when updateSocialLink != null:
-return updateSocialLink(_that);case RemoveHomeSocialLink() when removeSocialLink != null:
-return removeSocialLink(_that);case UpdateHomeLocation() when updateLocation != null:
+return updateSocialLink(_that);case UpdateHomeLocation() when updateLocation != null:
 return updateLocation(_that);case AddHomeStory() when addStory != null:
 return addStory(_that);case RemoveHomeStory() when removeStory != null:
 return removeStory(_that);case AddHomeService() when addService != null:
@@ -164,7 +161,7 @@ return removeProduct(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function()?  toggleEditMode,TResult Function( HomeContent content)?  updateContent,TResult Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)?  updateHero,TResult Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)?  updateAboutUs,TResult Function( String platform,  String url)?  updateSocialLink,TResult Function( String platform)?  removeSocialLink,TResult Function( int index,  Map<String, String> location)?  updateLocation,TResult Function( Map<String, String> story)?  addStory,TResult Function( int index)?  removeStory,TResult Function( Map<String, String> service)?  addService,TResult Function( int index,  Map<String, String> service)?  updateService,TResult Function( int index)?  removeService,TResult Function( Map<String, String> product)?  addProduct,TResult Function( int index,  Map<String, String> product)?  updateProduct,TResult Function( int index)?  removeProduct,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function()?  toggleEditMode,TResult Function( HomeContent content)?  updateContent,TResult Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)?  updateHero,TResult Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)?  updateAboutUs,TResult Function( String platform,  String url)?  updateSocialLink,TResult Function( int index,  Map<String, String> location)?  updateLocation,TResult Function( Map<String, String> story)?  addStory,TResult Function( int index)?  removeStory,TResult Function( Map<String, String> service)?  addService,TResult Function( int index,  Map<String, String> service)?  updateService,TResult Function( int index)?  removeService,TResult Function( Map<String, String> product)?  addProduct,TResult Function( int index,  Map<String, String> product)?  updateProduct,TResult Function( int index)?  removeProduct,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadHomeEvent() when load != null:
 return load();case ToggleHomeEditMode() when toggleEditMode != null:
@@ -172,8 +169,7 @@ return toggleEditMode();case UpdateHomeContent() when updateContent != null:
 return updateContent(_that.content);case UpdateHomeHero() when updateHero != null:
 return updateHero(_that.title,_that.subtitle,_that.imageUrl,_that.tag1,_that.tag2);case UpdateHomeAboutUs() when updateAboutUs != null:
 return updateAboutUs(_that.title,_that.text,_that.imageUrl,_that.videoUrl);case UpdateHomeSocialLink() when updateSocialLink != null:
-return updateSocialLink(_that.platform,_that.url);case RemoveHomeSocialLink() when removeSocialLink != null:
-return removeSocialLink(_that.platform);case UpdateHomeLocation() when updateLocation != null:
+return updateSocialLink(_that.platform,_that.url);case UpdateHomeLocation() when updateLocation != null:
 return updateLocation(_that.index,_that.location);case AddHomeStory() when addStory != null:
 return addStory(_that.story);case RemoveHomeStory() when removeStory != null:
 return removeStory(_that.index);case AddHomeService() when addService != null:
@@ -200,7 +196,7 @@ return removeProduct(_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function()  toggleEditMode,required TResult Function( HomeContent content)  updateContent,required TResult Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)  updateHero,required TResult Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)  updateAboutUs,required TResult Function( String platform,  String url)  updateSocialLink,required TResult Function( String platform)  removeSocialLink,required TResult Function( int index,  Map<String, String> location)  updateLocation,required TResult Function( Map<String, String> story)  addStory,required TResult Function( int index)  removeStory,required TResult Function( Map<String, String> service)  addService,required TResult Function( int index,  Map<String, String> service)  updateService,required TResult Function( int index)  removeService,required TResult Function( Map<String, String> product)  addProduct,required TResult Function( int index,  Map<String, String> product)  updateProduct,required TResult Function( int index)  removeProduct,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function()  toggleEditMode,required TResult Function( HomeContent content)  updateContent,required TResult Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)  updateHero,required TResult Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)  updateAboutUs,required TResult Function( String platform,  String url)  updateSocialLink,required TResult Function( int index,  Map<String, String> location)  updateLocation,required TResult Function( Map<String, String> story)  addStory,required TResult Function( int index)  removeStory,required TResult Function( Map<String, String> service)  addService,required TResult Function( int index,  Map<String, String> service)  updateService,required TResult Function( int index)  removeService,required TResult Function( Map<String, String> product)  addProduct,required TResult Function( int index,  Map<String, String> product)  updateProduct,required TResult Function( int index)  removeProduct,}) {final _that = this;
 switch (_that) {
 case LoadHomeEvent():
 return load();case ToggleHomeEditMode():
@@ -208,8 +204,7 @@ return toggleEditMode();case UpdateHomeContent():
 return updateContent(_that.content);case UpdateHomeHero():
 return updateHero(_that.title,_that.subtitle,_that.imageUrl,_that.tag1,_that.tag2);case UpdateHomeAboutUs():
 return updateAboutUs(_that.title,_that.text,_that.imageUrl,_that.videoUrl);case UpdateHomeSocialLink():
-return updateSocialLink(_that.platform,_that.url);case RemoveHomeSocialLink():
-return removeSocialLink(_that.platform);case UpdateHomeLocation():
+return updateSocialLink(_that.platform,_that.url);case UpdateHomeLocation():
 return updateLocation(_that.index,_that.location);case AddHomeStory():
 return addStory(_that.story);case RemoveHomeStory():
 return removeStory(_that.index);case AddHomeService():
@@ -235,7 +230,7 @@ return removeProduct(_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function()?  toggleEditMode,TResult? Function( HomeContent content)?  updateContent,TResult? Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)?  updateHero,TResult? Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)?  updateAboutUs,TResult? Function( String platform,  String url)?  updateSocialLink,TResult? Function( String platform)?  removeSocialLink,TResult? Function( int index,  Map<String, String> location)?  updateLocation,TResult? Function( Map<String, String> story)?  addStory,TResult? Function( int index)?  removeStory,TResult? Function( Map<String, String> service)?  addService,TResult? Function( int index,  Map<String, String> service)?  updateService,TResult? Function( int index)?  removeService,TResult? Function( Map<String, String> product)?  addProduct,TResult? Function( int index,  Map<String, String> product)?  updateProduct,TResult? Function( int index)?  removeProduct,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function()?  toggleEditMode,TResult? Function( HomeContent content)?  updateContent,TResult? Function( String? title,  String? subtitle,  String? imageUrl,  String? tag1,  String? tag2)?  updateHero,TResult? Function( String? title,  String? text,  String? imageUrl,  String? videoUrl)?  updateAboutUs,TResult? Function( String platform,  String url)?  updateSocialLink,TResult? Function( int index,  Map<String, String> location)?  updateLocation,TResult? Function( Map<String, String> story)?  addStory,TResult? Function( int index)?  removeStory,TResult? Function( Map<String, String> service)?  addService,TResult? Function( int index,  Map<String, String> service)?  updateService,TResult? Function( int index)?  removeService,TResult? Function( Map<String, String> product)?  addProduct,TResult? Function( int index,  Map<String, String> product)?  updateProduct,TResult? Function( int index)?  removeProduct,}) {final _that = this;
 switch (_that) {
 case LoadHomeEvent() when load != null:
 return load();case ToggleHomeEditMode() when toggleEditMode != null:
@@ -243,8 +238,7 @@ return toggleEditMode();case UpdateHomeContent() when updateContent != null:
 return updateContent(_that.content);case UpdateHomeHero() when updateHero != null:
 return updateHero(_that.title,_that.subtitle,_that.imageUrl,_that.tag1,_that.tag2);case UpdateHomeAboutUs() when updateAboutUs != null:
 return updateAboutUs(_that.title,_that.text,_that.imageUrl,_that.videoUrl);case UpdateHomeSocialLink() when updateSocialLink != null:
-return updateSocialLink(_that.platform,_that.url);case RemoveHomeSocialLink() when removeSocialLink != null:
-return removeSocialLink(_that.platform);case UpdateHomeLocation() when updateLocation != null:
+return updateSocialLink(_that.platform,_that.url);case UpdateHomeLocation() when updateLocation != null:
 return updateLocation(_that.index,_that.location);case AddHomeStory() when addStory != null:
 return addStory(_that.story);case RemoveHomeStory() when removeStory != null:
 return removeStory(_that.index);case AddHomeService() when addService != null:
@@ -607,72 +601,6 @@ class _$UpdateHomeSocialLinkCopyWithImpl<$Res>
   return _then(UpdateHomeSocialLink(
 null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
 as String,null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-
-}
-
-/// @nodoc
-
-
-class RemoveHomeSocialLink implements HomeEvent {
-  const RemoveHomeSocialLink(this.platform);
-  
-
- final  String platform;
-
-/// Create a copy of HomeEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$RemoveHomeSocialLinkCopyWith<RemoveHomeSocialLink> get copyWith => _$RemoveHomeSocialLinkCopyWithImpl<RemoveHomeSocialLink>(this, _$identity);
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RemoveHomeSocialLink&&(identical(other.platform, platform) || other.platform == platform));
-}
-
-
-@override
-int get hashCode => Object.hash(runtimeType,platform);
-
-@override
-String toString() {
-  return 'HomeEvent.removeSocialLink(platform: $platform)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $RemoveHomeSocialLinkCopyWith<$Res> implements $HomeEventCopyWith<$Res> {
-  factory $RemoveHomeSocialLinkCopyWith(RemoveHomeSocialLink value, $Res Function(RemoveHomeSocialLink) _then) = _$RemoveHomeSocialLinkCopyWithImpl;
-@useResult
-$Res call({
- String platform
-});
-
-
-
-
-}
-/// @nodoc
-class _$RemoveHomeSocialLinkCopyWithImpl<$Res>
-    implements $RemoveHomeSocialLinkCopyWith<$Res> {
-  _$RemoveHomeSocialLinkCopyWithImpl(this._self, this._then);
-
-  final RemoveHomeSocialLink _self;
-  final $Res Function(RemoveHomeSocialLink) _then;
-
-/// Create a copy of HomeEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? platform = null,}) {
-  return _then(RemoveHomeSocialLink(
-null == platform ? _self.platform : platform // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

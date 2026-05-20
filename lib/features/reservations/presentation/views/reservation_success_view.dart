@@ -47,16 +47,11 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
       );
       if (image != null) {
         final directory = await getTemporaryDirectory();
-        final imagePath = await File('${directory.path}/reserva_trimflow.png').create();
-        await imagePath.writeAsBytes(image);
+        final imageFile = File('${directory.path}/reserva_trimflow.png');
+        await imageFile.writeAsBytes(image);
 
-        final dateStr = DateFormat("EEEE d 'de' MMMM", 'es').format(widget.reservation.date!);
-        
         // ignore: deprecated_member_use
-        await Share.shareXFiles(
-          [XFile(imagePath.path)],
-          text: '¡Mi reserva en TrimFlow está lista! 💈\nFecha: $dateStr a las ${widget.reservation.time}',
-        );
+        await Share.shareXFiles([XFile(imageFile.path)]);
       }
     } catch (e) {
       debugPrint('Error sharing image: $e');

@@ -75,7 +75,11 @@ class _ModuleSelectionViewState extends State<ModuleSelectionView> with SingleTi
                   _ModuleCard(
                     title: 'MODO CLIENTE',
                     subtitle: 'Reserva tu cita y explora servicios',
-                    icon: Icons.person_search_rounded,
+                    leading: Image.asset(
+                      'images/beard.png',
+                      color: context.primaryGold,
+                      fit: BoxFit.contain,
+                    ),
                     onTap: () {
                       context.read<AppModeBloc>().add(const AppModeEvent.changeMode(AppMode.client));
                     },
@@ -84,7 +88,11 @@ class _ModuleSelectionViewState extends State<ModuleSelectionView> with SingleTi
                   _ModuleCard(
                     title: 'MODO BARBERO',
                     subtitle: 'Gestiona tu agenda y herramientas',
-                    icon: Icons.handyman_rounded, // Usando un icono que represente herramientas de barbero
+                    leading: Image.asset(
+                      'images/barbershop.png',
+                      color: context.primaryGold,
+                      fit: BoxFit.contain,
+                    ),
                     onTap: () {
                       context.read<AppModeBloc>().add(const AppModeEvent.changeMode(AppMode.barber));
                     },
@@ -103,13 +111,13 @@ class _ModuleCard extends StatelessWidget {
   const _ModuleCard({
     required this.title,
     required this.subtitle,
-    required this.icon,
+    required this.leading,
     required this.onTap,
   });
 
   final String title;
   final String subtitle;
-  final IconData icon;
+  final Widget leading;
   final VoidCallback onTap;
 
   @override
@@ -131,7 +139,11 @@ class _ModuleCard extends StatelessWidget {
                 color: context.primaryGold.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: context.primaryGold, size: 28),
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: leading,
+              ),
             ),
             const SizedBox(width: 20),
             Expanded(

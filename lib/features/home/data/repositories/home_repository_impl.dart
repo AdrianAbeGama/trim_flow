@@ -47,6 +47,10 @@ class HomeRepositoryImpl implements HomeRepository {
           'img': 'https://images.unsplash.com/photo-1634480251976-88062030061e?w=800'
         },
       ],
+      locations: [
+        {'label': 'Sede Central', 'address': 'CALLE PRINCIPAL 123, AREQUIPA', 'mapUrl': 'https://maps.google.com'},
+        {'label': 'Sede Yanahuara', 'address': 'AV. EJÉRCITO 456, AREQUIPA', 'mapUrl': 'https://maps.google.com'}
+      ],
     );
   }
 
