@@ -177,37 +177,50 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final supabase = Supabase.instance.client;
       final fullName = '${event.firstName} ${event.lastName}'.trim();
-      
+
       final currentMode = getIt<AppModeBloc>().state.mode ?? AppMode.client;
       final currentTenantId = getIt<TenantThemeBloc>().state.tenantId;
-      final effectiveTenantId = (currentTenantId == 'default' || currentTenantId == 'barberia_alpha') 
-          ? 'bbbbbbbb-2222-4222-8222-222222222222' 
-          : currentTenantId;
+      final hasResolvedTenant = currentTenantId != kDefaultTenantId;
+      final nowIso = DateTime.now().toIso8601String();
 
       if (currentMode == AppMode.barber) {
-        final response = await supabase.from('profiles').update({
+        final profilePayload = <String, dynamic>{
           'full_name': fullName,
           'phone': event.phone,
-          'tenant_id': effectiveTenantId,
-          'updated_at': DateTime.now().toIso8601String(),
-        }).eq('id', state.user!.id).select();
+          'updated_at': nowIso,
+        };
+        if (hasResolvedTenant) profilePayload['tenant_id'] = currentTenantId;
+
+        final response = await supabase
+            .from('profiles')
+            .update(profilePayload)
+            .eq('id', state.user!.id)
+            .select();
 
         if (response.isEmpty) {
-          await supabase.from('customers').update({
+          final customerPayload = <String, dynamic>{
             'full_name': fullName,
             'whatsapp': '+51${event.phone}',
-            'tenant_id': effectiveTenantId,
-            'updated_at': DateTime.now().toIso8601String(),
-          }).eq('auth_user_id', state.user!.id);
+            'updated_at': nowIso,
+          };
+          if (hasResolvedTenant) customerPayload['tenant_id'] = currentTenantId;
+          await supabase
+              .from('customers')
+              .update(customerPayload)
+              .eq('auth_user_id', state.user!.id);
         }
       } else {
-        await supabase.from('customers').update({
+        final customerPayload = <String, dynamic>{
           'full_name': fullName,
           'whatsapp': '+51${event.phone}',
           'birth_date': event.birthDate.isEmpty ? null : event.birthDate,
-          'tenant_id': effectiveTenantId,
-          'updated_at': DateTime.now().toIso8601String(),
-        }).eq('auth_user_id', state.user!.id);
+          'updated_at': nowIso,
+        };
+        if (hasResolvedTenant) customerPayload['tenant_id'] = currentTenantId;
+        await supabase
+            .from('customers')
+            .update(customerPayload)
+            .eq('auth_user_id', state.user!.id);
       }
 
       final updatedUser = state.user!.copyWith(

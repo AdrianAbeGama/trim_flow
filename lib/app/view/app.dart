@@ -65,7 +65,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<TenantThemeBloc>()..loadTenant('barberia_alpha')),
+        BlocProvider(create: (_) => getIt<TenantThemeBloc>()..loadTenantFromAuth()),
         BlocProvider(create: (_) => getIt<AppModeBloc>()),
         BlocProvider(create: (_) => ProfileBloc()..add(const LoadProfileEvent())),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
