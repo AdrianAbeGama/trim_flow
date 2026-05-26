@@ -55,7 +55,7 @@ extension ReservationEventPatterns on ReservationEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _SelectDateTime value)?  selectDateTime,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _SelectDateTime value)?  selectDateTime,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _ActivateDiscount value)?  activateDiscount,TResult Function( _DeactivateDiscount value)?  deactivateDiscount,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
@@ -64,7 +64,9 @@ return toggleService(_that);case _SelectProfessional() when selectProfessional !
 return selectProfessional(_that);case _SelectDateTime() when selectDateTime != null:
 return selectDateTime(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that);case _Reset() when reset != null:
+return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
+return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
+return deactivateDiscount(_that);case _Reset() when reset != null:
 return reset(_that);case _:
   return orElse();
 
@@ -83,7 +85,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _SelectDateTime value)  selectDateTime,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _Reset value)  reset,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _SelectDateTime value)  selectDateTime,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _ActivateDiscount value)  activateDiscount,required TResult Function( _DeactivateDiscount value)  deactivateDiscount,required TResult Function( _Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter():
@@ -92,7 +94,9 @@ return toggleService(_that);case _SelectProfessional():
 return selectProfessional(_that);case _SelectDateTime():
 return selectDateTime(_that);case _GoToPhase():
 return goToPhase(_that);case _ConfirmReservation():
-return confirmReservation(_that);case _Reset():
+return confirmReservation(_that);case _ActivateDiscount():
+return activateDiscount(_that);case _DeactivateDiscount():
+return deactivateDiscount(_that);case _Reset():
 return reset(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -110,7 +114,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _SelectDateTime value)?  selectDateTime,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _Reset value)?  reset,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _SelectDateTime value)?  selectDateTime,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _ActivateDiscount value)?  activateDiscount,TResult? Function( _DeactivateDiscount value)?  deactivateDiscount,TResult? Function( _Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
@@ -119,7 +123,9 @@ return toggleService(_that);case _SelectProfessional() when selectProfessional !
 return selectProfessional(_that);case _SelectDateTime() when selectDateTime != null:
 return selectDateTime(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that);case _Reset() when reset != null:
+return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
+return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
+return deactivateDiscount(_that);case _Reset() when reset != null:
 return reset(_that);case _:
   return null;
 
@@ -137,7 +143,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String time)?  selectDateTime,TResult Function( int phase)?  goToPhase,TResult Function()?  confirmReservation,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String time)?  selectDateTime,TResult Function( int phase)?  goToPhase,TResult Function()?  confirmReservation,TResult Function()?  activateDiscount,TResult Function()?  deactivateDiscount,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
@@ -145,7 +151,9 @@ return toggleService(_that.service);case _SelectProfessional() when selectProfes
 return selectProfessional(_that.professional);case _SelectDateTime() when selectDateTime != null:
 return selectDateTime(_that.date,_that.time);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation();case _Reset() when reset != null:
+return confirmReservation();case _ActivateDiscount() when activateDiscount != null:
+return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
+return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
   return orElse();
 
@@ -164,7 +172,7 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String time)  selectDateTime,required TResult Function( int phase)  goToPhase,required TResult Function()  confirmReservation,required TResult Function()  reset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String time)  selectDateTime,required TResult Function( int phase)  goToPhase,required TResult Function()  confirmReservation,required TResult Function()  activateDiscount,required TResult Function()  deactivateDiscount,required TResult Function()  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter():
 return selectCenter(_that.center);case _ToggleService():
@@ -172,7 +180,9 @@ return toggleService(_that.service);case _SelectProfessional():
 return selectProfessional(_that.professional);case _SelectDateTime():
 return selectDateTime(_that.date,_that.time);case _GoToPhase():
 return goToPhase(_that.phase);case _ConfirmReservation():
-return confirmReservation();case _Reset():
+return confirmReservation();case _ActivateDiscount():
+return activateDiscount();case _DeactivateDiscount():
+return deactivateDiscount();case _Reset():
 return reset();case _:
   throw StateError('Unexpected subclass');
 
@@ -190,7 +200,7 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String time)?  selectDateTime,TResult? Function( int phase)?  goToPhase,TResult? Function()?  confirmReservation,TResult? Function()?  reset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String time)?  selectDateTime,TResult? Function( int phase)?  goToPhase,TResult? Function()?  confirmReservation,TResult? Function()?  activateDiscount,TResult? Function()?  deactivateDiscount,TResult? Function()?  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
@@ -198,7 +208,9 @@ return toggleService(_that.service);case _SelectProfessional() when selectProfes
 return selectProfessional(_that.professional);case _SelectDateTime() when selectDateTime != null:
 return selectDateTime(_that.date,_that.time);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation();case _Reset() when reset != null:
+return confirmReservation();case _ActivateDiscount() when activateDiscount != null:
+return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
+return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
   return null;
 
@@ -593,6 +605,70 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'ReservationEvent.confirmReservation()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _ActivateDiscount implements ReservationEvent {
+  const _ActivateDiscount();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ActivateDiscount);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ReservationEvent.activateDiscount()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class _DeactivateDiscount implements ReservationEvent {
+  const _DeactivateDiscount();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeactivateDiscount);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ReservationEvent.deactivateDiscount()';
 }
 
 

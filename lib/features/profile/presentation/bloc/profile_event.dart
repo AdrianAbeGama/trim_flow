@@ -16,12 +16,16 @@ abstract class ProfileEvent with _$ProfileEvent {
   }) = SaveProfileData;
   const factory ProfileEvent.claimReward() = ClaimReward;
   const factory ProfileEvent.requestNotificationPermission() = RequestNotificationPermissionEvent;
-  const factory ProfileEvent.testNotification({
-    required ProfileNotificationType type,
-    @Default(AppMode.client) AppMode mode,
-  }) = TestNotificationEvent;
+  const factory ProfileEvent.testNotification() = TestNotificationEvent;
   const factory ProfileEvent.toggleNotifications({
     required bool enabled,
   }) = ToggleNotificationsEvent;
   const factory ProfileEvent.toggleEditMode() = ToggleEditMode;
+  const factory ProfileEvent.addScheduledReservation(Reservation reservation) = AddScheduledReservation;
+  const factory ProfileEvent.clearBadge() = ClearBadge;
+  const factory ProfileEvent.resetFidelityCount() = ResetFidelityCount;
+  const factory ProfileEvent.cancelAppointment({
+    required String reservationId,
+    required String reason,
+  }) = CancelAppointment;
 }

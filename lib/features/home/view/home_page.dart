@@ -9,6 +9,8 @@ import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_view.dart';
 import 'package:trim_flow/features/reservations/presentation/views/reservation_view.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_event.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/data/repositories/product_repository_impl.dart';
@@ -16,6 +18,8 @@ import 'package:trim_flow/features/products/domain/usecases/product_usecases.dar
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  static final ValueNotifier<bool> enableSwipe = ValueNotifier<bool>(false);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -84,7 +88,7 @@ class _SectionViewState extends State<_SectionView>
                         widget.title.toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 42,
+                          fontSize: 32,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1,
                           height: 1,
@@ -161,141 +165,180 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: context.backgroundBlack,
-        body: Stack(
-          children: [
-            BottomBar(
-              controller: _barController,
-              layout: BottomBarLayout(
-                width: MediaQuery.of(context).size.width * 0.9,
-                borderRadius: BorderRadius.circular(500),
-                offset: 20,
-                alignment: Alignment.bottomCenter,
-              ),
-              scrollBehavior: const BottomBarScrollBehavior(
-                hideOnScroll: true,
-              ),
-              theme: BottomBarThemeData(
-                barDecoration: BoxDecoration(
-                  color: const Color(0xFF111111),
+        body: BlocListener<ProfileBloc, ProfileState>(
+          listenWhen: (previous, current) => previous.isBenefitActive != current.isBenefitActive,
+          listener: (context, state) {
+            if (state.isBenefitActive) {
+              // 1. Redirigir a pestaña de reservas (index 2)
+              tabController.animateTo(2);
+              // 2. Activar descuento en el ReservationBloc
+              context.read<ReservationBloc>().add(const ReservationEvent.activateDiscount());
+            }
+          },
+          child: Stack(
+            children: [
+              BottomBar(
+                controller: _barController,
+                layout: BottomBarLayout(
+                  width: MediaQuery.of(context).size.width * 0.9,
                   borderRadius: BorderRadius.circular(500),
-                  border: Border.all(
-                    color: context.primaryGold.withValues(alpha: 0.15),
-                    width: 1,
+                  offset: 20,
+                  alignment: Alignment.bottomCenter,
+                ),
+                scrollBehavior: const BottomBarScrollBehavior(
+                  hideOnScroll: true,
+                ),
+                theme: BottomBarThemeData(
+                  barDecoration: BoxDecoration(
+                    color: const Color(0xFF111111),
+                    borderRadius: BorderRadius.circular(500),
+                    border: Border.all(
+                      color: context.primaryGold.withValues(alpha: 0.15),
+                      width: 1,
+                    ),
                   ),
                 ),
-              ),
-              showIcon: false,
-              body: BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  return TabBarView(
-                    controller: tabController,
-                    dragStartBehavior: DragStartBehavior.down,
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      HomeView(
-                        onNavigateToServices: () => tabController.animateTo(2), // Reservas index
-                        onNavigateToProducts: () => tabController.animateTo(3),
-                        onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                showIcon: false,
+                body: BlocBuilder<ProfileBloc, ProfileState>(
+                  builder: (context, state) {
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: HomePage.enableSwipe,
+                      builder: (context, swipeEnabled, child) {
+                        return TabBarView(
+                          key: ValueKey('tabbarview_swipe_$swipeEnabled'),
+                          controller: tabController,
+                          dragStartBehavior: DragStartBehavior.down,
+                          physics: swipeEnabled
+                              ? const BouncingScrollPhysics()
+                              : const NeverScrollableScrollPhysics(),
+                          children: [
+                            HomeView(
+                              onNavigateToServices: () => tabController.animateTo(2), // Reservas index
+                              onNavigateToProducts: () => tabController.animateTo(3),
+                              onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                            ),
+                            const _SectionView(
+                              title: 'Galería',
+                              icon: Icons.grid_view_rounded,
+                            ),
+                            ReservationView(onGoHome: goToHome),
+                            BlocProvider(
+                              create: (_) {
+                                final repo = ProductRepositoryImpl();
+                                return ProductBloc(
+                                  getProducts: GetProductsUseCase(repo),
+                                  getCategories: GetCategoriesUseCase(repo),
+                                  searchProducts: SearchProductsUseCase(repo),
+                                  filterByCategory: FilterByCategoryUseCase(repo),
+                                  saveProduct: SaveProductUseCase(repo),
+                                  deleteProduct: DeleteProductUseCase(repo),
+                                );
+                              },
+                              child: const ProductsView(),
+                            ),
+                            const ProfileView(),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+                child: BlocBuilder<ProfileBloc, ProfileState>(
+                  builder: (context, state) {
+                    return TabBar(
+                      controller: tabController,
+                      onTap: (index) {
+                        // Navegación libre
+                      },
+                      indicator: UnderlineTabIndicator(
+                        borderSide: BorderSide(color: context.primaryGold, width: 2),
+                        insets: const EdgeInsets.symmetric(horizontal: 20),
                       ),
-                      const _SectionView(
-                        title: 'Galería',
-                        icon: Icons.grid_view_rounded,
-                      ),
-                      ReservationView(onGoHome: goToHome),
-                      BlocProvider(
-                        create: (_) {
-                          final repo = ProductRepositoryImpl();
-                          return ProductBloc(
-                            getProducts: GetProductsUseCase(repo),
-                            getCategories: GetCategoriesUseCase(repo),
-                            searchProducts: SearchProductsUseCase(repo),
-                            filterByCategory: FilterByCategoryUseCase(repo),
-                            saveProduct: SaveProductUseCase(repo),
-                            deleteProduct: DeleteProductUseCase(repo),
-                          );
-                        },
-                        child: const ProductsView(),
-                      ),
-                      const ProfileView(),
-                    ],
-                  );
-                },
-              ),
-              child: BlocBuilder<ProfileBloc, ProfileState>(
-                builder: (context, state) {
-                  return TabBar(
-                    controller: tabController,
-                    onTap: (index) {
-                      // Navegación libre
-                    },
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(color: context.primaryGold, width: 2),
-                      insets: const EdgeInsets.symmetric(horizontal: 20),
-                    ),
-                    labelPadding: EdgeInsets.zero,
-                    dividerColor: Colors.transparent,
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
-                    tabs: [
-                      const Tab(icon: Icon(Icons.home_filled, size: 22)),
-                      const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                      _buildReservarTab(2),
-                      const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                      const Tab(icon: Icon(Icons.person_rounded, size: 22)),
-                    ],
-                  );
-                },
-              ),
-            ),
-            
-            // Mini Bar Trigger (Abrir bar flotante)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeInOutCubic,
-              bottom: _barVisible ? -80 : 28,
-              right: 20,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: _barVisible ? 0 : 1,
-                child: GestureDetector(
-                  onTap: () => _barController.show(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: context.primaryGold.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.primaryGold.withValues(alpha: 0.15),
-                          blurRadius: 16,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Abrir',
-                          style: TextStyle(
-                            color: context.primaryGold,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                      labelPadding: EdgeInsets.zero,
+                      dividerColor: Colors.transparent,
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      tabs: [
+                        const Tab(icon: Icon(Icons.home_filled, size: 22)),
+                        const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                        _buildReservarTab(2),
+                        const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
+                        Tab(
+                          icon: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.person_rounded, size: 22),
+                              if (state.hasPendingBadge)
+                                Positioned(
+                                  right: -4,
+                                  top: -4,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],
+                    );
+                  },
+                ),
+              ),
+              
+              // Mini Bar Trigger (Abrir bar flotante)
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeInOutCubic,
+                bottom: _barVisible ? -80 : 28,
+                right: 20,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: _barVisible ? 0 : 1,
+                  child: GestureDetector(
+                    onTap: () => _barController.show(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: context.primaryGold.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: context.primaryGold.withValues(alpha: 0.15),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Abrir',
+                            style: TextStyle(
+                              color: context.primaryGold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
     );
   }

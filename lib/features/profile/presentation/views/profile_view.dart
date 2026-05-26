@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -8,14 +7,12 @@ import 'package:core/core.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
-import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
-import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 
 import '../widgets/profile_header.dart';
 import '../widgets/profile_loyalty_card.dart';
+import '../widgets/profile_active_appointments_card.dart';
 import '../widgets/profile_history_card.dart';
-import '../widgets/profile_notifications_section.dart';
-import '../widgets/profile_detail_item.dart';
+import '../widgets/profile_details_glass_card.dart';
 import '../widgets/profile_edit_sheet.dart';
 
 class ProfileView extends StatelessWidget {
@@ -36,7 +33,19 @@ class ProfileContent extends StatefulWidget {
 
 class _ProfileContentState extends State<ProfileContent> {
   bool _isLoyaltyExpanded = false;
+  bool _isActiveAppointmentsExpanded = false;
   bool _isHistoryExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Limpiar el badge dinámico del dock flotante al ingresar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ProfileBloc>().add(const ProfileEvent.clearBadge());
+      }
+    });
+  }
 
   void _showEditSheet(BuildContext context, UserProfile user) {
     showMaterialModalBottomSheet(
@@ -71,35 +80,30 @@ class _ProfileContentState extends State<ProfileContent> {
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                const SizedBox(height: 24),
                 ProfileHeader(
                   user: user,
                   onEdit: () => _showEditSheet(context, user),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 12),
 
-                _buildSection(context, 'NOTIFICACIONES', [
-                  ProfileNotificationsSection(user: user),
-                ]),
+                // 1. DATOS PERSONALES (WhatsApp / Birthdate) using custom Glassmorphic Card
+                ProfileDetailsGlassCard(
+                  user: user,
+                  onEdit: () => _showEditSheet(context, user),
+                ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
 
-                _buildSection(context, 'DATOS PERSONALES', [
-                  ProfileDetailItem(
-                    label: 'Número de WhatsApp', 
-                    value: user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}', 
-                    icon: FontAwesomeIcons.whatsapp,
-                    onTap: () => _showEditSheet(context, user),
-                  ),
-                  ProfileDetailItem(
-                    label: 'Fecha de Nacimiento', 
-                    value: user.birthDate.isEmpty ? 'Pendiente' : user.birthDate, 
-                    icon: FontAwesomeIcons.calendarDays,
-                    onTap: () => _showEditSheet(context, user),
-                  ),
-                ]),
+                // 2. CITAS PROGRAMADAS (Active reservations)
+                ProfileActiveAppointmentsCard(
+                  appointments: state.scheduledAppointments,
+                  isExpanded: _isActiveAppointmentsExpanded,
+                  onTap: () => setState(() => _isActiveAppointmentsExpanded = !_isActiveAppointmentsExpanded),
+                ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
+
+                // 3. CARTILLA DE FIDELIZACIÓN (Gamification)
                 ProfileLoyaltyCard(
                   completedCuts: state.completedCuts,
                   isRewardAvailable: state.isRewardAvailable,
@@ -108,16 +112,15 @@ class _ProfileContentState extends State<ProfileContent> {
                   onClaimReward: () => context.read<ProfileBloc>().add(const ClaimReward()),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
+
+                // 4. HISTORIAL DE CORTES (Historical logs)
                 ProfileHistoryCard(
-                  history: user.history,
+                  history: state.appointmentHistory,
                   isExpanded: _isHistoryExpanded,
                   onTap: () => setState(() => _isHistoryExpanded = !_isHistoryExpanded),
                 ),
-
-                const SizedBox(height: 48),
-                _buildLogout(context),
-                const SizedBox(height: 120),
+                const SizedBox(height: 80),
               ],
             ),
           );
@@ -161,38 +164,6 @@ class _ProfileContentState extends State<ProfileContent> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Text(
-            title.toUpperCase(),
-            style: TextStyle(color: context.primaryGold.withValues(alpha: 0.5), fontSize: 10, letterSpacing: 1.5),
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-              bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-          ),
-          child: Column(children: children),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogout(BuildContext context) {
-    return TextButton(
-      onPressed: () => context.read<AppModeBloc>().add(const AppModeEvent.requestLogout()),
-      child: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent, fontSize: 15)),
     );
   }
 }

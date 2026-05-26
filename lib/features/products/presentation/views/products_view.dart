@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/features/barber/view/barber_home_page.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
@@ -199,6 +200,9 @@ class _ProductsViewState extends State<ProductsView> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final modeState = context.read<AppModeBloc>().state;
+    final isBarber = modeState.mode == AppMode.barber;
+
     return SliverToBoxAdapter(
       child: SafeArea(
         bottom: false,
@@ -208,14 +212,81 @@ class _ProductsViewState extends State<ProductsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(Icons.shopping_bag_rounded, color: context.primaryGold, size: 28),
+                  if (isBarber) ...[
+                    const SizedBox(width: 12),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: BarberHomePage.showBarberBadge,
+                      builder: (context, showBadge, child) {
+                        if (!showBadge) return const SizedBox.shrink();
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: context.primaryGold,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'MODO BARBERO',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  const Spacer(),
                   _buildActions(context),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text('PRODUCTOS', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'PRODUCTOS',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  if (isBarber) ...[
+                    const SizedBox(width: 12),
+                    BlocBuilder<ProductBloc, ProductState>(
+                      builder: (context, state) {
+                        return GestureDetector(
+                          onTap: () => context.read<ProductBloc>().add(const ProductEvent.toggleEditMode()),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: state.isEditing ? Colors.white : const Color(0xFF1A1A1A),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: context.primaryGold.withValues(alpha: 0.5)),
+                            ),
+                            child: Text(
+                              state.isEditing ? 'LISTO' : 'EDITAR PRODUCTOS',
+                              style: TextStyle(
+                                color: state.isEditing ? Colors.black : context.primaryGold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
               Container(width: 40, height: 3, color: context.primaryGold),
             ],
           ),

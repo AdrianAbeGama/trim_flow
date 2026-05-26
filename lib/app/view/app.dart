@@ -1,6 +1,7 @@
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -66,6 +67,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => ProfileBloc()..add(const LoadProfileEvent())),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
         BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
+        BlocProvider(create: (_) => ReservationBloc()),
       ],
       child: BlocBuilder<TenantThemeBloc, TenantThemeState>(
         builder: (context, themeState) {

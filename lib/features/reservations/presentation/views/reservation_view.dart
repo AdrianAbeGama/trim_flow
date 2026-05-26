@@ -12,6 +12,8 @@ import 'package:trim_flow/features/reservations/presentation/widgets/phase_3_pro
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_4_datetime_selector.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_5_confirmation_receipt.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 
 class ReservationView extends StatelessWidget {
   const ReservationView({super.key, required this.onGoHome});
@@ -20,10 +22,7 @@ class ReservationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ReservationBloc(),
-      child: _ReservationContent(onGoHome: onGoHome),
-    );
+    return _ReservationContent(onGoHome: onGoHome);
   }
 }
 
@@ -36,6 +35,15 @@ class _ReservationContent extends StatelessWidget {
     return BlocListener<ReservationBloc, ReservationState>(
       listener: (context, state) {
         if (state.status == ReservationStatus.success) {
+          // Agregar a citas programadas del perfil
+          context.read<ProfileBloc>().add(ProfileEvent.addScheduledReservation(state.reservation));
+          
+          // Resetear cartilla si tenía descuento especial activo
+          if (state.isDiscountActive) {
+            context.read<ProfileBloc>().add(const ProfileEvent.resetFidelityCount());
+            context.read<ReservationBloc>().add(const ReservationEvent.deactivateDiscount());
+          }
+
           // Navegación limpia al SuccessView
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
@@ -92,7 +100,7 @@ class _ReservationContent extends StatelessWidget {
                                   'RESERVAR',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 42,
+                                    fontSize: 32,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: -1,
                                     height: 1,
@@ -114,6 +122,62 @@ class _ReservationContent extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
+                          if (state.isDiscountActive) ...[
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF161208), // Luxury dark gold tint
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: context.primaryGold,
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: context.primaryGold.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.stars_rounded,
+                                    color: context.primaryGold,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'BENEFICIO DE FIDELIZACIÓN',
+                                          style: TextStyle(
+                                            color: context.primaryGold,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          '¡50% de descuento automático en tu corte!',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           _PhaseWrapper(
                             phase: 1,
                             currentPhase: state.currentPhase,

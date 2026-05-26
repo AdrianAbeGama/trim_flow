@@ -25,15 +25,83 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<RequestNotificationPermissionEvent>(_onRequestPermission);
     on<TestNotificationEvent>(_onTestNotification);
     on<ClaimReward>(_onClaimReward);
+    on<AddScheduledReservation>(_onAddScheduledReservation);
+    on<ClearBadge>(_onClearBadge);
+    on<ResetFidelityCount>(_onResetFidelityCount);
+    on<CancelAppointment>(_onCancelAppointment);
   }
 
   void _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
     emit(state.copyWith(status: ProfileStatus.loading));
     
+    // Citas mock iniciales
+    final initialScheduled = [
+      Reservation(
+        tenantId: 'barberia_alpha',
+        id: 'mock_active_1',
+        center: const BarberCenter(
+          tenantId: 'barberia_alpha',
+          id: '1',
+          name: 'Cercado - Principal',
+          location: 'Av. Principal 123',
+          imageUrl: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=500&q=80',
+        ),
+        services: [
+          const Service(
+            tenantId: 'barberia_alpha',
+            id: 's1',
+            name: 'Corte Clásico',
+            price: 35.0,
+            durationInMinutes: 30,
+            category: 'Cortes',
+          )
+        ],
+        professional: const Professional(
+          tenantId: 'barberia_alpha',
+          id: 'p1',
+          name: 'Juan Pérez',
+          specialties: ['Clásicos'],
+          yearsOfExperience: 8,
+        ),
+        date: DateTime.now().add(const Duration(days: 1)),
+        time: '16:00 PM',
+        totalPrice: 35.0,
+      )
+    ];
+
+    final initialHistory = [
+      const PastAppointment(
+        centerName: 'Cercado - Principal',
+        dateStr: '05 / 05 / 2026',
+        serviceName: 'Corte + Barba',
+        professionalName: 'Carlos Díaz',
+        status: 'completed',
+        rating: 5,
+        paidPrice: 55.0,
+        wasDiscounted: false,
+      ),
+      const PastAppointment(
+        centerName: 'Cercado - Sucursal',
+        dateStr: '20 / 04 / 2026',
+        serviceName: 'Perfilado de Cejas',
+        professionalName: 'Luis Gómez',
+        status: 'cancelled',
+        cancellationReason: 'El cliente no pudo asistir por motivos personales',
+        rating: 3,
+        paidPrice: null,
+        wasDiscounted: false,
+      ),
+    ];
+
     try {
       final authUser = _authService.currentUser;
       if (authUser == null) {
-        emit(state.copyWith(status: ProfileStatus.initial, user: null));
+        emit(state.copyWith(
+          status: ProfileStatus.initial, 
+          user: null,
+          scheduledAppointments: initialScheduled,
+          appointmentHistory: initialHistory,
+        ));
         return;
       }
 
@@ -46,6 +114,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           .maybeSingle();
 
       if (response != null) {
+        final cuts = response['completed_cuts'] ?? 2;
         final realUser = UserProfile(
           tenantId: 'barberia_alpha',
           id: response['id'] ?? authUser.id,
@@ -56,14 +125,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           phone: response['phone'] ?? '',
           birthDate: response['birth_date'] ?? '',
           notificationsEnabled: response['notifications_enabled'] ?? true,
-          completedCuts: response['completed_cuts'] ?? 0,
+          completedCuts: cuts,
           history: [],
         );
         
         emit(state.copyWith(
           status: ProfileStatus.loaded, 
           user: realUser,
-          completedCuts: realUser.completedCuts,
+          completedCuts: cuts,
+          isRewardAvailable: cuts == 7,
+          scheduledAppointments: initialScheduled,
+          appointmentHistory: initialHistory,
         ));
       } else {
         final mockUser = UserProfile(
@@ -76,12 +148,24 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           phone: '',
           birthDate: '',
           notificationsEnabled: true,
+          completedCuts: 2,
         );
         
-        emit(state.copyWith(status: ProfileStatus.loaded, user: mockUser));
+        emit(state.copyWith(
+          status: ProfileStatus.loaded, 
+          user: mockUser,
+          completedCuts: 2,
+          isRewardAvailable: false,
+          scheduledAppointments: initialScheduled,
+          appointmentHistory: initialHistory,
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(status: ProfileStatus.error));
+      emit(state.copyWith(
+        status: ProfileStatus.error,
+        scheduledAppointments: initialScheduled,
+        appointmentHistory: initialHistory,
+      ));
     }
   }
 
@@ -94,18 +178,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final supabase = Supabase.instance.client;
       final fullName = '${event.firstName} ${event.lastName}'.trim();
       
-      // Obtenemos el modo actual (Barbero o Cliente)
       final currentMode = getIt<AppModeBloc>().state.mode ?? AppMode.client;
-      
-      // Obtenemos el tenantId actual
       final currentTenantId = getIt<TenantThemeBloc>().state.tenantId;
       final effectiveTenantId = (currentTenantId == 'default' || currentTenantId == 'barberia_alpha') 
           ? 'bbbbbbbb-2222-4222-8222-222222222222' 
           : currentTenantId;
 
       if (currentMode == AppMode.barber) {
-        // Intentar ACTUALIZAR como BARBERO (profiles)
-        // No usamos upsert porque el SQL no tiene políticas de INSERT para usuarios
         final response = await supabase.from('profiles').update({
           'full_name': fullName,
           'phone': event.phone,
@@ -114,8 +193,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         }).eq('id', state.user!.id).select();
 
         if (response.isEmpty) {
-          debugPrint('DEBUG: El perfil no existe en "profiles". Verificando en "customers"...');
-          // Si no existe en profiles, intentamos en customers (algunos usuarios se crean ahí)
           await supabase.from('customers').update({
             'full_name': fullName,
             'whatsapp': '+51${event.phone}',
@@ -124,7 +201,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           }).eq('auth_user_id', state.user!.id);
         }
       } else {
-        // Modo CLIENTE: Solo Update
         await supabase.from('customers').update({
           'full_name': fullName,
           'whatsapp': '+51${event.phone}',
@@ -143,7 +219,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
       emit(state.copyWith(status: ProfileStatus.loaded, user: updatedUser, isEditing: false));
     } catch (e) {
-      debugPrint('DEBUG: Error al guardar perfil en modo ${getIt<AppModeBloc>().state.mode}: $e');
       emit(state.copyWith(status: ProfileStatus.error));
     }
   }
@@ -153,11 +228,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void _onClaimReward(ClaimReward event, Emitter<ProfileState> emit) {
-    if (state.isRewardAvailable) {
+    if (state.completedCuts == 7) {
       emit(state.copyWith(
-        completedCuts: 0,
-        isRewardAvailable: false,
-        user: state.user?.copyWith(completedCuts: 0),
+        isBenefitActive: true,
       ));
     }
   }
@@ -176,54 +249,144 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void _onTestNotification(TestNotificationEvent event, Emitter<ProfileState> emit) async {
+    final currentMode = getIt<AppModeBloc>().state.mode ?? AppMode.client;
     String title = '';
     String body = '';
 
-    if (event.mode == AppMode.client) {
-      switch (event.type) {
-        case ProfileNotificationType.offer:
-          title = '¡Día del Hombre!';
-          body = 'Tienes un 50% de descuento en tu próximo corte';
-          break;
-        case ProfileNotificationType.birthday:
-          title = '¡Feliz cumpleaños!';
-          body = 'Pasa por tu regalo a Trimflow';
-          break;
-        case ProfileNotificationType.reservation:
-          title = 'Tu cita es en 15 minutos';
-          body = '¡No llegues tarde!';
-          break;
+    final idx = state.notificationIndex;
+    if (currentMode == AppMode.client) {
+      if (idx == 0) {
+        title = 'Alerta de Cita';
+        body = '¡Hola! Recuerda que tienes un corte programado para el día de hoy.';
+      } else if (idx == 1) {
+        title = 'Alerta de Cumpleaños';
+        body = '¡TrimFlow te desea un feliz cumpleaños! Pide tu regalo en tu siguiente visita.';
+      } else {
+        title = 'Alerta de Inactividad';
+        body = '¡Ya pasaron 30 días desde tu último corte! Tus barberos te extrañan, agenda aquí.';
       }
     } else {
-      switch (event.type) {
-        case ProfileNotificationType.offer:
-          title = 'Nuevo Pedido Recibido';
-          body = 'Tienes un nuevo servicio pendiente en tu lista';
-          break;
-        case ProfileNotificationType.birthday:
-          title = 'Servicio Finalizado';
-          body = 'El cliente ha calificado tu servicio con 5 estrellas';
-          break;
-        case ProfileNotificationType.reservation:
-          title = 'Recordatorio de Turno';
-          body = 'Tu siguiente cliente llegará en 10 minutos';
-          break;
+      if (idx == 0) {
+        title = 'Alerta de Agenda';
+        body = '¡Atención! Un cliente ha agendado una cita contigo a las 4:00 PM.';
+      } else if (idx == 1) {
+        title = 'Alerta de Almacén';
+        body = '¡Stock Crítico! Quedan menos de 3 unidades del ítem: Cera Mate en tu almacén.';
+      } else {
+        title = 'Alerta de Sistema';
+        body = '¡Hola! Tu administrador ha actualizado el catálogo de servicios de la sede.';
       }
     }
 
-    const androidDetails = AndroidNotificationDetails(
-      'trimflow_test_channel',
-      'Trimflow Test',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    const notificationDetails = NotificationDetails(android: androidDetails);
+    final nextIdx = (idx + 1) % 3;
 
-    await flutterLocalNotificationsPlugin.show(
-      id: 0,
-      title: title,
-      body: body,
-      notificationDetails: notificationDetails,
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'trimflow_test_channel',
+        'Trimflow Test',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+      const notificationDetails = NotificationDetails(android: androidDetails);
+
+      await flutterLocalNotificationsPlugin.show(
+        id: idx,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
+      );
+    } catch (e) {
+      debugPrint('Error showing local notification: $e');
+    }
+
+    emit(state.copyWith(
+      notificationIndex: nextIdx,
+    ));
+  }
+
+  void _onAddScheduledReservation(AddScheduledReservation event, Emitter<ProfileState> emit) {
+    final updatedList = List<Reservation>.from(state.scheduledAppointments)..add(event.reservation);
+    
+    bool showBadge = false;
+    if (event.reservation.date != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final tomorrow = today.add(const Duration(days: 1));
+      
+      final resDate = DateTime(event.reservation.date!.year, event.reservation.date!.month, event.reservation.date!.day);
+      if (resDate == today || resDate == tomorrow) {
+        showBadge = true;
+      }
+    }
+
+    emit(state.copyWith(
+      scheduledAppointments: updatedList.toList(),
+      hasPendingBadge: showBadge,
+    ));
+  }
+
+  void _onClearBadge(ClearBadge event, Emitter<ProfileState> emit) {
+    emit(state.copyWith(hasPendingBadge: false));
+  }
+
+  void _onResetFidelityCount(ResetFidelityCount event, Emitter<ProfileState> emit) async {
+    const nextCuts = 1;
+    final updatedUser = state.user?.copyWith(completedCuts: nextCuts);
+    
+    emit(state.copyWith(
+      completedCuts: nextCuts,
+      isBenefitActive: false,
+      isRewardAvailable: false,
+      user: updatedUser,
+    ));
+
+    try {
+      final authUser = _authService.currentUser;
+      if (authUser != null) {
+        final supabase = Supabase.instance.client;
+        await supabase.from('profiles').update({
+          'completed_cuts': nextCuts,
+        }).eq('id', authUser.id);
+      }
+    } catch (e) {
+      debugPrint('Error resetting Supabase completed cuts: $e');
+    }
+  }
+
+  void _onCancelAppointment(CancelAppointment event, Emitter<ProfileState> emit) {
+    // Buscar la reserva en la lista programada
+    final reservation = state.scheduledAppointments
+        .where((r) => r.id == event.reservationId)
+        .firstOrNull;
+
+    // Quitar de citas activas
+    final updatedScheduled = state.scheduledAppointments
+        .where((r) => r.id != event.reservationId)
+        .toList();
+
+    // Agregar al historial como cancelada
+    final cancelledEntry = PastAppointment(
+      centerName: reservation?.center?.name ?? 'Sede Principal',
+      dateStr: reservation?.date != null
+          ? '${reservation!.date!.day.toString().padLeft(2, '0')} / '
+            '${reservation.date!.month.toString().padLeft(2, '0')} / '
+            '${reservation.date!.year}'
+          : '—',
+      serviceName: reservation?.services.map((s) => s.name).join(', ') ?? 'Servicio',
+      professionalName: reservation?.professional?.name ?? 'Barbero',
+      status: 'cancelled',
+      cancellationReason: event.reason,
+      rating: 0,
+      paidPrice: null,
+      wasDiscounted: false,
     );
+
+    final updatedHistory = List<PastAppointment>.from(state.appointmentHistory)
+      ..insert(0, cancelledEntry);
+
+    emit(state.copyWith(
+      scheduledAppointments: updatedScheduled.toList(),
+      appointmentHistory: updatedHistory.toList(),
+    ));
   }
 }

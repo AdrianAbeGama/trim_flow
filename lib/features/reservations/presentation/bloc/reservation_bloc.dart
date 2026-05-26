@@ -24,7 +24,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
             services.add(e.service);
           }
           
-          final totalPrice = services.fold(0.0, (sum, item) => sum + item.price);
+          final basePrice = services.fold(0.0, (sum, item) => sum + item.price);
+          final totalPrice = state.isDiscountActive ? basePrice * 0.5 : basePrice;
           final totalDuration = services.fold(0, (sum, item) => sum + item.durationInMinutes);
 
           emit(state.copyWith(
@@ -57,9 +58,28 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
           await Future.delayed(const Duration(seconds: 2)); // Simulate network request
           emit(state.copyWith(status: ReservationStatus.success));
         },
+        activateDiscount: (e) async {
+          final basePrice = state.reservation.services.fold(0.0, (sum, item) => sum + item.price);
+          emit(state.copyWith(
+            isDiscountActive: true,
+            reservation: state.reservation.copyWith(
+              totalPrice: basePrice * 0.5,
+            ),
+          ));
+        },
+        deactivateDiscount: (e) async {
+          final basePrice = state.reservation.services.fold(0.0, (sum, item) => sum + item.price);
+          emit(state.copyWith(
+            isDiscountActive: false,
+            reservation: state.reservation.copyWith(
+              totalPrice: basePrice,
+            ),
+          ));
+        },
         reset: (e) async {
           emit(const ReservationState(
-            reservation: Reservation(tenantId: ReservationMockData.tenantId)
+            reservation: Reservation(tenantId: ReservationMockData.tenantId),
+            isDiscountActive: false,
           ));
         },
       );

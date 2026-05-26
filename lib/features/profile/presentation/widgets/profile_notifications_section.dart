@@ -42,50 +42,35 @@ class ProfileNotificationsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildTestNotificationMenu(context),
+          _buildTestNotificationButton(context),
         ],
       ),
     );
   }
 
-  Widget _buildTestNotificationMenu(BuildContext context) {
-    return PopupMenuButton<ProfileNotificationType>(
-      onSelected: (type) => context.read<ProfileBloc>().add(TestNotificationEvent(type: type, mode: AppMode.client)),
-      color: const Color(0xFF1A1A1A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      itemBuilder: (context) => [
-        _buildPopupItem(context, ProfileNotificationType.offer, 'Prueba de Oferta', Icons.local_offer_rounded),
-        _buildPopupItem(context, ProfileNotificationType.birthday, 'Prueba de Cumpleaños', Icons.cake_rounded),
-        _buildPopupItem(context, ProfileNotificationType.reservation, 'Prueba de Reserva', Icons.alarm_rounded),
-      ],
+  Widget _buildTestNotificationButton(BuildContext context) {
+    return InkWell(
+      onTap: () => context.read<ProfileBloc>().add(const TestNotificationEvent()),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          border: Border.all(color: context.primaryGold.withValues(alpha: 0.25)),
+          color: context.primaryGold.withValues(alpha: 0.03),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.notifications_active_rounded, color: context.primaryGold, size: 16),
             const SizedBox(width: 12),
-            const Text('PRUEBA DE NOTIFICACIONES', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+            const Text(
+              'PRUEBA DE NOTIFICACIONES',
+              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  PopupMenuItem<ProfileNotificationType> _buildPopupItem(BuildContext context, ProfileNotificationType value, String text, IconData icon) {
-    return PopupMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          Icon(icon, color: context.primaryGold, size: 18),
-          const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontSize: 13)),
-        ],
       ),
     );
   }

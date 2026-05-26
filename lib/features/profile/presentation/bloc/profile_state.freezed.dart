@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProfileState {
 
- ProfileStatus get status; UserProfile? get user; bool get isEditing; int get completedCuts; bool get isRewardAvailable;
+ ProfileStatus get status; UserProfile? get user; bool get isEditing; int get completedCuts; bool get isRewardAvailable; bool get isBenefitActive; List<Reservation> get scheduledAppointments; List<PastAppointment> get appointmentHistory; int get notificationIndex; bool get hasPendingBadge;
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ProfileStateCopyWith<ProfileState> get copyWith => _$ProfileStateCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileState&&(identical(other.status, status) || other.status == status)&&(identical(other.user, user) || other.user == user)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&(identical(other.isRewardAvailable, isRewardAvailable) || other.isRewardAvailable == isRewardAvailable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileState&&(identical(other.status, status) || other.status == status)&&(identical(other.user, user) || other.user == user)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&(identical(other.isRewardAvailable, isRewardAvailable) || other.isRewardAvailable == isRewardAvailable)&&(identical(other.isBenefitActive, isBenefitActive) || other.isBenefitActive == isBenefitActive)&&const DeepCollectionEquality().equals(other.scheduledAppointments, scheduledAppointments)&&const DeepCollectionEquality().equals(other.appointmentHistory, appointmentHistory)&&(identical(other.notificationIndex, notificationIndex) || other.notificationIndex == notificationIndex)&&(identical(other.hasPendingBadge, hasPendingBadge) || other.hasPendingBadge == hasPendingBadge));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,user,isEditing,completedCuts,isRewardAvailable);
+int get hashCode => Object.hash(runtimeType,status,user,isEditing,completedCuts,isRewardAvailable,isBenefitActive,const DeepCollectionEquality().hash(scheduledAppointments),const DeepCollectionEquality().hash(appointmentHistory),notificationIndex,hasPendingBadge);
 
 @override
 String toString() {
-  return 'ProfileState(status: $status, user: $user, isEditing: $isEditing, completedCuts: $completedCuts, isRewardAvailable: $isRewardAvailable)';
+  return 'ProfileState(status: $status, user: $user, isEditing: $isEditing, completedCuts: $completedCuts, isRewardAvailable: $isRewardAvailable, isBenefitActive: $isBenefitActive, scheduledAppointments: $scheduledAppointments, appointmentHistory: $appointmentHistory, notificationIndex: $notificationIndex, hasPendingBadge: $hasPendingBadge)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ProfileStateCopyWith<$Res>  {
   factory $ProfileStateCopyWith(ProfileState value, $Res Function(ProfileState) _then) = _$ProfileStateCopyWithImpl;
 @useResult
 $Res call({
- ProfileStatus status, UserProfile? user, bool isEditing, int completedCuts, bool isRewardAvailable
+ ProfileStatus status, UserProfile? user, bool isEditing, int completedCuts, bool isRewardAvailable, bool isBenefitActive, List<Reservation> scheduledAppointments, List<PastAppointment> appointmentHistory, int notificationIndex, bool hasPendingBadge
 });
 
 
@@ -62,13 +62,18 @@ class _$ProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? user = freezed,Object? isEditing = null,Object? completedCuts = null,Object? isRewardAvailable = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? user = freezed,Object? isEditing = null,Object? completedCuts = null,Object? isRewardAvailable = null,Object? isBenefitActive = null,Object? scheduledAppointments = null,Object? appointmentHistory = null,Object? notificationIndex = null,Object? hasPendingBadge = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProfileStatus,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as UserProfile?,isEditing: null == isEditing ? _self.isEditing : isEditing // ignore: cast_nullable_to_non_nullable
 as bool,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
 as int,isRewardAvailable: null == isRewardAvailable ? _self.isRewardAvailable : isRewardAvailable // ignore: cast_nullable_to_non_nullable
+as bool,isBenefitActive: null == isBenefitActive ? _self.isBenefitActive : isBenefitActive // ignore: cast_nullable_to_non_nullable
+as bool,scheduledAppointments: null == scheduledAppointments ? _self.scheduledAppointments : scheduledAppointments // ignore: cast_nullable_to_non_nullable
+as List<Reservation>,appointmentHistory: null == appointmentHistory ? _self.appointmentHistory : appointmentHistory // ignore: cast_nullable_to_non_nullable
+as List<PastAppointment>,notificationIndex: null == notificationIndex ? _self.notificationIndex : notificationIndex // ignore: cast_nullable_to_non_nullable
+as int,hasPendingBadge: null == hasPendingBadge ? _self.hasPendingBadge : hasPendingBadge // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -166,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable,  bool isBenefitActive,  List<Reservation> scheduledAppointments,  List<PastAppointment> appointmentHistory,  int notificationIndex,  bool hasPendingBadge)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileState() when $default != null:
-return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable);case _:
+return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable,_that.isBenefitActive,_that.scheduledAppointments,_that.appointmentHistory,_that.notificationIndex,_that.hasPendingBadge);case _:
   return orElse();
 
 }
@@ -187,10 +192,10 @@ return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable,  bool isBenefitActive,  List<Reservation> scheduledAppointments,  List<PastAppointment> appointmentHistory,  int notificationIndex,  bool hasPendingBadge)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileState():
-return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable);case _:
+return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable,_that.isBenefitActive,_that.scheduledAppointments,_that.appointmentHistory,_that.notificationIndex,_that.hasPendingBadge);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +212,10 @@ return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ProfileStatus status,  UserProfile? user,  bool isEditing,  int completedCuts,  bool isRewardAvailable,  bool isBenefitActive,  List<Reservation> scheduledAppointments,  List<PastAppointment> appointmentHistory,  int notificationIndex,  bool hasPendingBadge)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileState() when $default != null:
-return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable);case _:
+return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_that.isRewardAvailable,_that.isBenefitActive,_that.scheduledAppointments,_that.appointmentHistory,_that.notificationIndex,_that.hasPendingBadge);case _:
   return null;
 
 }
@@ -222,7 +227,7 @@ return $default(_that.status,_that.user,_that.isEditing,_that.completedCuts,_tha
 
 
 class _ProfileState implements ProfileState {
-  const _ProfileState({this.status = ProfileStatus.initial, this.user, this.isEditing = false, this.completedCuts = 2, this.isRewardAvailable = false});
+  const _ProfileState({this.status = ProfileStatus.initial, this.user, this.isEditing = false, this.completedCuts = 2, this.isRewardAvailable = false, this.isBenefitActive = false, final  List<Reservation> scheduledAppointments = const [], final  List<PastAppointment> appointmentHistory = const [], this.notificationIndex = 0, this.hasPendingBadge = false}): _scheduledAppointments = scheduledAppointments,_appointmentHistory = appointmentHistory;
   
 
 @override@JsonKey() final  ProfileStatus status;
@@ -230,6 +235,23 @@ class _ProfileState implements ProfileState {
 @override@JsonKey() final  bool isEditing;
 @override@JsonKey() final  int completedCuts;
 @override@JsonKey() final  bool isRewardAvailable;
+@override@JsonKey() final  bool isBenefitActive;
+ final  List<Reservation> _scheduledAppointments;
+@override@JsonKey() List<Reservation> get scheduledAppointments {
+  if (_scheduledAppointments is EqualUnmodifiableListView) return _scheduledAppointments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_scheduledAppointments);
+}
+
+ final  List<PastAppointment> _appointmentHistory;
+@override@JsonKey() List<PastAppointment> get appointmentHistory {
+  if (_appointmentHistory is EqualUnmodifiableListView) return _appointmentHistory;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_appointmentHistory);
+}
+
+@override@JsonKey() final  int notificationIndex;
+@override@JsonKey() final  bool hasPendingBadge;
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +263,16 @@ _$ProfileStateCopyWith<_ProfileState> get copyWith => __$ProfileStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileState&&(identical(other.status, status) || other.status == status)&&(identical(other.user, user) || other.user == user)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&(identical(other.isRewardAvailable, isRewardAvailable) || other.isRewardAvailable == isRewardAvailable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileState&&(identical(other.status, status) || other.status == status)&&(identical(other.user, user) || other.user == user)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&(identical(other.isRewardAvailable, isRewardAvailable) || other.isRewardAvailable == isRewardAvailable)&&(identical(other.isBenefitActive, isBenefitActive) || other.isBenefitActive == isBenefitActive)&&const DeepCollectionEquality().equals(other._scheduledAppointments, _scheduledAppointments)&&const DeepCollectionEquality().equals(other._appointmentHistory, _appointmentHistory)&&(identical(other.notificationIndex, notificationIndex) || other.notificationIndex == notificationIndex)&&(identical(other.hasPendingBadge, hasPendingBadge) || other.hasPendingBadge == hasPendingBadge));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,user,isEditing,completedCuts,isRewardAvailable);
+int get hashCode => Object.hash(runtimeType,status,user,isEditing,completedCuts,isRewardAvailable,isBenefitActive,const DeepCollectionEquality().hash(_scheduledAppointments),const DeepCollectionEquality().hash(_appointmentHistory),notificationIndex,hasPendingBadge);
 
 @override
 String toString() {
-  return 'ProfileState(status: $status, user: $user, isEditing: $isEditing, completedCuts: $completedCuts, isRewardAvailable: $isRewardAvailable)';
+  return 'ProfileState(status: $status, user: $user, isEditing: $isEditing, completedCuts: $completedCuts, isRewardAvailable: $isRewardAvailable, isBenefitActive: $isBenefitActive, scheduledAppointments: $scheduledAppointments, appointmentHistory: $appointmentHistory, notificationIndex: $notificationIndex, hasPendingBadge: $hasPendingBadge)';
 }
 
 
@@ -261,7 +283,7 @@ abstract mixin class _$ProfileStateCopyWith<$Res> implements $ProfileStateCopyWi
   factory _$ProfileStateCopyWith(_ProfileState value, $Res Function(_ProfileState) _then) = __$ProfileStateCopyWithImpl;
 @override @useResult
 $Res call({
- ProfileStatus status, UserProfile? user, bool isEditing, int completedCuts, bool isRewardAvailable
+ ProfileStatus status, UserProfile? user, bool isEditing, int completedCuts, bool isRewardAvailable, bool isBenefitActive, List<Reservation> scheduledAppointments, List<PastAppointment> appointmentHistory, int notificationIndex, bool hasPendingBadge
 });
 
 
@@ -278,13 +300,18 @@ class __$ProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? user = freezed,Object? isEditing = null,Object? completedCuts = null,Object? isRewardAvailable = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? user = freezed,Object? isEditing = null,Object? completedCuts = null,Object? isRewardAvailable = null,Object? isBenefitActive = null,Object? scheduledAppointments = null,Object? appointmentHistory = null,Object? notificationIndex = null,Object? hasPendingBadge = null,}) {
   return _then(_ProfileState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ProfileStatus,user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as UserProfile?,isEditing: null == isEditing ? _self.isEditing : isEditing // ignore: cast_nullable_to_non_nullable
 as bool,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
 as int,isRewardAvailable: null == isRewardAvailable ? _self.isRewardAvailable : isRewardAvailable // ignore: cast_nullable_to_non_nullable
+as bool,isBenefitActive: null == isBenefitActive ? _self.isBenefitActive : isBenefitActive // ignore: cast_nullable_to_non_nullable
+as bool,scheduledAppointments: null == scheduledAppointments ? _self._scheduledAppointments : scheduledAppointments // ignore: cast_nullable_to_non_nullable
+as List<Reservation>,appointmentHistory: null == appointmentHistory ? _self._appointmentHistory : appointmentHistory // ignore: cast_nullable_to_non_nullable
+as List<PastAppointment>,notificationIndex: null == notificationIndex ? _self.notificationIndex : notificationIndex // ignore: cast_nullable_to_non_nullable
+as int,hasPendingBadge: null == hasPendingBadge ? _self.hasPendingBadge : hasPendingBadge // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

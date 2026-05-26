@@ -55,7 +55,7 @@ extension ProfileEventPatterns on ProfileEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult Function( ToggleEditMode value)?  toggleEditMode,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult Function( ToggleEditMode value)?  toggleEditMode,TResult Function( AddScheduledReservation value)?  addScheduledReservation,TResult Function( ClearBadge value)?  clearBadge,TResult Function( ResetFidelityCount value)?  resetFidelityCount,TResult Function( CancelAppointment value)?  cancelAppointment,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -65,7 +65,11 @@ return claimReward(_that);case RequestNotificationPermissionEvent() when request
 return requestNotificationPermission(_that);case TestNotificationEvent() when testNotification != null:
 return testNotification(_that);case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that);case ToggleEditMode() when toggleEditMode != null:
-return toggleEditMode(_that);case _:
+return toggleEditMode(_that);case AddScheduledReservation() when addScheduledReservation != null:
+return addScheduledReservation(_that);case ClearBadge() when clearBadge != null:
+return clearBadge(_that);case ResetFidelityCount() when resetFidelityCount != null:
+return resetFidelityCount(_that);case CancelAppointment() when cancelAppointment != null:
+return cancelAppointment(_that);case _:
   return orElse();
 
 }
@@ -83,7 +87,7 @@ return toggleEditMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,required TResult Function( ToggleEditMode value)  toggleEditMode,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,required TResult Function( ToggleEditMode value)  toggleEditMode,required TResult Function( AddScheduledReservation value)  addScheduledReservation,required TResult Function( ClearBadge value)  clearBadge,required TResult Function( ResetFidelityCount value)  resetFidelityCount,required TResult Function( CancelAppointment value)  cancelAppointment,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent():
@@ -93,7 +97,11 @@ return claimReward(_that);case RequestNotificationPermissionEvent():
 return requestNotificationPermission(_that);case TestNotificationEvent():
 return testNotification(_that);case ToggleNotificationsEvent():
 return toggleNotifications(_that);case ToggleEditMode():
-return toggleEditMode(_that);case _:
+return toggleEditMode(_that);case AddScheduledReservation():
+return addScheduledReservation(_that);case ClearBadge():
+return clearBadge(_that);case ResetFidelityCount():
+return resetFidelityCount(_that);case CancelAppointment():
+return cancelAppointment(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -110,7 +118,7 @@ return toggleEditMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult? Function( ToggleEditMode value)?  toggleEditMode,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult? Function( ToggleEditMode value)?  toggleEditMode,TResult? Function( AddScheduledReservation value)?  addScheduledReservation,TResult? Function( ClearBadge value)?  clearBadge,TResult? Function( ResetFidelityCount value)?  resetFidelityCount,TResult? Function( CancelAppointment value)?  cancelAppointment,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -120,7 +128,11 @@ return claimReward(_that);case RequestNotificationPermissionEvent() when request
 return requestNotificationPermission(_that);case TestNotificationEvent() when testNotification != null:
 return testNotification(_that);case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that);case ToggleEditMode() when toggleEditMode != null:
-return toggleEditMode(_that);case _:
+return toggleEditMode(_that);case AddScheduledReservation() when addScheduledReservation != null:
+return addScheduledReservation(_that);case ClearBadge() when clearBadge != null:
+return clearBadge(_that);case ResetFidelityCount() when resetFidelityCount != null:
+return resetFidelityCount(_that);case CancelAppointment() when cancelAppointment != null:
+return cancelAppointment(_that);case _:
   return null;
 
 }
@@ -137,16 +149,20 @@ return toggleEditMode(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult Function( bool enabled)?  toggleNotifications,TResult Function()?  toggleEditMode,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function()?  testNotification,TResult Function( bool enabled)?  toggleNotifications,TResult Function()?  toggleEditMode,TResult Function( Reservation reservation)?  addScheduledReservation,TResult Function()?  clearBadge,TResult Function()?  resetFidelityCount,TResult Function( String reservationId,  String reason)?  cancelAppointment,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward() when claimReward != null:
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
-return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
+return testNotification();case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that.enabled);case ToggleEditMode() when toggleEditMode != null:
-return toggleEditMode();case _:
+return toggleEditMode();case AddScheduledReservation() when addScheduledReservation != null:
+return addScheduledReservation(_that.reservation);case ClearBadge() when clearBadge != null:
+return clearBadge();case ResetFidelityCount() when resetFidelityCount != null:
+return resetFidelityCount();case CancelAppointment() when cancelAppointment != null:
+return cancelAppointment(_that.reservationId,_that.reason);case _:
   return orElse();
 
 }
@@ -164,16 +180,20 @@ return toggleEditMode();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function( ProfileNotificationType type,  AppMode mode)  testNotification,required TResult Function( bool enabled)  toggleNotifications,required TResult Function()  toggleEditMode,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function()  testNotification,required TResult Function( bool enabled)  toggleNotifications,required TResult Function()  toggleEditMode,required TResult Function( Reservation reservation)  addScheduledReservation,required TResult Function()  clearBadge,required TResult Function()  resetFidelityCount,required TResult Function( String reservationId,  String reason)  cancelAppointment,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent():
 return load();case SaveProfileData():
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward():
 return claimReward();case RequestNotificationPermissionEvent():
 return requestNotificationPermission();case TestNotificationEvent():
-return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent():
+return testNotification();case ToggleNotificationsEvent():
 return toggleNotifications(_that.enabled);case ToggleEditMode():
-return toggleEditMode();case _:
+return toggleEditMode();case AddScheduledReservation():
+return addScheduledReservation(_that.reservation);case ClearBadge():
+return clearBadge();case ResetFidelityCount():
+return resetFidelityCount();case CancelAppointment():
+return cancelAppointment(_that.reservationId,_that.reason);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -190,16 +210,20 @@ return toggleEditMode();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function( ProfileNotificationType type,  AppMode mode)?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,TResult? Function()?  toggleEditMode,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function()?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,TResult? Function()?  toggleEditMode,TResult? Function( Reservation reservation)?  addScheduledReservation,TResult? Function()?  clearBadge,TResult? Function()?  resetFidelityCount,TResult? Function( String reservationId,  String reason)?  cancelAppointment,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
 return save(_that.firstName,_that.lastName,_that.phone,_that.birthDate);case ClaimReward() when claimReward != null:
 return claimReward();case RequestNotificationPermissionEvent() when requestNotificationPermission != null:
 return requestNotificationPermission();case TestNotificationEvent() when testNotification != null:
-return testNotification(_that.type,_that.mode);case ToggleNotificationsEvent() when toggleNotifications != null:
+return testNotification();case ToggleNotificationsEvent() when toggleNotifications != null:
 return toggleNotifications(_that.enabled);case ToggleEditMode() when toggleEditMode != null:
-return toggleEditMode();case _:
+return toggleEditMode();case AddScheduledReservation() when addScheduledReservation != null:
+return addScheduledReservation(_that.reservation);case ClearBadge() when clearBadge != null:
+return clearBadge();case ResetFidelityCount() when resetFidelityCount != null:
+return resetFidelityCount();case CancelAppointment() when cancelAppointment != null:
+return cancelAppointment(_that.reservationId,_that.reason);case _:
   return null;
 
 }
@@ -379,69 +403,33 @@ String toString() {
 
 
 class TestNotificationEvent implements ProfileEvent {
-  const TestNotificationEvent({required this.type, this.mode = AppMode.client});
+  const TestNotificationEvent();
   
 
- final  ProfileNotificationType type;
-@JsonKey() final  AppMode mode;
 
-/// Create a copy of ProfileEvent
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$TestNotificationEventCopyWith<TestNotificationEvent> get copyWith => _$TestNotificationEventCopyWithImpl<TestNotificationEvent>(this, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestNotificationEvent&&(identical(other.type, type) || other.type == type)&&(identical(other.mode, mode) || other.mode == mode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TestNotificationEvent);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,type,mode);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'ProfileEvent.testNotification(type: $type, mode: $mode)';
+  return 'ProfileEvent.testNotification()';
 }
 
 
 }
 
-/// @nodoc
-abstract mixin class $TestNotificationEventCopyWith<$Res> implements $ProfileEventCopyWith<$Res> {
-  factory $TestNotificationEventCopyWith(TestNotificationEvent value, $Res Function(TestNotificationEvent) _then) = _$TestNotificationEventCopyWithImpl;
-@useResult
-$Res call({
- ProfileNotificationType type, AppMode mode
-});
 
 
-
-
-}
-/// @nodoc
-class _$TestNotificationEventCopyWithImpl<$Res>
-    implements $TestNotificationEventCopyWith<$Res> {
-  _$TestNotificationEventCopyWithImpl(this._self, this._then);
-
-  final TestNotificationEvent _self;
-  final $Res Function(TestNotificationEvent) _then;
-
-/// Create a copy of ProfileEvent
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? type = null,Object? mode = null,}) {
-  return _then(TestNotificationEvent(
-type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as ProfileNotificationType,mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
-as AppMode,
-  ));
-}
-
-
-}
 
 /// @nodoc
 
@@ -540,5 +528,212 @@ String toString() {
 
 
 
+
+/// @nodoc
+
+
+class AddScheduledReservation implements ProfileEvent {
+  const AddScheduledReservation(this.reservation);
+  
+
+ final  Reservation reservation;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AddScheduledReservationCopyWith<AddScheduledReservation> get copyWith => _$AddScheduledReservationCopyWithImpl<AddScheduledReservation>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AddScheduledReservation&&(identical(other.reservation, reservation) || other.reservation == reservation));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,reservation);
+
+@override
+String toString() {
+  return 'ProfileEvent.addScheduledReservation(reservation: $reservation)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AddScheduledReservationCopyWith<$Res> implements $ProfileEventCopyWith<$Res> {
+  factory $AddScheduledReservationCopyWith(AddScheduledReservation value, $Res Function(AddScheduledReservation) _then) = _$AddScheduledReservationCopyWithImpl;
+@useResult
+$Res call({
+ Reservation reservation
+});
+
+
+$ReservationCopyWith<$Res> get reservation;
+
+}
+/// @nodoc
+class _$AddScheduledReservationCopyWithImpl<$Res>
+    implements $AddScheduledReservationCopyWith<$Res> {
+  _$AddScheduledReservationCopyWithImpl(this._self, this._then);
+
+  final AddScheduledReservation _self;
+  final $Res Function(AddScheduledReservation) _then;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? reservation = null,}) {
+  return _then(AddScheduledReservation(
+null == reservation ? _self.reservation : reservation // ignore: cast_nullable_to_non_nullable
+as Reservation,
+  ));
+}
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ReservationCopyWith<$Res> get reservation {
+  
+  return $ReservationCopyWith<$Res>(_self.reservation, (value) {
+    return _then(_self.copyWith(reservation: value));
+  });
+}
+}
+
+/// @nodoc
+
+
+class ClearBadge implements ProfileEvent {
+  const ClearBadge();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ClearBadge);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ProfileEvent.clearBadge()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class ResetFidelityCount implements ProfileEvent {
+  const ResetFidelityCount();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ResetFidelityCount);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'ProfileEvent.resetFidelityCount()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class CancelAppointment implements ProfileEvent {
+  const CancelAppointment({required this.reservationId, required this.reason});
+  
+
+ final  String reservationId;
+ final  String reason;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CancelAppointmentCopyWith<CancelAppointment> get copyWith => _$CancelAppointmentCopyWithImpl<CancelAppointment>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CancelAppointment&&(identical(other.reservationId, reservationId) || other.reservationId == reservationId)&&(identical(other.reason, reason) || other.reason == reason));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,reservationId,reason);
+
+@override
+String toString() {
+  return 'ProfileEvent.cancelAppointment(reservationId: $reservationId, reason: $reason)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CancelAppointmentCopyWith<$Res> implements $ProfileEventCopyWith<$Res> {
+  factory $CancelAppointmentCopyWith(CancelAppointment value, $Res Function(CancelAppointment) _then) = _$CancelAppointmentCopyWithImpl;
+@useResult
+$Res call({
+ String reservationId, String reason
+});
+
+
+
+
+}
+/// @nodoc
+class _$CancelAppointmentCopyWithImpl<$Res>
+    implements $CancelAppointmentCopyWith<$Res> {
+  _$CancelAppointmentCopyWithImpl(this._self, this._then);
+
+  final CancelAppointment _self;
+  final $Res Function(CancelAppointment) _then;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? reservationId = null,Object? reason = null,}) {
+  return _then(CancelAppointment(
+reservationId: null == reservationId ? _self.reservationId : reservationId // ignore: cast_nullable_to_non_nullable
+as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 // dart format on

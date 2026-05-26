@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:core/core.dart';
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 
 class Phase5ConfirmationReceipt extends StatefulWidget {
   final Reservation reservation;
@@ -35,6 +37,8 @@ class _Phase5ConfirmationReceiptState extends State<Phase5ConfirmationReceipt> {
 
   Widget _buildPreviewState(BuildContext context) {
     final res = widget.reservation;
+    final isDiscountActive = context.select((ReservationBloc bloc) => bloc.state.isDiscountActive);
+    final basePrice = res.services.fold(0.0, (sum, item) => sum + item.price);
     
     final primaryService = res.services.isNotEmpty ? res.services.first.name : '—';
     final additionalServices = res.services.length > 1 
@@ -86,7 +90,60 @@ class _Phase5ConfirmationReceiptState extends State<Phase5ConfirmationReceipt> {
                 color: Colors.white.withValues(alpha: 0.05),
               ),
               const SizedBox(height: 24),
-              
+              if (isDiscountActive) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'SUBTOTAL',
+                      style: TextStyle(
+                        color: Colors.white38,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    Text(
+                      'S/ ${basePrice.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'DESCUENTO FIDELIDAD (50% OFF)',
+                      style: TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    Text(
+                      '- S/ ${(basePrice * 0.5).toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 1,
+                  width: double.infinity,
+                  color: Colors.white.withValues(alpha: 0.03),
+                ),
+                const SizedBox(height: 16),
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

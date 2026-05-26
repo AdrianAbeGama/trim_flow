@@ -12,6 +12,8 @@ abstract class ReservationState with _$ReservationState {
     @Default(1) int currentPhase,
     @Default(Reservation(tenantId: '')) Reservation reservation,
     @Default(false) bool professionalSelected, 
+    @Default(false) bool isDiscountActive,
     String? errorMessage,
   }) = _ReservationState;
 }
+

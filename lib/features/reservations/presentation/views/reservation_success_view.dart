@@ -235,6 +235,45 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
             _buildDashedLine(),
             const SizedBox(height: 20),
 
+            Builder(
+              builder: (context) {
+                final basePrice = widget.reservation.services.fold(0.0, (sum, item) => sum + item.price);
+                final isDiscountApplied = widget.reservation.totalPrice < basePrice;
+
+                if (isDiscountApplied) {
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('SUBTOTAL', style: TextStyle(color: Colors.black38, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text(
+                            'S/ ${basePrice.toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('DESCUENTO FIDELIDAD (50%)', style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text(
+                            '- S/ ${(basePrice * 0.5).toStringAsFixed(2)}',
+                            style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(color: Colors.black12, height: 1),
+                      const SizedBox(height: 12),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              }
+            ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

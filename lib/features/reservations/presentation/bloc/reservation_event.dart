@@ -11,5 +11,8 @@ abstract class ReservationEvent with _$ReservationEvent {
   const factory ReservationEvent.selectDateTime(DateTime date, String time) = _SelectDateTime;
   const factory ReservationEvent.goToPhase(int phase) = _GoToPhase;
   const factory ReservationEvent.confirmReservation() = _ConfirmReservation;
+  const factory ReservationEvent.activateDiscount() = _ActivateDiscount;
+  const factory ReservationEvent.deactivateDiscount() = _DeactivateDiscount;
   const factory ReservationEvent.reset() = _Reset;
 }
+
