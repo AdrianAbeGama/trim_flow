@@ -75,9 +75,8 @@ class LoginView extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Icono de Google
-                    Image.network(
-                      'https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png',
+                    Image.asset(
+                      'images/google.png',
                       height: 24,
                     ),
                     const SizedBox(width: 16),

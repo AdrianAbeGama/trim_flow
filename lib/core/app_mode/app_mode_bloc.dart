@@ -10,18 +10,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 @lazySingleton
 class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   final AuthService _authService;
+  bool _isLoggingOut = false;
 
   AppModeBloc(this._authService) : super(const AppModeState()) {
     on<Initialize>((event, emit) async {
       final prefs = await SharedPreferences.getInstance();
       final savedCode = prefs.getString('access_code');
       
-      if (savedCode != null && _authService.currentUser != null) {
-        // Restaurar estado si ya hay sesión y código
-        emit(state.copyWith(accessCode: savedCode, isLoggedIn: true));
-        if (savedCode == '1') {
-          emit(state.copyWith(mode: AppMode.client, isInitialized: true));
+      if (savedCode != null) {
+        if (_authService.currentUser != null) {
+          // Ya ingresó código y ya inició sesión con Google
+          if (savedCode == '1') {
+            emit(state.copyWith(accessCode: savedCode, isLoggedIn: true, mode: AppMode.client, isInitialized: true));
+          } else if (savedCode == '2') {
+            if (!GetIt.I.hasScope('barber')) {
+              GetIt.I.pushNewScope(scopeName: 'barber');
+            }
+            emit(state.copyWith(accessCode: savedCode, isLoggedIn: true, mode: AppMode.barber, isInitialized: true));
+          } else {
+            emit(state.copyWith(accessCode: savedCode, isLoggedIn: true, isInitialized: true));
+          }
+        } else {
+          // Ya ingresó código pero NO ha iniciado sesión con Google aún
+          emit(state.copyWith(accessCode: savedCode, isLoggedIn: false, isInitialized: true));
         }
+      } else {
+        // No tiene código ingresado aún
+        emit(state.copyWith(accessCode: null, isLoggedIn: false, isInitialized: true));
       }
     });
 
@@ -30,18 +45,20 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
       if (session != null) {
         add(const AppModeEvent.login());
       } else {
-        add(const AppModeEvent.logout());
+        if (!_isLoggingOut) {
+          add(const AppModeEvent.logout());
+        }
       }
     });
 
     on<LoginWithGoogle>((event, emit) async {
+      emit(state.copyWith(isInitialized: false));
       await _authService.signInWithGoogle();
     });
     on<ChangeMode>((event, emit) {
       if (event.mode == AppMode.barber) {
         if (!GetIt.I.hasScope('barber')) {
           GetIt.I.pushNewScope(scopeName: 'barber');
-          // Aquí registrarías dependencias específicas de barbero si las hubiera
         }
       }
       emit(state.copyWith(mode: event.mode, isInitialized: true));
@@ -56,22 +73,39 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     on<Login>((event, emit) {
       if (state.accessCode == '1') {
         emit(state.copyWith(isLoggedIn: true, mode: AppMode.client, isInitialized: true));
+      } else if (state.accessCode == '2') {
+        if (!GetIt.I.hasScope('barber')) {
+          GetIt.I.pushNewScope(scopeName: 'barber');
+        }
+        emit(state.copyWith(isLoggedIn: true, mode: AppMode.barber, isInitialized: true));
       } else {
-        emit(state.copyWith(isLoggedIn: true));
+        emit(state.copyWith(isLoggedIn: true, isInitialized: true));
       }
     });
 
     on<RequestLogout>((event, emit) async {
+      _isLoggingOut = true;
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('access_code');
+      if (GetIt.I.hasScope('barber')) {
+        GetIt.I.popScope();
+      }
       await _authService.signOut();
+      emit(const AppModeState(isInitialized: true));
+      _isLoggingOut = false;
     });
 
     on<Logout>((event, emit) async {
       if (GetIt.I.hasScope('barber')) {
         GetIt.I.popScope();
       }
-      emit(const AppModeState());
+      final prefs = await SharedPreferences.getInstance();
+      final savedCode = prefs.getString('access_code');
+      emit(AppModeState(
+        accessCode: savedCode ?? state.accessCode,
+        isLoggedIn: false,
+        isInitialized: true,
+      ));
     });
 
     on<Reset>((event, emit) {

@@ -12,9 +12,6 @@ import 'package:trim_flow/features/reservations/presentation/views/reservation_v
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_event.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
-import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
-import 'package:trim_flow/features/products/data/repositories/product_repository_impl.dart';
-import 'package:trim_flow/features/products/domain/usecases/product_usecases.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -212,31 +209,24 @@ class _HomePageState extends State<HomePage>
                               ? const BouncingScrollPhysics()
                               : const NeverScrollableScrollPhysics(),
                           children: [
-                            HomeView(
-                              onNavigateToServices: () => tabController.animateTo(2), // Reservas index
-                              onNavigateToProducts: () => tabController.animateTo(3),
-                              onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                            KeepAliveWrapper(
+                              child: HomeView(
+                                onNavigateToServices: () => tabController.animateTo(2), // Reservas index
+                                onNavigateToProducts: () => tabController.animateTo(3),
+                                onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                              ),
                             ),
-                            const _SectionView(
-                              title: 'Galería',
-                              icon: Icons.grid_view_rounded,
+                            const KeepAliveWrapper(
+                              child: _SectionView(
+                                title: 'Galería',
+                                icon: Icons.grid_view_rounded,
+                              ),
                             ),
-                            ReservationView(onGoHome: goToHome),
-                            BlocProvider(
-                              create: (_) {
-                                final repo = ProductRepositoryImpl();
-                                return ProductBloc(
-                                  getProducts: GetProductsUseCase(repo),
-                                  getCategories: GetCategoriesUseCase(repo),
-                                  searchProducts: SearchProductsUseCase(repo),
-                                  filterByCategory: FilterByCategoryUseCase(repo),
-                                  saveProduct: SaveProductUseCase(repo),
-                                  deleteProduct: DeleteProductUseCase(repo),
-                                );
-                              },
-                              child: const ProductsView(),
+                            KeepAliveWrapper(child: ReservationView(onGoHome: goToHome)),
+                            const KeepAliveWrapper(
+                              child: ProductsView(),
                             ),
-                            const ProfileView(),
+                            const KeepAliveWrapper(child: ProfileView()),
                           ],
                         );
                       },
@@ -257,6 +247,7 @@ class _HomePageState extends State<HomePage>
                       labelPadding: EdgeInsets.zero,
                       dividerColor: Colors.transparent,
                       overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      splashFactory: NoSplash.splashFactory,
                       tabs: [
                         const Tab(icon: Icon(Icons.home_filled, size: 22)),
                         const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
@@ -373,5 +364,25 @@ class _HomePageState extends State<HomePage>
         ),
       ),
     );
+  }
+}
+
+class KeepAliveWrapper extends StatefulWidget {
+  const KeepAliveWrapper({super.key, required this.child});
+  final Widget child;
+
+  @override
+  State<KeepAliveWrapper> createState() => _KeepAliveWrapperState();
+}
+
+class _KeepAliveWrapperState extends State<KeepAliveWrapper>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

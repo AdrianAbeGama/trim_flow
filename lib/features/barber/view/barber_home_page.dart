@@ -1,4 +1,3 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/features/home/presentation/views/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
@@ -6,9 +5,6 @@ import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/view/barber_profile_view.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
-import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
-import 'package:trim_flow/features/products/data/repositories/product_repository_impl.dart';
-import 'package:trim_flow/features/products/domain/usecases/product_usecases.dart';
 
 class BarberHomePage extends StatefulWidget {
   const BarberHomePage({super.key});
@@ -55,19 +51,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final repo = ProductRepositoryImpl();
-        return ProductBloc(
-          getProducts: GetProductsUseCase(repo),
-          getCategories: GetCategoriesUseCase(repo),
-          searchProducts: SearchProductsUseCase(repo),
-          filterByCategory: FilterByCategoryUseCase(repo),
-          saveProduct: SaveProductUseCase(repo),
-          deleteProduct: DeleteProductUseCase(repo),
-        );
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: context.backgroundBlack,
         body: Stack(
           children: [
@@ -195,8 +179,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
 
