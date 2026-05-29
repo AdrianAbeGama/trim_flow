@@ -99,47 +99,10 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
       emit(state.copyWith(status: AgendaStatusUi.loading, errorMessage: null));
     }
     try {
-      var list = await _repository.fetchAgendaForDay(
+      final list = await _repository.fetchAgendaForDay(
         barberId: barberId,
         day: state.selectedDay,
       );
-      
-      // Inject dummy data for UI testing if empty
-      if (list.isEmpty) {
-        final now = DateTime.now();
-        list = [
-          AgendaAppointment(
-            id: 'mock_1',
-            tenantId: tenantId,
-            startTime: DateTime(now.year, now.month, now.day, 10, 0),
-            endTime: DateTime(now.year, now.month, now.day, 10, 45),
-            status: AgendaStatus.confirmed,
-            customerName: 'Carlos Ruiz',
-            serviceName: 'Corte Clásico + Barba',
-            priceAtBooking: 25.0,
-          ),
-          AgendaAppointment(
-            id: 'mock_2',
-            tenantId: tenantId,
-            startTime: DateTime(now.year, now.month, now.day, 11, 30),
-            endTime: DateTime(now.year, now.month, now.day, 12, 15),
-            status: AgendaStatus.completed,
-            customerName: 'Miguel Soto',
-            serviceName: 'Fade & Cejas',
-            priceAtBooking: 20.0,
-          ),
-          AgendaAppointment(
-            id: 'mock_3',
-            tenantId: tenantId,
-            startTime: DateTime(now.year, now.month, now.day, 14, 0),
-            endTime: DateTime(now.year, now.month, now.day, 14, 30),
-            status: AgendaStatus.pending,
-            customerName: 'José Pérez',
-            serviceName: 'Solo Corte',
-            priceAtBooking: 15.0,
-          ),
-        ];
-      }
 
       emit(state.copyWith(
         status: AgendaStatusUi.loaded,
