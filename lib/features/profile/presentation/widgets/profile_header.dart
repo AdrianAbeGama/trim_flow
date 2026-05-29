@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
@@ -99,26 +98,22 @@ class ProfileHeader extends StatelessWidget {
   }
 
   Widget _buildAvatarWithEdit(BuildContext context) {
+    final displayName = '${user.firstName} ${user.lastName}'.trim();
     return Stack(
       children: [
         Container(
+          padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: context.primaryGold.withValues(alpha: 0.2), width: 1.5),
-          ),
-          padding: const EdgeInsets.all(5),
-          child: ClipOval(
-            child: CachedNetworkImage(
-              imageUrl: user.photoUrl,
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.white10,
-                child: const Center(child: CupertinoActivityIndicator(radius: 10)),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.person, color: Colors.white24, size: 40),
+            border: Border.all(
+              color: context.primaryGold.withValues(alpha: 0.2),
+              width: 1.5,
             ),
+          ),
+          child: AvatarPremium(
+            displayName: displayName.isEmpty ? 'Usuario' : displayName,
+            photoUrl: user.photoUrl,
+            size: 96,
           ),
         ),
         // Modern circular floating pencil edit button overlapping the avatar

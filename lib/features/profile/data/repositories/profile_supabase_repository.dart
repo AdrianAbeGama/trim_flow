@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
@@ -6,11 +7,25 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart'
 
 const List<String> _kActiveReservationStatuses = ['pending', 'confirmed'];
 
+class CustomerRowMissingException implements Exception {
+  final String message;
+  const CustomerRowMissingException(this.message);
+  @override
+  String toString() => 'CustomerRowMissingException: $message';
+}
+
+class StaffRowMissingException implements Exception {
+  final String message;
+  const StaffRowMissingException(this.message);
+  @override
+  String toString() => 'StaffRowMissingException: $message';
+}
+
+@LazySingleton(as: ProfileRepository)
 class ProfileSupabaseRepository implements ProfileRepository {
   final SupabaseClient _client;
 
-  ProfileSupabaseRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+  ProfileSupabaseRepository(this._client);
 
   @override
   Future<ProfileLoadResult?> loadCustomerProfile({
@@ -75,10 +90,37 @@ class ProfileSupabaseRepository implements ProfileRepository {
       payload['tenant_id'] = tenantId;
     }
 
-    await _client
+    final updated = await _client
         .from('customers')
         .update(payload)
-        .eq('auth_user_id', authUserId);
+        .eq('auth_user_id', authUserId)
+        .select('id');
+
+    if (updated.isNotEmpty) return;
+
+    if (tenantId == null || tenantId.isEmpty) {
+      throw CustomerRowMissingException(
+        'No existe fila customer para auth_user_id=$authUserId y no hay tenant_id resuelto. '
+        'Se requiere RPC bootstrap_customer_self del backend (ADR-0015).',
+      );
+    }
+
+    try {
+      await _client.from('customers').upsert(
+        {
+          ...payload,
+          'auth_user_id': authUserId,
+          'is_app_user': true,
+        },
+        onConflict: 'tenant_id,auth_user_id',
+      );
+    } on PostgrestException catch (e) {
+      throw CustomerRowMissingException(
+        'Upsert customer rechazado por RLS (${e.code}): ${e.message}. '
+        'La policy customers_insert_staff exige get_staff_tenant_id() = tenant_id, '
+        'que es NULL para clientes B2C. Se requiere RPC bootstrap_customer_self del backend.',
+      );
+    }
   }
 
   @override
@@ -97,10 +139,18 @@ class ProfileSupabaseRepository implements ProfileRepository {
       payload['tenant_id'] = tenantId;
     }
 
-    await _client
+    final updated = await _client
         .from('profiles')
         .update(payload)
-        .eq('id', authUserId);
+        .eq('id', authUserId)
+        .select('id');
+
+    if (updated.isEmpty) {
+      throw StaffRowMissingException(
+        'No existe fila profile para id=$authUserId. '
+        'El trigger handle_new_auth_user no la creo (falta raw_app_meta_data.user_type=staff).',
+      );
+    }
   }
 
   @override

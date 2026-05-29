@@ -1,10 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/core/utils/date_input_formatter.dart';
+import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:core/core.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
@@ -37,8 +36,7 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
     final nameController = TextEditingController(text: user.firstName);
     final lastNameController = TextEditingController(text: user.lastName);
     final phoneController = TextEditingController(text: user.phone);
-    final birthDateController = TextEditingController(text: user.birthDate);
-    
+
     final profileBloc = context.read<ProfileBloc>();
 
     showMaterialModalBottomSheet(
@@ -92,18 +90,6 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
                       return null;
                     },
                   ),
-                  ObInputField(
-                    label: 'Fecha de Nacimiento',
-                    controller: birthDateController,
-                    hintText: 'DD / MM / AAAA',
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [DateInputFormatter()],
-                    validator: (val) {
-                      if (val == null || val.isEmpty) return 'Campo requerido';
-                      if (!_isValidDate(val)) return 'Fecha no válida';
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 32),
                   BlocBuilder<ProfileBloc, ProfileState>(
                     builder: (context, state) {
@@ -115,7 +101,7 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
                               firstName: nameController.text,
                               lastName: lastNameController.text,
                               phone: phoneController.text,
-                              birthDate: birthDateController.text,
+                              birthDate: '',
                             ));
                             Navigator.pop(context);
                           }
@@ -142,40 +128,6 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
         ),
       ),
     );
-  }
-
-  bool _isValidDate(String date) {
-    final cleanDate = date.replaceAll(' ', '');
-    final regExp = RegExp(r'^\d{2}/\d{2}/\d{4}$');
-    if (!regExp.hasMatch(cleanDate)) return false;
-
-    try {
-      final parts = cleanDate.split('/');
-      final d = int.parse(parts[0]);
-      final m = int.parse(parts[1]);
-      final y = int.parse(parts[2]);
-
-      if (m < 1 || m > 12) return false;
-      if (d < 1 || d > 31) return false;
-
-      if (m == 2) {
-        final isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
-        if (d > (isLeap ? 29 : 28)) return false;
-      } else if ([4, 6, 9, 11].contains(m)) {
-        if (d > 30) return false;
-      }
-
-      final now = DateTime.now();
-      if (y < now.year - 100 || y > now.year) return false;
-      if (y == now.year) {
-        if (m > now.month) return false;
-        if (m == now.month && d > now.day) return false;
-      }
-
-      return true;
-    } catch (_) {
-      return false;
-    }
   }
 
   @override
@@ -358,26 +310,22 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
 }
 
   Widget _buildAvatarWithEdit(BuildContext context, UserProfile user) {
+    final displayName = '${user.firstName} ${user.lastName}'.trim();
     return Stack(
       children: [
         Container(
+          padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: context.primaryGold.withValues(alpha: 0.2), width: 1.5),
-          ),
-          padding: const EdgeInsets.all(5),
-          child: ClipOval(
-            child: CachedNetworkImage(
-              imageUrl: user.photoUrl,
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.white10,
-                child: const Center(child: CupertinoActivityIndicator(radius: 10)),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.person, color: Colors.white24, size: 40),
+            border: Border.all(
+              color: context.primaryGold.withValues(alpha: 0.2),
+              width: 1.5,
             ),
+          ),
+          child: AvatarPremium(
+            displayName: displayName.isEmpty ? 'Barbero' : displayName,
+            photoUrl: user.photoUrl,
+            size: 96,
           ),
         ),
         // Modern circular floating pencil edit button overlapping the avatar

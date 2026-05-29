@@ -10,6 +10,7 @@ import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
+import 'package:trim_flow/features/products/presentation/widgets/rotating_products_banner.dart';
 import 'package:trim_flow/features/products/presentation/widgets/product_card.dart';
 import 'package:trim_flow/features/products/presentation/widgets/product_search_bar.dart';
 import 'package:trim_flow/features/products/presentation/widgets/category_filter_bar.dart';
@@ -51,6 +52,8 @@ class _ProductsViewState extends State<ProductsView> {
                   SliverToBoxAdapter(
                     child: _buildQuickActions(context, state, modeState),
                   ),
+                  const SliverToBoxAdapter(child: RotatingProductsBanner()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -154,28 +157,30 @@ class _ProductsViewState extends State<ProductsView> {
   Widget _buildMasonryGrid(BuildContext context, ProductState state) {
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, cartState) {
+        const aspectRatios = <double>[0.65, 0.85, 0.7, 0.9, 0.75, 0.8, 0.68, 0.88];
+
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverToBoxAdapter(
-            child: StaggeredGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              children: state.products.map((product) {
-                final isInCart = cartState.items.any((item) => item.product.id == product.id);
-                return StaggeredGridTile.fit(
-                  crossAxisCellCount: product.crossAxisCellCount.clamp(1, 2),
-                  child: ProductCard(
-                    key: ValueKey('grid_${product.id}'),
-                    product: product,
-                    isInCart: isInCart,
-                    onFavorite: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
-                    onAddToCart: () => context.read<CartBloc>().add(CartEvent.addItem(product)),
-                    onTap: () => _openProductDetail(context, product),
-                  ),
-                );
-              }).toList(),
-            ),
+          sliver: SliverMasonryGrid.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childCount: state.products.length,
+            itemBuilder: (context, index) {
+              final product = state.products[index];
+              final isInCart = cartState.items.any((item) => item.product.id == product.id);
+              final ratio = aspectRatios[index % aspectRatios.length];
+              
+              return ProductCard(
+                key: ValueKey('grid_${product.id}'),
+                product: product,
+                isInCart: isInCart,
+                imageAspectRatio: ratio,
+                onFavorite: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
+                onAddToCart: () => context.read<CartBloc>().add(CartEvent.addItem(product)),
+                onTap: () => _openProductDetail(context, product),
+              );
+            },
           ),
         );
       },

@@ -28,4 +28,5 @@ abstract class ProfileEvent with _$ProfileEvent {
     required String reservationId,
     required String reason,
   }) = CancelAppointment;
+  const factory ProfileEvent.updateBranchId(String branchId) = UpdateBranchId;
 }

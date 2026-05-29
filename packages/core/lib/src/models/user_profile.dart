@@ -29,6 +29,7 @@ abstract class UserProfile with _$UserProfile {
     required bool notificationsEnabled,
     String? customerId,
     String? barberId,
+    String? branchId,
     @Default(2) int completedCuts,
     @Default([]) List<CuttingRecord> history,
   }) = _UserProfile;

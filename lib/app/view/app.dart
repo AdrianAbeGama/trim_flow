@@ -58,8 +58,15 @@ class _DeferredWidgetState extends State<DeferredWidget> {
   }
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +74,7 @@ class App extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => getIt<TenantThemeBloc>()..loadTenantFromAuth()),
         BlocProvider(create: (_) => getIt<AppModeBloc>()),
-        BlocProvider(create: (_) => ProfileBloc()..add(const LoadProfileEvent())),
+        BlocProvider(create: (_) => getIt<ProfileBloc>()..add(const LoadProfileEvent())),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
         BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
         BlocProvider(create: (_) => ReservationBloc()),
@@ -87,54 +94,61 @@ class App extends StatelessWidget {
       ],
       child: BlocBuilder<TenantThemeBloc, TenantThemeState>(
         builder: (context, themeState) {
-          return MaterialApp(
-            title: 'TrimFlow',
-            theme: themeState.themeData,
-            debugShowCheckedModeBanner: false,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('es', 'ES'),
-              Locale('en', 'US'),
-            ],
-            locale: const Locale('es', 'ES'),
-            home: BlocBuilder<AppModeBloc, AppModeState>(
-              builder: (context, state) {
-                if (!state.isInitialized) {
-                  return const Scaffold(
-                    backgroundColor: Color(0xFF070707),
-                    body: Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFD4AF37),
+          return BlocListener<AppModeBloc, AppModeState>(
+            listenWhen: (previous, current) => previous.isLoggedIn != current.isLoggedIn && !current.isLoggedIn,
+            listener: (context, state) {
+              _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+            },
+            child: MaterialApp(
+              navigatorKey: _navigatorKey,
+              title: 'TrimFlow',
+              theme: themeState.themeData,
+              debugShowCheckedModeBanner: false,
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('es', 'ES'),
+                Locale('en', 'US'),
+              ],
+              locale: const Locale('es', 'ES'),
+              home: BlocBuilder<AppModeBloc, AppModeState>(
+                builder: (context, state) {
+                  if (!state.isInitialized) {
+                    return const Scaffold(
+                      backgroundColor: Color(0xFF070707),
+                      body: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFD4AF37),
+                        ),
                       ),
-                    ),
+                    );
+                  }
+
+                  if (state.accessCode == null) {
+                    return AccessCodeView(
+                      onCodeValidated: (code) => context.read<AppModeBloc>().add(AppModeEvent.setAccessCode(code)),
+                    );
+                  }
+
+                  if (!state.isLoggedIn) {
+                    return LoginView(
+                      onLoginSuccess: () => context.read<AppModeBloc>().add(const AppModeEvent.login()),
+                    );
+                  }
+
+                  if (state.mode == AppMode.client) {
+                    return const HomePage();
+                  }
+
+                  return DeferredWidget(
+                    loader: barber.loadLibrary,
+                    builder: () => barber.BarberHomePage(),
                   );
-                }
-
-                if (state.accessCode == null) {
-                  return AccessCodeView(
-                    onCodeValidated: (code) => context.read<AppModeBloc>().add(AppModeEvent.setAccessCode(code)),
-                  );
-                }
-
-                if (!state.isLoggedIn) {
-                  return LoginView(
-                    onLoginSuccess: () => context.read<AppModeBloc>().add(const AppModeEvent.login()),
-                  );
-                }
-
-                if (state.mode == AppMode.client) {
-                  return const HomePage();
-                }
-
-                return DeferredWidget(
-                  loader: barber.loadLibrary,
-                  builder: () => barber.BarberHomePage(),
-                );
-              },
+                },
+              ),
             ),
           );
         },

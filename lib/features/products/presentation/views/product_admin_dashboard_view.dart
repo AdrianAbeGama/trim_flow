@@ -164,14 +164,28 @@ class _ProductsTab extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: context.primaryGold, size: 20),
+            OutlinedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => BlocProvider.value(value: pb, child: ProductFormView(product: product))),
                 );
               },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: context.primaryGold,
+                side: BorderSide(color: context.primaryGold.withValues(alpha: 0.45)),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.edit_outlined, size: 14),
+              label: const Text(
+                'EDITAR',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
 
           ],

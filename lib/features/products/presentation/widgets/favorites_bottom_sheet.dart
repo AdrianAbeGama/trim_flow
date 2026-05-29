@@ -6,6 +6,7 @@ import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart'
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
 import 'package:trim_flow/features/products/presentation/views/favorites_view.dart';
+import 'package:trim_flow/features/products/presentation/views/product_detail_view.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 
 class FavoritesBottomSheet extends StatelessWidget {
@@ -122,12 +123,28 @@ class FavoritesBottomSheet extends StatelessWidget {
                         onDismissed: (_) {
                           context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id));
                         },
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SafeImage(
-                                url: product.imageUrl,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context); // Close bottom sheet
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(value: context.read<ProductBloc>()),
+                                    BlocProvider.value(value: context.read<CartBloc>()),
+                                  ],
+                                  child: ProductDetailView(product: product),
+                                ),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: SafeImage(
+                                  url: product.imageUrl,
                                 width: 55,
                                 height: 55,
                                 fit: BoxFit.cover,
@@ -157,6 +174,7 @@ class FavoritesBottomSheet extends StatelessWidget {
                               onPressed: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
                             ),
                           ],
+                        ),
                         ),
                       );
                     },

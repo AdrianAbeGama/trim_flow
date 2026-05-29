@@ -120,22 +120,8 @@ class ProfileSettingsView extends StatelessWidget {
                   _buildSettingsCell(
                     title: 'Probar Alerta',
                     subtitle: 'Lanza una notificación simulada',
-                    trailing: Icon(Icons.arrow_forward_ios_rounded, color: Colors.white30, size: 12),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white30, size: 12),
                     onTap: () => profileBloc.add(const TestNotificationEvent()),
-                  ),
-                  _buildDivider(),
-
-                  // Cambiar Modo
-                  _buildSettingsCell(
-                    title: isBarber ? 'Modo Barbero' : 'Modo Cliente',
-                    subtitle: isBarber ? 'Ir a la interfaz del Cliente' : 'Ir a la interfaz del Barbero',
-                    trailing: Icon(Icons.swap_horiz_rounded, color: context.primaryGold, size: 18),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.read<AppModeBloc>().add(
-                        AppModeEvent.changeMode(isBarber ? AppMode.client : AppMode.barber),
-                      );
-                    },
                   ),
                   _buildDivider(),
                   const SizedBox(height: 16),
@@ -179,6 +165,22 @@ class ProfileSettingsView extends StatelessWidget {
                                 HomePage.enableSwipe.value = val;
                               },
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: HomePage.persistentNavBar,
+                            builder: (context, persistentEnabled, child) {
+                              return _buildSettingsCell(
+                                title: 'Barra siempre visible',
+                                subtitle: 'Mantener la barra de navegación al hacer scroll',
+                                trailing: _PremiumSwitch(
+                                  value: persistentEnabled,
+                                  onChanged: (val) {
+                                    HomePage.persistentNavBar.value = val;
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 8),
                           Container(

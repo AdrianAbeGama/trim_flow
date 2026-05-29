@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/barber/agenda/presentation/views/barber_agenda_view.dart';
 import 'package:trim_flow/features/barber/view/barber_profile_view.dart';
+import 'package:trim_flow/features/gallery/presentation/views/gallery_view.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
 
 class BarberHomePage extends StatefulWidget {
@@ -99,8 +101,8 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                         onNavigateToProducts: () => tabController.animateTo(3),
                         onNavigateToAppointments: () => tabController.animateTo(2),
                       ),
-                      const _BarberSectionView(title: 'Galería', icon: Icons.grid_view_rounded),
-                      const _BarberSectionView(title: 'Citas', icon: Icons.calendar_today_rounded),
+                      const GalleryView(isBarberMode: true),
+                      const BarberAgendaView(),
                       const ProductsView(),
                       const BarberProfileView(),
                     ],
@@ -183,146 +185,4 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
   }
 
 
-}
-
-class _EditButtonUI extends StatelessWidget {
-  final bool isEditing;
-  final String label;
-
-  const _EditButtonUI({required this.isEditing, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isEditing ? Colors.white : const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: context.primaryGold.withValues(alpha: 0.5)),
-        ),
-        child: Text(
-          isEditing ? 'LISTO' : label,
-          style: TextStyle(
-            color: isEditing ? Colors.black : context.primaryGold, 
-            fontSize: 9, 
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5
-        ),
-      ),
-    );
-  }
-}
-
-class _BarberSectionView extends StatelessWidget {
-  const _BarberSectionView({required this.title, required this.icon});
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.backgroundBlack,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
-              color: context.backgroundBlack,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: context.primaryGold, size: 28),
-                      const SizedBox(width: 12),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: BarberHomePage.showBarberBadge,
-                        builder: (context, showBadge, child) {
-                          if (!showBadge) return const SizedBox.shrink();
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: context.primaryGold,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'MODO BARBERO',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 8,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        title.toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      _buildDynamicEditButtonForSection(context),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Container(width: 40, height: 2, color: context.primaryGold),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icon, color: context.primaryGold.withValues(alpha: 0.2), size: 64),
-                    const SizedBox(height: 16),
-                    Text(
-                      'MODO BARBERO'.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 4,
-                        height: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Próximamente disponible',
-                      style: TextStyle(color: Colors.white12, fontSize: 10),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDynamicEditButtonForSection(BuildContext context) {
-    if (title.toUpperCase() == 'GALERÍA') {
-      return const _EditButtonUI(isEditing: false, label: 'EDITAR GALERÍA');
-    } else if (title.toUpperCase() == 'CITAS') {
-      return const _EditButtonUI(isEditing: false, label: 'EDITAR CITAS');
-    }
-    return const SizedBox.shrink();
-  }
 }

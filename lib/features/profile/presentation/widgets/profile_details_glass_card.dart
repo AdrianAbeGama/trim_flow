@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart' as trim_flow_bloc;
+import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart' as trim_flow_bloc;
 import 'package:core/core.dart';
 
 class ProfileDetailsGlassCard extends StatelessWidget {
@@ -16,7 +19,6 @@ class ProfileDetailsGlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final phoneVal = user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}';
-    final birthVal = user.birthDate.isEmpty ? 'Pendiente' : user.birthDate;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,15 +66,8 @@ class ProfileDetailsGlassCard extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Divider(color: Colors.white10, height: 1),
               ),
-              // 2. Birthday Row
-              _buildItemRow(
-                context: context,
-                icon: Icons.cake_rounded,
-                label: 'Fecha de nacimiento',
-                value: birthVal,
-                isPending: user.birthDate.isEmpty,
-                onTap: onEdit,
-              ),
+              // 2. Branch Selector Dropdown
+              _buildBranchSelector(context, user),
             ],
           ),
         ),
@@ -137,6 +132,81 @@ class ProfileDetailsGlassCard extends StatelessWidget {
             Icon(Icons.arrow_forward_ios_rounded, color: context.primaryGold, size: 14),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBranchSelector(BuildContext context, UserProfile user) {
+    // Sucursales hardcodeadas como solicitó el usuario para simulación
+    final branches = [
+      {'id': 'sede-centro', 'name': 'Sede Centro'},
+      {'id': 'sede-principal', 'name': 'Sede Principal'},
+      {'id': 'sede-miraflores', 'name': 'Sede Miraflores'},
+    ];
+
+    final currentBranchId = user.branchId ?? 'sede-principal';
+    final profileBloc = context.read<trim_flow_bloc.ProfileBloc>();
+
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: context.primaryGold.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+              border: Border.all(color: context.primaryGold.withValues(alpha: 0.2), width: 1),
+            ),
+            child: Icon(Icons.store_mall_directory_rounded, color: context.primaryGold, size: 16),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SUCURSAL ACTIVA',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: branches.any((b) => b['id'] == currentBranchId) ? currentBranchId : branches.first['id'] as String,
+                    icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.primaryGold, size: 16),
+                    isDense: true,
+                    dropdownColor: const Color(0xFF161616),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        profileBloc.add(trim_flow_bloc.ProfileEvent.updateBranchId(newValue));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Sucursal cambiada a ${branches.firstWhere((b) => b['id'] == newValue)['name']}'),
+                          backgroundColor: Colors.green,
+                        ));
+                      }
+                    },
+                    items: branches.map((branch) {
+                      return DropdownMenuItem<String>(
+                        value: branch['id'] as String,
+                        child: Text(branch['name'] as String),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

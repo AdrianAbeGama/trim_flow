@@ -55,7 +55,7 @@ extension ProfileEventPatterns on ProfileEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult Function( ToggleEditMode value)?  toggleEditMode,TResult Function( AddScheduledReservation value)?  addScheduledReservation,TResult Function( ClearBadge value)?  clearBadge,TResult Function( ResetFidelityCount value)?  resetFidelityCount,TResult Function( CancelAppointment value)?  cancelAppointment,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( LoadProfileEvent value)?  load,TResult Function( SaveProfileData value)?  save,TResult Function( ClaimReward value)?  claimReward,TResult Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult Function( TestNotificationEvent value)?  testNotification,TResult Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult Function( ToggleEditMode value)?  toggleEditMode,TResult Function( AddScheduledReservation value)?  addScheduledReservation,TResult Function( ClearBadge value)?  clearBadge,TResult Function( ResetFidelityCount value)?  resetFidelityCount,TResult Function( CancelAppointment value)?  cancelAppointment,TResult Function( UpdateBranchId value)?  updateBranchId,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -69,7 +69,8 @@ return toggleEditMode(_that);case AddScheduledReservation() when addScheduledRes
 return addScheduledReservation(_that);case ClearBadge() when clearBadge != null:
 return clearBadge(_that);case ResetFidelityCount() when resetFidelityCount != null:
 return resetFidelityCount(_that);case CancelAppointment() when cancelAppointment != null:
-return cancelAppointment(_that);case _:
+return cancelAppointment(_that);case UpdateBranchId() when updateBranchId != null:
+return updateBranchId(_that);case _:
   return orElse();
 
 }
@@ -87,7 +88,7 @@ return cancelAppointment(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,required TResult Function( ToggleEditMode value)  toggleEditMode,required TResult Function( AddScheduledReservation value)  addScheduledReservation,required TResult Function( ClearBadge value)  clearBadge,required TResult Function( ResetFidelityCount value)  resetFidelityCount,required TResult Function( CancelAppointment value)  cancelAppointment,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( LoadProfileEvent value)  load,required TResult Function( SaveProfileData value)  save,required TResult Function( ClaimReward value)  claimReward,required TResult Function( RequestNotificationPermissionEvent value)  requestNotificationPermission,required TResult Function( TestNotificationEvent value)  testNotification,required TResult Function( ToggleNotificationsEvent value)  toggleNotifications,required TResult Function( ToggleEditMode value)  toggleEditMode,required TResult Function( AddScheduledReservation value)  addScheduledReservation,required TResult Function( ClearBadge value)  clearBadge,required TResult Function( ResetFidelityCount value)  resetFidelityCount,required TResult Function( CancelAppointment value)  cancelAppointment,required TResult Function( UpdateBranchId value)  updateBranchId,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent():
@@ -101,7 +102,8 @@ return toggleEditMode(_that);case AddScheduledReservation():
 return addScheduledReservation(_that);case ClearBadge():
 return clearBadge(_that);case ResetFidelityCount():
 return resetFidelityCount(_that);case CancelAppointment():
-return cancelAppointment(_that);case _:
+return cancelAppointment(_that);case UpdateBranchId():
+return updateBranchId(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -118,7 +120,7 @@ return cancelAppointment(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult? Function( ToggleEditMode value)?  toggleEditMode,TResult? Function( AddScheduledReservation value)?  addScheduledReservation,TResult? Function( ClearBadge value)?  clearBadge,TResult? Function( ResetFidelityCount value)?  resetFidelityCount,TResult? Function( CancelAppointment value)?  cancelAppointment,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( LoadProfileEvent value)?  load,TResult? Function( SaveProfileData value)?  save,TResult? Function( ClaimReward value)?  claimReward,TResult? Function( RequestNotificationPermissionEvent value)?  requestNotificationPermission,TResult? Function( TestNotificationEvent value)?  testNotification,TResult? Function( ToggleNotificationsEvent value)?  toggleNotifications,TResult? Function( ToggleEditMode value)?  toggleEditMode,TResult? Function( AddScheduledReservation value)?  addScheduledReservation,TResult? Function( ClearBadge value)?  clearBadge,TResult? Function( ResetFidelityCount value)?  resetFidelityCount,TResult? Function( CancelAppointment value)?  cancelAppointment,TResult? Function( UpdateBranchId value)?  updateBranchId,}){
 final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
@@ -132,7 +134,8 @@ return toggleEditMode(_that);case AddScheduledReservation() when addScheduledRes
 return addScheduledReservation(_that);case ClearBadge() when clearBadge != null:
 return clearBadge(_that);case ResetFidelityCount() when resetFidelityCount != null:
 return resetFidelityCount(_that);case CancelAppointment() when cancelAppointment != null:
-return cancelAppointment(_that);case _:
+return cancelAppointment(_that);case UpdateBranchId() when updateBranchId != null:
+return updateBranchId(_that);case _:
   return null;
 
 }
@@ -149,7 +152,7 @@ return cancelAppointment(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function()?  testNotification,TResult Function( bool enabled)?  toggleNotifications,TResult Function()?  toggleEditMode,TResult Function( Reservation reservation)?  addScheduledReservation,TResult Function()?  clearBadge,TResult Function()?  resetFidelityCount,TResult Function( String reservationId,  String reason)?  cancelAppointment,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  load,TResult Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult Function()?  claimReward,TResult Function()?  requestNotificationPermission,TResult Function()?  testNotification,TResult Function( bool enabled)?  toggleNotifications,TResult Function()?  toggleEditMode,TResult Function( Reservation reservation)?  addScheduledReservation,TResult Function()?  clearBadge,TResult Function()?  resetFidelityCount,TResult Function( String reservationId,  String reason)?  cancelAppointment,TResult Function( String branchId)?  updateBranchId,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
@@ -162,7 +165,8 @@ return toggleEditMode();case AddScheduledReservation() when addScheduledReservat
 return addScheduledReservation(_that.reservation);case ClearBadge() when clearBadge != null:
 return clearBadge();case ResetFidelityCount() when resetFidelityCount != null:
 return resetFidelityCount();case CancelAppointment() when cancelAppointment != null:
-return cancelAppointment(_that.reservationId,_that.reason);case _:
+return cancelAppointment(_that.reservationId,_that.reason);case UpdateBranchId() when updateBranchId != null:
+return updateBranchId(_that.branchId);case _:
   return orElse();
 
 }
@@ -180,7 +184,7 @@ return cancelAppointment(_that.reservationId,_that.reason);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function()  testNotification,required TResult Function( bool enabled)  toggleNotifications,required TResult Function()  toggleEditMode,required TResult Function( Reservation reservation)  addScheduledReservation,required TResult Function()  clearBadge,required TResult Function()  resetFidelityCount,required TResult Function( String reservationId,  String reason)  cancelAppointment,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  load,required TResult Function( String firstName,  String lastName,  String phone,  String birthDate)  save,required TResult Function()  claimReward,required TResult Function()  requestNotificationPermission,required TResult Function()  testNotification,required TResult Function( bool enabled)  toggleNotifications,required TResult Function()  toggleEditMode,required TResult Function( Reservation reservation)  addScheduledReservation,required TResult Function()  clearBadge,required TResult Function()  resetFidelityCount,required TResult Function( String reservationId,  String reason)  cancelAppointment,required TResult Function( String branchId)  updateBranchId,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent():
 return load();case SaveProfileData():
@@ -193,7 +197,8 @@ return toggleEditMode();case AddScheduledReservation():
 return addScheduledReservation(_that.reservation);case ClearBadge():
 return clearBadge();case ResetFidelityCount():
 return resetFidelityCount();case CancelAppointment():
-return cancelAppointment(_that.reservationId,_that.reason);case _:
+return cancelAppointment(_that.reservationId,_that.reason);case UpdateBranchId():
+return updateBranchId(_that.branchId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,7 +215,7 @@ return cancelAppointment(_that.reservationId,_that.reason);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function()?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,TResult? Function()?  toggleEditMode,TResult? Function( Reservation reservation)?  addScheduledReservation,TResult? Function()?  clearBadge,TResult? Function()?  resetFidelityCount,TResult? Function( String reservationId,  String reason)?  cancelAppointment,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  load,TResult? Function( String firstName,  String lastName,  String phone,  String birthDate)?  save,TResult? Function()?  claimReward,TResult? Function()?  requestNotificationPermission,TResult? Function()?  testNotification,TResult? Function( bool enabled)?  toggleNotifications,TResult? Function()?  toggleEditMode,TResult? Function( Reservation reservation)?  addScheduledReservation,TResult? Function()?  clearBadge,TResult? Function()?  resetFidelityCount,TResult? Function( String reservationId,  String reason)?  cancelAppointment,TResult? Function( String branchId)?  updateBranchId,}) {final _that = this;
 switch (_that) {
 case LoadProfileEvent() when load != null:
 return load();case SaveProfileData() when save != null:
@@ -223,7 +228,8 @@ return toggleEditMode();case AddScheduledReservation() when addScheduledReservat
 return addScheduledReservation(_that.reservation);case ClearBadge() when clearBadge != null:
 return clearBadge();case ResetFidelityCount() when resetFidelityCount != null:
 return resetFidelityCount();case CancelAppointment() when cancelAppointment != null:
-return cancelAppointment(_that.reservationId,_that.reason);case _:
+return cancelAppointment(_that.reservationId,_that.reason);case UpdateBranchId() when updateBranchId != null:
+return updateBranchId(_that.branchId);case _:
   return null;
 
 }
@@ -729,6 +735,72 @@ class _$CancelAppointmentCopyWithImpl<$Res>
   return _then(CancelAppointment(
 reservationId: null == reservationId ? _self.reservationId : reservationId // ignore: cast_nullable_to_non_nullable
 as String,reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class UpdateBranchId implements ProfileEvent {
+  const UpdateBranchId(this.branchId);
+  
+
+ final  String branchId;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UpdateBranchIdCopyWith<UpdateBranchId> get copyWith => _$UpdateBranchIdCopyWithImpl<UpdateBranchId>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateBranchId&&(identical(other.branchId, branchId) || other.branchId == branchId));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,branchId);
+
+@override
+String toString() {
+  return 'ProfileEvent.updateBranchId(branchId: $branchId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UpdateBranchIdCopyWith<$Res> implements $ProfileEventCopyWith<$Res> {
+  factory $UpdateBranchIdCopyWith(UpdateBranchId value, $Res Function(UpdateBranchId) _then) = _$UpdateBranchIdCopyWithImpl;
+@useResult
+$Res call({
+ String branchId
+});
+
+
+
+
+}
+/// @nodoc
+class _$UpdateBranchIdCopyWithImpl<$Res>
+    implements $UpdateBranchIdCopyWith<$Res> {
+  _$UpdateBranchIdCopyWithImpl(this._self, this._then);
+
+  final UpdateBranchId _self;
+  final $Res Function(UpdateBranchId) _then;
+
+/// Create a copy of ProfileEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? branchId = null,}) {
+  return _then(UpdateBranchId(
+null == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

@@ -92,7 +92,6 @@ class FavoritesView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -106,6 +105,7 @@ class FavoritesView extends StatelessWidget {
                       child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
                     ),
                   ),
+                  const SizedBox(width: 16),
                   Icon(Icons.favorite_rounded, color: context.primaryGold, size: 28),
                 ],
               ),

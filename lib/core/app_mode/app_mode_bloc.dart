@@ -1,11 +1,14 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
-import 'package:get_it/get_it.dart';
+import 'dart:async';
+
 import 'package:core/core.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supa;
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kAccessCodeKey = 'access_code';
 const String _kAppModeKey = 'app_mode';
@@ -14,9 +17,13 @@ const String _kBarberScope = 'barber';
 @lazySingleton
 class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   final AuthService _authService;
-  bool _isLoggingOut = false;
+
+  String? _lastKnownUserId;
+  StreamSubscription<supa.AuthState>? _authSub;
 
   AppModeBloc(this._authService) : super(const AppModeState()) {
+    _lastKnownUserId = _authService.currentUser?.id;
+
     on<Initialize>(_onInitialize);
     on<LoginWithGoogle>(_onLoginWithGoogle);
     on<ChangeMode>(_onChangeMode);
@@ -26,16 +33,22 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     on<Logout>(_onLogout);
     on<Reset>(_onReset);
 
-    _authService.onAuthStateChange.listen((data) {
-      final session = data.session;
-      if (session != null) {
-        add(const AppModeEvent.login());
-      } else {
-        if (!_isLoggingOut) {
-          add(const AppModeEvent.logout());
-        }
-      }
-    });
+    _authSub = _authService.onAuthStateChange.listen(_onAuthChanged);
+  }
+
+  void _onAuthChanged(supa.AuthState data) {
+    final newUserId = data.session?.user.id;
+    final previous = _lastKnownUserId;
+    _lastKnownUserId = newUserId;
+
+    if (newUserId != null && newUserId != previous) {
+      add(const AppModeEvent.login());
+      return;
+    }
+
+    if (newUserId == null && previous != null) {
+      add(const AppModeEvent.logout());
+    }
   }
 
   Future<void> _onInitialize(Initialize event, Emitter<AppModeState> emit) async {
@@ -48,7 +61,10 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
       return;
     }
 
-    if (_authService.currentUser == null) {
+    final currentUser = _authService.currentUser;
+    _lastKnownUserId = currentUser?.id;
+
+    if (currentUser == null) {
       emit(state.copyWith(accessCode: savedCode, isLoggedIn: false, isInitialized: true));
       return;
     }
@@ -78,7 +94,6 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   }
 
   Future<void> _onLoginWithGoogle(LoginWithGoogle event, Emitter<AppModeState> emit) async {
-    emit(state.copyWith(isInitialized: false));
     await _authService.signInWithGoogle();
   }
 
@@ -103,6 +118,10 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   }
 
   Future<void> _onLogin(Login event, Emitter<AppModeState> emit) async {
+    if (state.isLoggedIn && state.mode != null && state.isInitialized) {
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final resolvedMode = await _resolveStoredMode(prefs, state.accessCode);
 
@@ -117,7 +136,6 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   }
 
   Future<void> _onRequestLogout(RequestLogout event, Emitter<AppModeState> emit) async {
-    _isLoggingOut = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kAccessCodeKey);
     await prefs.remove(_kAppModeKey);
@@ -125,8 +143,8 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
       GetIt.I.popScope();
     }
     await _authService.signOut();
+    _lastKnownUserId = null;
     emit(const AppModeState(isInitialized: true));
-    _isLoggingOut = false;
   }
 
   Future<void> _onLogout(Logout event, Emitter<AppModeState> emit) async {
@@ -190,5 +208,11 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     if (!GetIt.I.hasScope(_kBarberScope)) {
       GetIt.I.pushNewScope(scopeName: _kBarberScope);
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _authSub?.cancel();
+    return super.close();
   }
 }

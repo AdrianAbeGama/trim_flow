@@ -1,5 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:injectable/injectable.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 @lazySingleton
 class AuthService {
@@ -13,10 +13,14 @@ class AuthService {
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: 'io.supabase.trimflow://login-callback',
+      queryParams: const {
+        'prompt': 'select_account',
+        'access_type': 'offline',
+      },
     );
   }
 
   Future<void> signOut() async {
-    await _supabase.auth.signOut();
+    await _supabase.auth.signOut(scope: SignOutScope.global);
   }
 }

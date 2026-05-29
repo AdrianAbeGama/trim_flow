@@ -1,29 +1,37 @@
+import 'dart:async';
+
 import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:injectable/injectable.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
-import 'package:trim_flow/core/di/injection.dart';
+import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/notifications/notifications.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
-import 'package:trim_flow/features/profile/data/repositories/profile_supabase_repository.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 
+@injectable
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final AuthService _authService;
   final ProfileRepository _repository;
+  final AppModeBloc _appModeBloc;
+  final TenantThemeBloc _tenantThemeBloc;
 
-  ProfileBloc({
-    AuthService? authService,
-    ProfileRepository? repository,
-  })  : _authService = authService ?? getIt<AuthService>(),
-        _repository = repository ?? ProfileSupabaseRepository(),
-        super(const ProfileState()) {
+  StreamSubscription<AppModeState>? _modeSub;
+  String? _trackedUserId;
+
+  ProfileBloc(
+    this._authService,
+    this._repository,
+    this._appModeBloc,
+    this._tenantThemeBloc,
+  ) : super(const ProfileState()) {
     on<LoadProfileEvent>(_onLoadProfile);
     on<SaveProfileData>(_onSaveProfileData);
     on<ToggleEditMode>(_onToggleEditMode);
@@ -35,19 +43,52 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ClearBadge>(_onClearBadge);
     on<ResetFidelityCount>(_onResetFidelityCount);
     on<CancelAppointment>(_onCancelAppointment);
+    on<UpdateBranchId>(_onUpdateBranchId);
+
+    _bootstrapFromAppMode();
+    _modeSub = _appModeBloc.stream.listen(_onAppModeChanged);
   }
 
-  AppMode _currentMode() => getIt<AppModeBloc>().state.mode ?? AppMode.client;
-  String _currentTenantId() => getIt<TenantThemeBloc>().state.tenantId;
+  void _bootstrapFromAppMode() {
+    final current = _appModeBloc.state;
+    final userId = _authService.currentUser?.id;
+    if (current.isLoggedIn && current.mode != null && userId != null) {
+      _trackedUserId = userId;
+      add(const ProfileEvent.load());
+    }
+  }
 
-  Future<void> _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
-    emit(state.copyWith(status: ProfileStatus.loading));
+  void _onAppModeChanged(AppModeState modeState) {
+    if (isClosed) return;
+    final userId = _authService.currentUser?.id;
 
-    final authUser = _authService.currentUser;
-    if (authUser == null) {
-      emit(state.copyWith(status: ProfileStatus.initial, user: null));
+    if (!modeState.isLoggedIn || userId == null) {
+      if (_trackedUserId != null || state.user != null) {
+        _trackedUserId = null;
+        add(const ProfileEvent.load());
+      }
       return;
     }
+
+    if (modeState.mode == null) return;
+
+    if (userId != _trackedUserId) {
+      _trackedUserId = userId;
+      add(const ProfileEvent.load());
+    }
+  }
+
+  AppMode _currentMode() => _appModeBloc.state.mode ?? AppMode.client;
+  String _currentTenantId() => _tenantThemeBloc.state.tenantId;
+
+  Future<void> _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
+    final authUser = _authService.currentUser;
+    if (authUser == null) {
+      emit(const ProfileState());
+      return;
+    }
+
+    emit(const ProfileState(status: ProfileStatus.loading));
 
     final tenantId = _currentTenantId();
     final mode = _currentMode();
@@ -135,15 +176,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final resolvedTenant = tenantId == kDefaultTenantId ? null : tenantId;
     final mode = _currentMode();
 
+    final isBarberMode = mode == AppMode.barber;
     final input = ProfileUpdateInput(
       firstName: event.firstName,
       lastName: event.lastName,
       phone: event.phone,
-      birthDate: event.birthDate,
+      birthDate: isBarberMode ? '' : event.birthDate,
     );
 
     try {
-      if (mode == AppMode.barber) {
+      if (isBarberMode) {
         await _repository.updateStaffProfile(
           authUserId: authUserId,
           tenantId: resolvedTenant,
@@ -161,7 +203,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         firstName: event.firstName,
         lastName: event.lastName,
         phone: event.phone,
-        birthDate: event.birthDate,
+        birthDate: isBarberMode ? currentUser.birthDate : event.birthDate,
       );
 
       emit(state.copyWith(
@@ -297,6 +339,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ));
   }
 
+  void _onUpdateBranchId(UpdateBranchId event, Emitter<ProfileState> emit) {
+    if (state.user != null) {
+      final updatedUser = state.user!.copyWith(branchId: event.branchId);
+      emit(state.copyWith(user: updatedUser));
+    }
+  }
+
   (String, String) _resolveTestNotificationCopy(AppMode mode, int idx) {
     if (mode == AppMode.client) {
       switch (idx) {
@@ -325,11 +374,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       firstName: 'Usuario',
       lastName: '',
       email: email ?? '',
-      photoUrl: 'https://www.w3schools.com/howto/img_avatar.png',
+      photoUrl: '',
       phone: '',
       birthDate: '',
       notificationsEnabled: true,
       completedCuts: 0,
     );
+  }
+
+  @override
+  Future<void> close() async {
+    await _modeSub?.cancel();
+    return super.close();
   }
 }

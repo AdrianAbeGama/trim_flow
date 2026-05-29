@@ -7,6 +7,7 @@ import 'package:trim_flow/features/products/presentation/views/checkout_view.dar
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
 import 'package:trim_flow/features/products/presentation/views/cart_view.dart';
+import 'package:trim_flow/features/products/presentation/views/product_detail_view.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 
 class CartBottomSheet extends StatelessWidget {
@@ -122,12 +123,28 @@ class CartBottomSheet extends StatelessWidget {
                         onDismissed: (_) {
                           context.read<CartBloc>().add(CartEvent.removeItem(item.product.id));
                         },
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SafeImage(
-                                url: item.product.imageUrl,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context); // Close bottom sheet
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(value: context.read<ProductBloc>()),
+                                    BlocProvider.value(value: context.read<CartBloc>()),
+                                  ],
+                                  child: ProductDetailView(product: item.product),
+                                ),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: SafeImage(
+                                  url: item.product.imageUrl,
                                 width: 55,
                                 height: 55,
                                 fit: BoxFit.cover,
@@ -158,6 +175,7 @@ class CartBottomSheet extends StatelessWidget {
                               onDecrement: () => context.read<CartBloc>().add(CartEvent.updateQuantity(item.product.id, -1)),
                             ),
                           ],
+                        ),
                         ),
                       );
                     },

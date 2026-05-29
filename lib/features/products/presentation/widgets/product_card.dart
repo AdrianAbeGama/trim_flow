@@ -63,7 +63,9 @@ class _ProductCardState extends State<ProductCard> {
                   children: [
                     // Imagen con proporción fija y simétrica (cuadrada 1.0) si está cerrado
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(23),
+                      borderRadius: isExpanded
+                          ? const BorderRadius.vertical(top: Radius.circular(23))
+                          : BorderRadius.circular(23),
                       child: AspectRatio(
                         aspectRatio: widget.imageAspectRatio ?? 1.0,
                         child: _buildImage(),
@@ -191,61 +193,76 @@ class _ProductCardState extends State<ProductCard> {
                 // Contenido Expandible (Detalles abajo en cuadrante 2x2 premium)
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
-                  secondChild: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                    child: Row(
+                  secondChild: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.02),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Columna Izquierda (Información)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Cuadrante Superior Izquierdo: Título destacado (crema)
-                              Text(
-                                widget.product.name.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Color(0xFFF5F5DC), // Crema
-                                  fontSize: 13.5, // Fuente compacta y sumamente elegante
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.5,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              // Cuadrante Inferior Izquierdo: Descripción completa (dinámica)
-                              Text(
-                                widget.product.description,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11.5,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
+                        // Fila 1: Título
+                        Text(
+                          widget.product.name.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 16),
-                        // Columna Derecha (Acciones y Costo)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
+                        const SizedBox(height: 6),
+                        // Fila 2: Descripción
+                        Text(
+                          widget.product.description,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 12),
+                        // Fila 3: Precio y Carrito alineados
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Cuadrante Superior Derecho: Botón de añadir al carrito
-                            _ActionBtn(
-                              icon: widget.isInCart ? Icons.shopping_cart_rounded : Icons.add_shopping_cart_rounded,
-                              color: widget.isInCart ? context.primaryGold : Colors.white,
-                              onTap: widget.onAddToCart,
-                            ),
-                            const SizedBox(height: 16),
-                            // Cuadrante Inferior Derecho: Precio destacado del producto
                             Text(
                               'S/ ${widget.product.price.toStringAsFixed(2)}',
                               style: TextStyle(
                                 color: context.primaryGold,
-                                fontSize: 15.0,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: widget.onAddToCart,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: widget.isInCart ? context.primaryGold : Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: widget.isInCart ? context.primaryGold : Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: Icon(
+                                  widget.isInCart ? Icons.shopping_cart_rounded : Icons.add_shopping_cart_rounded,
+                                  color: widget.isInCart ? Colors.black : Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
                           ],

@@ -4,7 +4,6 @@ import 'package:trim_flow/features/profile/domain/repositories/profile_repositor
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 
 const int kLoyaltyRewardThreshold = 7;
-const String _kDefaultAvatar = 'https://www.w3schools.com/howto/img_avatar.png';
 
 class CustomerProfileMapper {
   static ProfileLoadResult fromRow({
@@ -30,7 +29,7 @@ class CustomerProfileMapper {
       firstName: parts.$1,
       lastName: parts.$2,
       email: email,
-      photoUrl: _metaAvatar(authUser) ?? _kDefaultAvatar,
+      photoUrl: _metaAvatar(authUser) ?? '',
       phone: phone,
       birthDate: birthDate,
       notificationsEnabled: true,
@@ -62,7 +61,7 @@ class StaffProfileMapper {
       firstName: parts.$1,
       lastName: parts.$2,
       email: authUser.email ?? '',
-      photoUrl: (row['avatar_url'] as String?) ?? _metaAvatar(authUser) ?? _kDefaultAvatar,
+      photoUrl: (row['avatar_url'] as String?) ?? _metaAvatar(authUser) ?? '',
       phone: (row['phone'] as String?) ?? '',
       birthDate: '',
       notificationsEnabled: true,
@@ -168,8 +167,27 @@ class PastAppointmentMapper {
   }
 }
 
-String? _metaFullName(User user) => user.userMetadata?['full_name'] as String?;
-String? _metaAvatar(User user) => user.userMetadata?['avatar_url'] as String?;
+String? _metaFullName(User user) {
+  final meta = user.userMetadata;
+  if (meta == null) return null;
+  final candidates = ['full_name', 'name', 'display_name', 'given_name'];
+  for (final key in candidates) {
+    final value = meta[key];
+    if (value is String && value.trim().isNotEmpty) return value;
+  }
+  return null;
+}
+
+String? _metaAvatar(User user) {
+  final meta = user.userMetadata;
+  if (meta == null) return null;
+  final candidates = ['picture', 'avatar_url', 'photo_url', 'avatar'];
+  for (final key in candidates) {
+    final value = meta[key];
+    if (value is String && value.trim().isNotEmpty) return value;
+  }
+  return null;
+}
 
 (String, String) _splitName(String fullName) {
   final trimmed = fullName.trim();

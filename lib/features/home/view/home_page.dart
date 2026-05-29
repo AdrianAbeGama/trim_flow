@@ -11,12 +11,16 @@ import 'package:trim_flow/features/profile/presentation/views/profile_view.dart'
 import 'package:trim_flow/features/reservations/presentation/views/reservation_view.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_event.dart';
+import 'package:trim_flow/features/gallery/presentation/views/gallery_view.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  static const int reservationsTabIndex = 2;
   static final ValueNotifier<bool> enableSwipe = ValueNotifier<bool>(false);
+  static final ValueNotifier<bool> persistentNavBar = ValueNotifier<bool>(true);
+  static final ValueNotifier<int?> requestedTab = ValueNotifier<int?>(null);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -143,7 +147,19 @@ class _HomePageState extends State<HomePage>
         });
       }
     });
+    HomePage.requestedTab.addListener(_onRequestedTab);
     super.initState();
+  }
+
+  void _onRequestedTab() {
+    final requested = HomePage.requestedTab.value;
+    if (!mounted || requested == null) return;
+    if (requested < 0 || requested >= tabController.length) {
+      HomePage.requestedTab.value = null;
+      return;
+    }
+    tabController.animateTo(requested);
+    HomePage.requestedTab.value = null;
   }
 
   void goToHome() {
@@ -153,6 +169,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
+    HomePage.requestedTab.removeListener(_onRequestedTab);
     tabController.dispose();
     _barController.dispose();
     super.dispose();
@@ -174,17 +191,21 @@ class _HomePageState extends State<HomePage>
           },
           child: Stack(
             children: [
-              BottomBar(
-                controller: _barController,
-                layout: BottomBarLayout(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  borderRadius: BorderRadius.circular(500),
-                  offset: 20,
-                  alignment: Alignment.bottomCenter,
-                ),
-                scrollBehavior: const BottomBarScrollBehavior(
-                  hideOnScroll: true,
-                ),
+              ValueListenableBuilder<bool>(
+                valueListenable: HomePage.persistentNavBar,
+                builder: (context, isPersistent, child) {
+                  return BottomBar(
+                    key: ValueKey('bottombar_persistent_$isPersistent'),
+                    controller: _barController,
+                    layout: BottomBarLayout(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      borderRadius: BorderRadius.circular(500),
+                      offset: 20,
+                      alignment: Alignment.bottomCenter,
+                    ),
+                    scrollBehavior: BottomBarScrollBehavior(
+                      hideOnScroll: !isPersistent,
+                    ),
                 theme: BottomBarThemeData(
                   barDecoration: BoxDecoration(
                     color: const Color(0xFF111111),
@@ -217,10 +238,7 @@ class _HomePageState extends State<HomePage>
                               ),
                             ),
                             const KeepAliveWrapper(
-                              child: _SectionView(
-                                title: 'Galería',
-                                icon: Icons.grid_view_rounded,
-                              ),
+                              child: GalleryView(isBarberMode: false),
                             ),
                             KeepAliveWrapper(child: ReservationView(onGoHome: goToHome)),
                             const KeepAliveWrapper(
@@ -278,7 +296,9 @@ class _HomePageState extends State<HomePage>
                     );
                   },
                 ),
-              ),
+              );
+            },
+          ),
               
               // Mini Bar Trigger (Abrir bar flotante)
               AnimatedPositioned(

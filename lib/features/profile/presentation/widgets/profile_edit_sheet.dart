@@ -13,11 +13,13 @@ import 'ob_input_field.dart';
 class ProfileEditSheet extends StatefulWidget {
   final UserProfile user;
   final ProfileBloc profileBloc;
+  final bool isBarber;
 
   const ProfileEditSheet({
     super.key,
     required this.user,
     required this.profileBloc,
+    this.isBarber = false,
   });
 
   @override
@@ -132,18 +134,19 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                     return null;
                   },
                 ),
-                ObInputField(
-                  label: 'Fecha de Nacimiento',
-                  controller: _birthDateController,
-                  hintText: 'DD / MM / AAAA',
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [DateInputFormatter()],
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Campo requerido';
-                    if (!_isValidDate(val)) return 'Fecha no válida';
-                    return null;
-                  },
-                ),
+                if (!widget.isBarber)
+                  ObInputField(
+                    label: 'Fecha de Nacimiento',
+                    controller: _birthDateController,
+                    hintText: 'DD / MM / AAAA',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [DateInputFormatter()],
+                    validator: (val) {
+                      if (val == null || val.isEmpty) return 'Campo requerido';
+                      if (!_isValidDate(val)) return 'Fecha no válida';
+                      return null;
+                    },
+                  ),
                 const SizedBox(height: 32),
                 BlocBuilder<ProfileBloc, ProfileState>(
                   builder: (context, state) {
@@ -155,7 +158,7 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                             firstName: _nameController.text,
                             lastName: _lastNameController.text,
                             phone: _phoneController.text,
-                            birthDate: _birthDateController.text,
+                            birthDate: widget.isBarber ? '' : _birthDateController.text,
                           ));
                           Navigator.pop(context);
                         }

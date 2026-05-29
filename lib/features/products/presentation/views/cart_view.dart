@@ -16,19 +16,6 @@ class CartView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'MI CARRITO',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2),
-        ),
-        centerTitle: true,
-      ),
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
           if (state.items.isEmpty) {
@@ -37,6 +24,7 @@ class CartView extends StatelessWidget {
 
           return Column(
             children: [
+              _buildHeader(context),
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.all(24),
@@ -149,6 +137,51 @@ class CartView extends StatelessWidget {
               ),
               child: const Text('COMPRAR AHORA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(28, 24, 28, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Icon(Icons.shopping_cart_outlined, color: context.primaryGold, size: 28),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'MI\nCARRITO',
+              style: TextStyle(
+                color: Colors.white, 
+                fontSize: 40, 
+                fontWeight: FontWeight.w900, 
+                letterSpacing: -1,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(width: 40, height: 3, color: context.primaryGold),
           ],
         ),
       ),
