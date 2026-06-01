@@ -19,8 +19,12 @@ class HomePage extends StatefulWidget {
 
   static const int reservationsTabIndex = 2;
   static final ValueNotifier<bool> enableSwipe = ValueNotifier<bool>(false);
-  static final ValueNotifier<bool> persistentNavBar = ValueNotifier<bool>(true);
+  static final ValueNotifier<bool> persistentNavBar = ValueNotifier<bool>(false);
   static final ValueNotifier<int?> requestedTab = ValueNotifier<int?>(null);
+  // Pre-selección cross-tab: cuando el usuario toca un servicio o producto del
+  // home, se setea aquí y el destino lo consume al activarse.
+  static final ValueNotifier<Map<String, String>?> requestedService = ValueNotifier<Map<String, String>?>(null);
+  static final ValueNotifier<String?> requestedProductId = ValueNotifier<String?>(null);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -195,7 +199,6 @@ class _HomePageState extends State<HomePage>
                 valueListenable: HomePage.persistentNavBar,
                 builder: (context, isPersistent, child) {
                   return BottomBar(
-                    key: ValueKey('bottombar_persistent_$isPersistent'),
                     controller: _barController,
                     layout: BottomBarLayout(
                       width: MediaQuery.of(context).size.width * 0.9,
@@ -223,7 +226,6 @@ class _HomePageState extends State<HomePage>
                       valueListenable: HomePage.enableSwipe,
                       builder: (context, swipeEnabled, child) {
                         return TabBarView(
-                          key: ValueKey('tabbarview_swipe_$swipeEnabled'),
                           controller: tabController,
                           dragStartBehavior: DragStartBehavior.down,
                           physics: swipeEnabled

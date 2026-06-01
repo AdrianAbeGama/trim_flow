@@ -116,15 +116,16 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
   Future<void> _cropAt(int index) async {
     final shot = _shots[index];
     if (!shot.isLocal) return;
+    final accent = context.primaryGold;
     final cropped = await ImageCropper().cropImage(
       sourcePath: shot.path,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Recortar foto',
           toolbarColor: const Color(0xFF111111),
-          toolbarWidgetColor: const Color(0xFFD4AF37),
+          toolbarWidgetColor: accent,
           backgroundColor: Colors.black,
-          activeControlsWidgetColor: const Color(0xFFD4AF37),
+          activeControlsWidgetColor: accent,
         ),
         IOSUiSettings(title: 'Recortar foto'),
       ],

@@ -12,6 +12,7 @@ class HomeServicesGrid extends StatelessWidget {
   final Function(int, Map<String, String>) onEdit;
   final Function(int) onRemove;
   final VoidCallback onAdd;
+  final void Function(Map<String, String>)? onServiceTap;
 
   const HomeServicesGrid({
     super.key,
@@ -22,6 +23,7 @@ class HomeServicesGrid extends StatelessWidget {
     required this.onEdit,
     required this.onRemove,
     required this.onAdd,
+    this.onServiceTap,
   });
 
   @override
@@ -141,7 +143,7 @@ class HomeServicesGrid extends StatelessWidget {
   }
 
   Widget _buildServiceCard(BuildContext context, int index, Map<String, String> s) {
-    return Stack(
+    final card = Stack(
       children: [
         Container(
           decoration: BoxDecoration(
@@ -204,6 +206,12 @@ class HomeServicesGrid extends StatelessWidget {
             ),
           ),
       ],
+    );
+
+    if (isEditing || onServiceTap == null) return card;
+    return GestureDetector(
+      onTap: () => onServiceTap!(s),
+      child: card,
     );
   }
 

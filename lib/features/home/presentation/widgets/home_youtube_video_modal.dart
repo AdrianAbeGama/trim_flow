@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class YoutubeVideoModal extends StatefulWidget {
@@ -64,10 +65,10 @@ class _YoutubeVideoModalState extends State<YoutubeVideoModal> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'VIDEO',
                   style: TextStyle(
-                    color: Color(0xFFD4AF37),
+                    color: context.primaryGold,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                   ),
@@ -86,7 +87,7 @@ class _YoutubeVideoModalState extends State<YoutubeVideoModal> {
                   ? YoutubePlayer(
                       controller: _controller,
                       showVideoProgressIndicator: true,
-                      progressIndicatorColor: const Color(0xFFD4AF37),
+                      progressIndicatorColor: context.primaryGold,
                       onReady: () {
                         // _controller.addListener(listener);
                       },

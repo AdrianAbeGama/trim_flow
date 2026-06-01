@@ -126,7 +126,7 @@ class _GalleryMasonryCardState extends State<GalleryMasonryCard> {
                   right: 10,
                   child: _ActionBtn(
                     icon: widget.item.isFeatured ? Icons.star_rounded : Icons.star_border_rounded,
-                    color: widget.item.isFeatured ? kGalleryStarYellow : Colors.white,
+                    color: widget.item.isFeatured ? context.primaryGold : Colors.white,
                     onTap: () {
                       if (widget.item.id != null) {
                         context.read<GalleryBloc>().add(GalleryItemToggledFeatured(widget.item.id!));
@@ -329,8 +329,6 @@ class _GalleryMasonryCardState extends State<GalleryMasonryCard> {
     );
   }
 }
-
-const Color kGalleryStarYellow = Color(0xFFFFD600);
 
 class _ActionBtn extends StatelessWidget {
   final IconData icon;

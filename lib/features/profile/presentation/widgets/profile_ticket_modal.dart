@@ -420,8 +420,8 @@ class _ActionButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFFD4AF37),
-        side: BorderSide(color: const Color(0xFFD4AF37).withValues(alpha: 0.35)),
+        foregroundColor: context.primaryGold,
+        side: BorderSide(color: context.primaryGold.withValues(alpha: 0.35)),
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         backgroundColor: const Color(0xFF0F0F0F),

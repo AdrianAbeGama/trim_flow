@@ -6,6 +6,7 @@ import 'package:story_view/story_view.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/home/view/home_page.dart';
 
 import '../bloc/home_bloc.dart';
 import '../widgets/home_hero_section.dart';
@@ -62,7 +63,7 @@ class _HomeViewState extends State<HomeView> {
               child: Text('CAMBIAR IMAGEN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_rounded, color: Color(0xFFD4AF37)),
+              leading: Icon(Icons.photo_library_rounded, color: context.primaryGold),
               title: const Text('GALERÍA DEL CELULAR', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
               onTap: () async {
                 Navigator.pop(context);
@@ -71,7 +72,7 @@ class _HomeViewState extends State<HomeView> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded, color: Color(0xFFD4AF37)),
+              leading: Icon(Icons.camera_alt_rounded, color: context.primaryGold),
               title: const Text('USAR CÁMARA', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
               onTap: () async {
                 Navigator.pop(context);
@@ -80,7 +81,7 @@ class _HomeViewState extends State<HomeView> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.link_rounded, color: Color(0xFFD4AF37)),
+              leading: Icon(Icons.link_rounded, color: context.primaryGold),
               title: const Text('URL DE INTERNET', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.pop(context);
@@ -121,19 +122,21 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (controller.text.isNotEmpty) onPicked(controller.text);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
+              Builder(builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    if (controller.text.isNotEmpty) onPicked(controller.text);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.primaryGold,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.w900)),
+                );
+              }),
             ],
           ),
         ),
@@ -162,19 +165,19 @@ class _HomeViewState extends State<HomeView> {
                 children: [
                   Text(index == null ? 'AÑADIR SERVICIO' : 'EDITAR SERVICIO', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
                   const SizedBox(height: 24),
-                  _buildFormField('NOMBRE DEL SERVICIO', titleController),
+                  _buildFormField(context, 'NOMBRE DEL SERVICIO', titleController),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildFormField('PRECIO (S/)', priceController, keyboardType: TextInputType.number)),
+                      Expanded(child: _buildFormField(context, 'PRECIO (S/)', priceController, keyboardType: TextInputType.number)),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildFormField('TIEMPO (MIN)', timeController, keyboardType: TextInputType.number)),
+                      Expanded(child: _buildFormField(context, 'TIEMPO (MIN)', timeController, keyboardType: TextInputType.number)),
                     ],
                   ),
                   const SizedBox(height: 24),
                   _buildImagePreview(currentImg, () => _pickImage(context, (path) => setModalState(() => currentImg = path))),
                   const SizedBox(height: 32),
-                  _buildSaveButton(() {
+                  _buildSaveButton(context, () {
                     final data = {
                       'title': titleController.text,
                       'price': 'S/ ${priceController.text}',
@@ -218,15 +221,15 @@ class _HomeViewState extends State<HomeView> {
                 children: [
                   Text(index == null ? 'AÑADIR PRODUCTO' : 'EDITAR PRODUCTO', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
                   const SizedBox(height: 24),
-                  _buildFormField('NOMBRE DEL PRODUCTO', nameController),
+                  _buildFormField(context, 'NOMBRE DEL PRODUCTO', nameController),
                   const SizedBox(height: 16),
-                  _buildFormField('DESCRIPCIÓN', descController, maxLines: 3),
+                  _buildFormField(context, 'DESCRIPCIÓN', descController, maxLines: 3),
                   const SizedBox(height: 16),
-                  _buildFormField('PRECIO (S/)', priceController, keyboardType: TextInputType.number),
+                  _buildFormField(context, 'PRECIO (S/)', priceController, keyboardType: TextInputType.number),
                   const SizedBox(height: 24),
                   _buildImagePreview(currentImg, () => _pickImage(context, (path) => setModalState(() => currentImg = path))),
                   const SizedBox(height: 32),
-                  _buildSaveButton(() {
+                  _buildSaveButton(context, () {
                     final data = {
                       'name': nameController.text,
                       'desc': descController.text,
@@ -267,11 +270,11 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 const Text('AÑADIR HISTORIA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
                 const SizedBox(height: 24),
-                _buildFormField('ETIQUETA (E.G. TENDENCIA)', labelController),
+                _buildFormField(context, 'ETIQUETA (E.G. TENDENCIA)', labelController),
                 const SizedBox(height: 24),
                 _buildImagePreview(currentImg, () => _pickImage(context, (path) => setModalState(() => currentImg = path))),
                 const SizedBox(height: 32),
-                _buildSaveButton(() {
+                _buildSaveButton(context, () {
                   if (currentImg.isNotEmpty) {
                     context.read<HomeBloc>().add(HomeEvent.addStory({
                       'label': labelController.text.isEmpty ? 'NUEVO' : labelController.text,
@@ -288,11 +291,11 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildFormField(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _buildFormField(BuildContext context, String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+        Text(label, style: TextStyle(color: context.primaryGold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -327,10 +330,10 @@ class _HomeViewState extends State<HomeView> {
                 color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_circle_outline_rounded, color: Color(0xFFD4AF37), size: 40),
+                  Builder(builder: (context) => Icon(Icons.add_circle_outline_rounded, color: context.primaryGold, size: 40)),
                   SizedBox(height: 12),
                   Text(
                     'SUBIR IMAGEN',
@@ -371,11 +374,11 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildSaveButton(VoidCallback onTap) {
+  Widget _buildSaveButton(BuildContext context, VoidCallback onTap) {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFD4AF37),
+        backgroundColor: context.primaryGold,
         foregroundColor: Colors.black,
         minimumSize: const Size(double.infinity, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -411,19 +414,21 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  onSave(controller.text);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
+              Builder(builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    onSave(controller.text);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: context.primaryGold,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('GUARDAR CAMBIOS', style: TextStyle(fontWeight: FontWeight.w900)),
+                );
+              }),
             ],
           ),
         ),
@@ -448,11 +453,11 @@ class _HomeViewState extends State<HomeView> {
             children: [
               const Text('EDITAR SEDE Y DIRECCIÓN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
               const SizedBox(height: 24),
-              _buildFormField('TÍTULO DE LA SEDE', labelController),
+              _buildFormField(context, 'TÍTULO DE LA SEDE', labelController),
               const SizedBox(height: 16),
-              _buildFormField('DIRECCIÓN FÍSICA', addressController, maxLines: 2),
+              _buildFormField(context, 'DIRECCIÓN FÍSICA', addressController, maxLines: 2),
               const SizedBox(height: 32),
-              _buildSaveButton(() {
+              _buildSaveButton(context, () {
                 final newData = {
                   ...initialData,
                   'label': labelController.text,
@@ -473,7 +478,7 @@ class _HomeViewState extends State<HomeView> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         if (state.status == HomeStatus.loading) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37)));
+          return Center(child: CircularProgressIndicator(color: context.primaryGold, strokeWidth: 2));
         }
 
         return Container(
@@ -531,6 +536,12 @@ class _HomeViewState extends State<HomeView> {
                   onEdit: (i, s) => _showServiceForm(context, index: i, initialData: s),
                   onRemove: (i) => context.read<HomeBloc>().add(HomeEvent.removeService(i)),
                   onAdd: () => _showServiceForm(context),
+                  onServiceTap: widget.onNavigateToServices == null
+                      ? null
+                      : (service) {
+                          HomePage.requestedService.value = service;
+                          widget.onNavigateToServices!();
+                        },
                 ),
                 if (widget.onNavigateToServices != null && !state.isEditing)
                   SliverToBoxAdapter(
@@ -554,6 +565,12 @@ class _HomeViewState extends State<HomeView> {
                   onEdit: (i, p) => _showProductForm(context, index: i, initialData: p),
                   onRemove: (i) => context.read<HomeBloc>().add(HomeEvent.removeProduct(i)),
                   onAdd: () => _showProductForm(context),
+                  onProductTap: widget.onNavigateToProducts == null
+                      ? null
+                      : (product) {
+                          HomePage.requestedProductId.value = product['id'] ?? product['name'];
+                          widget.onNavigateToProducts!();
+                        },
                 ),
                 if (widget.onNavigateToProducts != null && !state.isEditing)
                   SliverToBoxAdapter(

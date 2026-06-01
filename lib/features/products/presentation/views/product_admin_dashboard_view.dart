@@ -298,11 +298,11 @@ class _InventoryTabState extends State<_InventoryTab> {
           TextField(
             controller: _nameController,
             style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Nombre del ítem (ej. Cera Mate)',
-              hintStyle: TextStyle(color: Colors.white10),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+              hintStyle: const TextStyle(color: Colors.white10),
+              enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
             ),
           ),
           const SizedBox(height: 16),
@@ -319,11 +319,11 @@ class _InventoryTabState extends State<_InventoryTab> {
             controller: _stockController,
             style: const TextStyle(color: Colors.white, fontSize: 13),
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Cantidad inicial (ej. 10)',
-              hintStyle: TextStyle(color: Colors.white10),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+              hintStyle: const TextStyle(color: Colors.white10),
+              enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
             ),
           ),
           const SizedBox(height: 20),
@@ -357,7 +357,7 @@ class _InventoryTabState extends State<_InventoryTab> {
                         }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
+                  backgroundColor: context.primaryGold,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
@@ -572,9 +572,9 @@ class _InventoryTabState extends State<_InventoryTab> {
                 TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+                  decoration: InputDecoration(
+                    enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -586,9 +586,9 @@ class _InventoryTabState extends State<_InventoryTab> {
                   controller: quantityController,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
-                  decoration: const InputDecoration(
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+                  decoration: InputDecoration(
+                    enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
                   ),
                 ),
               ],

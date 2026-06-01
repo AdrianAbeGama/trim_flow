@@ -8,6 +8,7 @@ import 'package:injectable/injectable.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
+import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/notifications/notifications.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
@@ -306,6 +307,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void _onCancelAppointment(CancelAppointment event, Emitter<ProfileState> emit) {
+    // Cancela recordatorios locales si los hay
+    AppointmentReminders.cancel(event.reservationId);
+
     final reservation = state.scheduledAppointments
         .where((r) => r.id == event.reservationId)
         .firstOrNull;

@@ -101,8 +101,8 @@ class _OrganizationTabState extends State<OrganizationTab> {
               Positioned.fill(
                 child: Container(
                   color: Colors.black45,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFD4AF37)),
+                  child: Center(
+                    child: CircularProgressIndicator(color: context.primaryGold, strokeWidth: 2),
                   ),
                 ),
               ),
@@ -219,11 +219,11 @@ class _OrganizationTabState extends State<OrganizationTab> {
             TextField(
               controller: _catalogNameController,
               style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Nombre del catálogo',
-                hintStyle: TextStyle(color: Colors.white10),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+                hintStyle: const TextStyle(color: Colors.white10),
+                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
               ),
             ),
             const SizedBox(height: 20),
@@ -260,7 +260,7 @@ class _OrganizationTabState extends State<OrganizationTab> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
+                    backgroundColor: context.primaryGold,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
@@ -307,7 +307,7 @@ class _OrganizationTabState extends State<OrganizationTab> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                _activeIndicator(catalog.isActive),
+                _activeIndicator(context, catalog.isActive),
               ],
             ),
           ),
@@ -523,11 +523,11 @@ class _OrganizationTabState extends State<OrganizationTab> {
             TextField(
               controller: _categoryNameController,
               style: const TextStyle(color: Colors.white, fontSize: 12),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Nombre de la categoría',
-                hintStyle: TextStyle(color: Colors.white10),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+                hintStyle: const TextStyle(color: Colors.white10),
+                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
               ),
             ),
             const SizedBox(height: 16),
@@ -609,7 +609,7 @@ class _OrganizationTabState extends State<OrganizationTab> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
+                    backgroundColor: context.primaryGold,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   ),
@@ -623,19 +623,19 @@ class _OrganizationTabState extends State<OrganizationTab> {
     );
   }
 
-  Widget _activeIndicator(bool isActive) {
+  Widget _activeIndicator(BuildContext context, bool isActive) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFD4AF37).withOpacity(0.15) : Colors.white10,
+          color: isActive ? context.primaryGold.withValues(alpha: 0.15) : Colors.white10,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
           isActive ? 'ACTIVO' : 'INACTIVO',
           style: TextStyle(
-            color: isActive ? const Color(0xFFD4AF37) : Colors.white24,
+            color: isActive ? context.primaryGold : Colors.white24,
             fontSize: 7,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,

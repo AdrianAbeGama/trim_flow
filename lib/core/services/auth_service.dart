@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
 
 @lazySingleton
 class AuthService {
@@ -12,7 +13,7 @@ class AuthService {
   Future<void> signInWithGoogle() async {
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'io.supabase.trimflow://login-callback',
+      redirectTo: currentBootstrapMode.oauthRedirectUrl,
       queryParams: const {
         'prompt': 'select_account',
         'access_type': 'offline',

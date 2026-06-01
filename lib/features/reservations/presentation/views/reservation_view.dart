@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/reservations/domain/reservation_mock_data.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
@@ -15,14 +16,60 @@ import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 
-class ReservationView extends StatelessWidget {
+class ReservationView extends StatefulWidget {
   const ReservationView({super.key, required this.onGoHome});
 
   final VoidCallback onGoHome;
 
   @override
+  State<ReservationView> createState() => _ReservationViewState();
+}
+
+class _ReservationViewState extends State<ReservationView> {
+  @override
+  void initState() {
+    super.initState();
+    HomePage.requestedService.addListener(_handleRequestedService);
+    // Procesa request pendiente si llegó antes de que esta vista existiera
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleRequestedService());
+  }
+
+  @override
+  void dispose() {
+    HomePage.requestedService.removeListener(_handleRequestedService);
+    super.dispose();
+  }
+
+  void _handleRequestedService() {
+    final requested = HomePage.requestedService.value;
+    if (requested == null || !mounted) return;
+    final name = requested['title'] ?? '';
+    if (name.isEmpty) {
+      HomePage.requestedService.value = null;
+      return;
+    }
+    // Busca el servicio matching en el mock (case-insensitive)
+    final match = ReservationMockData.services.where(
+      (s) => s.name.toLowerCase() == name.toLowerCase(),
+    ).firstOrNull;
+    if (match != null) {
+      context.read<ReservationBloc>()
+        ..add(ReservationEvent.toggleService(match))
+        ..add(const ReservationEvent.goToPhase(2));
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Servicio preseleccionado: $name'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: context.primaryGold,
+      ),
+    );
+    HomePage.requestedService.value = null;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _ReservationContent(onGoHome: onGoHome);
+    return _ReservationContent(onGoHome: widget.onGoHome);
   }
 }
 
@@ -37,7 +84,32 @@ class _ReservationContent extends StatelessWidget {
         if (state.status == ReservationStatus.success) {
           // Agregar a citas programadas del perfil
           context.read<ProfileBloc>().add(ProfileEvent.addScheduledReservation(state.reservation));
-          
+
+          // Programar recordatorios locales (24h + 1h antes)
+          final reservation = state.reservation;
+          if (reservation.id != null && reservation.date != null && (reservation.time ?? '').isNotEmpty) {
+            final parts = reservation.time!.split(':');
+            if (parts.length == 2) {
+              final hour = int.tryParse(parts[0]);
+              final minute = int.tryParse(parts[1]);
+              if (hour != null && minute != null) {
+                final fullDate = DateTime(
+                  reservation.date!.year,
+                  reservation.date!.month,
+                  reservation.date!.day,
+                  hour,
+                  minute,
+                );
+                AppointmentReminders.schedule(
+                  reservationId: reservation.id!,
+                  appointmentDateTime: fullDate,
+                  serviceName: reservation.services.map((s) => s.name).join(', '),
+                  barberName: reservation.professional?.name ?? 'Tu barbero',
+                );
+              }
+            }
+          }
+
           // Resetear cartilla si tenía descuento especial activo
           if (state.isDiscountActive) {
             context.read<ProfileBloc>().add(const ProfileEvent.resetFidelityCount());

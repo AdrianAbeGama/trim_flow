@@ -54,6 +54,26 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
   void initState() {
     super.initState();
     _resetInactivityTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncGroupsFromState(context.read<GalleryBloc>().state);
+    });
+  }
+
+  void _syncGroupsFromState(GalleryState state) {
+    if (!mounted) return;
+    final grouped = <String, List<GalleryItem>>{};
+    for (var item in state.visibleItems) {
+      final name = item.barberFullName ?? 'ESTILISTA';
+      final cat = item.categoryLabel;
+      final key = '$name - $cat';
+      grouped.putIfAbsent(key, () => []).add(item);
+    }
+    final sortedKeys = grouped.keys.toList()..sort();
+    setState(() {
+      _currentKeys = sortedKeys;
+      _groupedItems = grouped;
+    });
   }
 
   void _resetInactivityTimer() {
@@ -99,7 +119,11 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GalleryBloc, GalleryState>(
+    return BlocConsumer<GalleryBloc, GalleryState>(
+      listenWhen: (prev, curr) =>
+          prev.visibleItems.length != curr.visibleItems.length ||
+          !identical(prev.visibleItems, curr.visibleItems),
+      listener: (context, state) => _syncGroupsFromState(state),
       builder: (context, state) {
         return Listener(
           onPointerDown: (_) => _resetInactivityTimer(),
@@ -199,12 +223,12 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
     if (state.status == GalleryStatus.loading ||
         state.status == GalleryStatus.initial) {
       return [
-        const SliverToBoxAdapter(
+        SliverToBoxAdapter(
           child: SizedBox(
             height: 280,
             child: Center(
               child: CircularProgressIndicator(
-                color: Color(0xFFD4AF37),
+                color: context.primaryGold,
                 strokeWidth: 2,
               ),
             ),
@@ -224,33 +248,6 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
         ),
       ];
     }
-
-    final grouped = <String, List<GalleryItem>>{};
-    for (var item in items) {
-      final name = item.barberFullName ?? 'ESTILISTA';
-      final cat = item.categoryLabel;
-      final key = '$name - $cat';
-      grouped.putIfAbsent(key, () => []).add(item);
-    }
-
-    final sortedKeys = grouped.keys.toList()..sort();
-    
-    // Update local state if items changed (basic diffing for rotation)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final currentSet = _currentKeys.toSet();
-        final newSet = sortedKeys.toSet();
-        if (currentSet.length != newSet.length || !currentSet.containsAll(newSet)) {
-          setState(() {
-            _currentKeys = List.from(sortedKeys);
-            _groupedItems = grouped;
-            // Force rebuild of AnimatedList by swapping key if needed, or just let it update
-          });
-        } else {
-          _groupedItems = grouped;
-        }
-      }
-    });
 
     if (_currentKeys.isEmpty) return [const SliverToBoxAdapter(child: SizedBox.shrink())];
 
@@ -295,7 +292,7 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
                   Container(
                     width: 40,
                     height: 2,
-                    color: const Color(0xFFD4AF37),
+                    color: context.primaryGold,
                   ),
                 ],
               ),

@@ -10,6 +10,7 @@ class HomeProductsCarousel extends StatelessWidget {
   final Function(int, Map<String, String>) onEdit;
   final Function(int) onRemove;
   final VoidCallback onAdd;
+  final void Function(Map<String, String>)? onProductTap;
 
   const HomeProductsCarousel({
     super.key,
@@ -18,6 +19,7 @@ class HomeProductsCarousel extends StatelessWidget {
     required this.onEdit,
     required this.onRemove,
     required this.onAdd,
+    this.onProductTap,
   });
 
   @override
@@ -47,9 +49,11 @@ class HomeProductsCarousel extends StatelessWidget {
             return _buildAddCard(context);
           }
           final p = content.products[index];
-          return Stack(
+          final card = Stack(
             children: [
-              Container(
+              GestureDetector(
+                onTap: isEditing || onProductTap == null ? null : () => onProductTap!(p),
+                child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFF111111),
@@ -114,6 +118,7 @@ class HomeProductsCarousel extends StatelessWidget {
                   ],
                 ),
               ),
+              ),
               if (isEditing)
                 Positioned(
                   top: 12,
@@ -128,6 +133,7 @@ class HomeProductsCarousel extends StatelessWidget {
                 ),
             ],
           );
+          return card;
         },
       ),
     );

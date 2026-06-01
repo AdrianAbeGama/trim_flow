@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 
 class StoryViewer extends StatefulWidget {
   final List<String> images;
@@ -135,10 +136,10 @@ class _StoryViewerState extends State<StoryViewer> {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 16,
-                          backgroundColor: Color(0xFFD4AF37),
-                          child: Icon(Icons.content_cut_rounded, size: 16, color: Colors.black),
+                          backgroundColor: context.primaryGold,
+                          child: const Icon(Icons.content_cut_rounded, size: 16, color: Colors.black),
                         ),
                         const SizedBox(width: 10),
                         Text(

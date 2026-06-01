@@ -90,6 +90,7 @@ class _ProfileContentState extends State<ProfileContent> {
                 ProfileDetailsGlassCard(
                   user: user,
                   onEdit: () => _showEditSheet(context, user),
+                  isBarber: false,
                 ),
 
                 const SizedBox(height: 12),

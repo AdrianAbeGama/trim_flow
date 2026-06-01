@@ -7,10 +7,17 @@ import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/notifications/notifications.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 
 const Color _kBackground = Color(0xFF070707);
-const Color _kPremiumGold = Color(0xFFD4AF37);
+// Marca TrimFlow universal: gris titanio premium (no dorado).
+// Si el tenant tiene branding propio, animamos hacia su accent al resolverse.
+const Color _kBrandAccent = Color(0xFFB8BCBF);
 const int _kMinimumSplashMs = 1800;
+const Duration _kAccentTransitionDuration = Duration(milliseconds: 700);
 
 class LoadingApp extends StatefulWidget {
   const LoadingApp({super.key, required this.onInitializationComplete});
@@ -24,6 +31,8 @@ class LoadingApp extends StatefulWidget {
 class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+
+  final ValueNotifier<Color> _accentColor = ValueNotifier<Color>(_kBrandAccent);
 
   bool _hasError = false;
   String? _errorMessage;
@@ -47,6 +56,7 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
   @override
   void dispose() {
     _fadeController.dispose();
+    _accentColor.dispose();
     super.dispose();
   }
 
@@ -71,6 +81,30 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
       final appModeBloc = getIt<AppModeBloc>();
       appModeBloc.add(const AppModeEvent.initialize());
       await appModeBloc.stream.firstWhere((state) => state.isInitialized);
+
+      // Inicializa el listener de auth del TenantThemeBloc SIEMPRE
+      // (incluso sin sesión activa) — así detecta cuando el usuario
+      // se loguea más tarde via Google y resuelve el tenant.
+      final themeBloc = getIt<TenantThemeBloc>();
+      await themeBloc.loadTenantFromAuth();
+
+      // Transición de marca: del gris titanio (TrimFlow universal) al accent del tenant.
+      // Si el tenant resuelto tiene branding propio, animamos hacia su color.
+      if (themeBloc.state.tenantId != kDefaultTenantId && mounted) {
+        _accentColor.value = themeBloc.state.colors.primaryGold;
+      }
+
+      // Si ya hay sesión, espera a que el perfil cargue también.
+      // Esto evita el flash de avatar viejo entre splash y home.
+      if (appModeBloc.state.isLoggedIn) {
+        final profileBloc = getIt<ProfileBloc>();
+        profileBloc.add(const ProfileEvent.load());
+        await profileBloc.stream.firstWhere(
+          (state) =>
+              state.status == ProfileStatus.loaded ||
+              state.status == ProfileStatus.error,
+        ).timeout(const Duration(seconds: 4), onTimeout: () => profileBloc.state);
+      }
 
       const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
       const initializationSettingsIOS = DarwinInitializationSettings();
@@ -140,8 +174,9 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
                 ? _SplashErrorView(
                     message: _errorMessage ?? 'Algo salio mal.',
                     onRetry: _retry,
+                    accentColor: _accentColor,
                   )
-                : const _SplashLoadingView(),
+                : _SplashLoadingView(accentColor: _accentColor),
           ),
         ),
       ),
@@ -150,102 +185,143 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
 }
 
 class _SplashLoadingView extends StatelessWidget {
-  const _SplashLoadingView();
+  const _SplashLoadingView({required this.accentColor});
+
+  final ValueNotifier<Color> accentColor;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        _BrandHeader(),
-        SizedBox(height: 48),
-        SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            color: _kPremiumGold,
-            strokeWidth: 2,
-          ),
-        ),
-      ],
+    return ValueListenableBuilder<Color>(
+      valueListenable: accentColor,
+      builder: (context, color, _) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _BrandHeader(accentColor: color),
+            const SizedBox(height: 48),
+            TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: color),
+              duration: _kAccentTransitionDuration,
+              curve: Curves.easeInOutCubic,
+              builder: (context, animatedColor, _) {
+                return SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: animatedColor ?? _kBrandAccent,
+                    strokeWidth: 2,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 class _SplashErrorView extends StatelessWidget {
-  const _SplashErrorView({required this.message, required this.onRetry});
+  const _SplashErrorView({
+    required this.message,
+    required this.onRetry,
+    required this.accentColor,
+  });
 
   final String message;
   final VoidCallback onRetry;
+  final ValueNotifier<Color> accentColor;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const _BrandHeader(),
-          const SizedBox(height: 48),
-          const Icon(
-            Icons.wifi_off_rounded,
-            color: Colors.white38,
-            size: 36,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.5,
-              fontFamily: 'Inter',
-            ),
-          ),
-          const SizedBox(height: 32),
-          OutlinedButton(
-            onPressed: onRetry,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _kPremiumGold,
-              side: const BorderSide(color: _kPremiumGold, width: 1),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(2),
+    return ValueListenableBuilder<Color>(
+      valueListenable: accentColor,
+      builder: (context, color, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _BrandHeader(accentColor: color),
+              const SizedBox(height: 48),
+              const Icon(
+                Icons.wifi_off_rounded,
+                color: Colors.white38,
+                size: 36,
               ),
-            ),
-            child: const Text(
-              'REINTENTAR',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 3,
-                fontFamily: 'Inter',
+              const SizedBox(height: 20),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.5,
+                  fontFamily: 'Inter',
+                ),
               ),
-            ),
+              const SizedBox(height: 32),
+              TweenAnimationBuilder<Color?>(
+                tween: ColorTween(end: color),
+                duration: _kAccentTransitionDuration,
+                curve: Curves.easeInOutCubic,
+                builder: (context, animatedColor, _) {
+                  final c = animatedColor ?? _kBrandAccent;
+                  return OutlinedButton(
+                    onPressed: onRetry,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: c,
+                      side: BorderSide(color: c, width: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    child: const Text(
+                      'REINTENTAR',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 3,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _BrandHeader extends StatelessWidget {
-  const _BrandHeader();
+  const _BrandHeader({required this.accentColor});
+
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: const [
-        Icon(
-          Icons.content_cut_rounded,
-          color: _kPremiumGold,
-          size: 48,
+      children: [
+        TweenAnimationBuilder<Color?>(
+          tween: ColorTween(end: accentColor),
+          duration: _kAccentTransitionDuration,
+          curve: Curves.easeInOutCubic,
+          builder: (context, color, _) {
+            return Icon(
+              Icons.content_cut_rounded,
+              color: color ?? _kBrandAccent,
+              size: 48,
+            );
+          },
         ),
-        SizedBox(height: 24),
-        Text(
+        const SizedBox(height: 24),
+        const Text(
           'TRIMFLOW',
           style: TextStyle(
             color: Colors.white,
@@ -255,8 +331,8 @@ class _BrandHeader extends StatelessWidget {
             fontFamily: 'Inter',
           ),
         ),
-        SizedBox(height: 6),
-        Text(
+        const SizedBox(height: 6),
+        const Text(
           'PREMIUM STUDIO',
           style: TextStyle(
             color: Colors.white30,

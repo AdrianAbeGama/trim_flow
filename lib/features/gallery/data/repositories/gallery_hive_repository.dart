@@ -1,10 +1,16 @@
 import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trim_flow/core/storage/local_storage_provider.dart';
 import 'package:trim_flow/features/gallery/data/seed/gallery_seed.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_barber.dart';
 import 'package:trim_flow/features/gallery/domain/repositories/gallery_repository.dart';
+
+/// Bumpear este número limpia el box localmente la próxima vez que se abra.
+/// Útil cuando se cambia el seed o se elimina demo data legacy.
+const String _kGallerySchemaVersionKey = 'gallery_schema_version';
+const int _kGallerySchemaVersion = 2;
 
 @LazySingleton(as: GalleryRepository)
 class GalleryHiveRepository implements GalleryRepository {
@@ -12,7 +18,15 @@ class GalleryHiveRepository implements GalleryRepository {
 
   @override
   Future<void> ensureSeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentVersion = prefs.getInt(_kGallerySchemaVersionKey) ?? 1;
     final box = await _box;
+
+    if (currentVersion < _kGallerySchemaVersion) {
+      await box.clear();
+      await prefs.setInt(_kGallerySchemaVersionKey, _kGallerySchemaVersion);
+    }
+
     if (box.isNotEmpty) return;
     final seed = GallerySeed.initial();
     for (final item in seed) {

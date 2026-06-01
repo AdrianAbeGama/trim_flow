@@ -186,6 +186,7 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
                 ProfileDetailsGlassCard(
                   user: user,
                   onEdit: () => _showEditSheet(context, user),
+                  isBarber: true,
                 ),
                 const SizedBox(height: 80),
               ],
@@ -204,7 +205,12 @@ class _BarberProfileContentState extends State<BarberProfileContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.person_rounded, color: context.primaryGold, size: 28),
+            Image.asset(
+              'images/mustache.png',
+              width: 32,
+              height: 32,
+              color: context.primaryGold,
+            ),
             const SizedBox(height: 8),
             
             // Row with Header Title & Configuration Settings Button (Perfect vertical alignment!)

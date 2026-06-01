@@ -84,7 +84,7 @@ class ProfileActiveAppointmentsCard extends StatelessWidget {
             children: [
               Icon(
                 Icons.calendar_today_rounded,
-                color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                color: context.primaryGold.withValues(alpha: 0.4),
                 size: 28,
               ),
               const SizedBox(height: 12),
@@ -151,13 +151,14 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
   }
 
   void _showCancelDialog(BuildContext ctx) {
+    final accent = ctx.primaryGold;
     showDialog(
       context: ctx,
       builder: (dialogCtx) => Dialog(
         backgroundColor: const Color(0xFF0F0F0F),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: const Color(0xFFD4AF37).withValues(alpha: 0.2), width: 1),
+          side: BorderSide(color: accent.withValues(alpha: 0.2), width: 1),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -216,6 +217,24 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
     );
   }
 
+  /// Calcula el countdown human-friendly para la cita.
+  /// "HOY 09:30", "MAÑANA 14:00", "EN 3 DÍAS", "EL 15 DE JUN"
+  ({String label, bool isImminent}) _countdownLabel(DateTime? date, String? time) {
+    if (date == null) return (label: '', isImminent: false);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
+    final diffDays = target.difference(today).inDays;
+    final hhmm = (time ?? '').isEmpty ? '' : ' · $time';
+
+    if (diffDays == 0) return (label: 'HOY$hhmm', isImminent: true);
+    if (diffDays == 1) return (label: 'MAÑANA$hhmm', isImminent: true);
+    if (diffDays > 1 && diffDays <= 7) return (label: 'EN $diffDays DÍAS', isImminent: false);
+    if (diffDays < 0) return (label: 'YA PASÓ', isImminent: false);
+    final monthShort = DateFormat('MMM', 'es').format(target).toUpperCase();
+    return (label: 'EL ${target.day} DE $monthShort', isImminent: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateStr = widget.record.date != null
@@ -226,6 +245,8 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
     final professionalName = widget.record.professional?.name ?? 'Disponible';
     final serviceNames = widget.record.services.map((s) => s.name).join(', ');
     final priceStr = 'S/ ${widget.record.totalPrice.toStringAsFixed(2)}';
+    final countdown = _countdownLabel(widget.record.date, widget.record.time);
+    final accent = context.primaryGold;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -252,23 +273,35 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Top Header: Center name + pulsing green dot "CONFIRMADA"
+                          // Top Header: Countdown badge + CONFIRMADA pill
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  centerName.toUpperCase(),
-                                  style: TextStyle(
-                                    color: const Color(0xFFD4AF37).withValues(alpha: 0.85),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.2,
+                              if (countdown.label.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: countdown.isImminent
+                                        ? accent.withValues(alpha: 0.18)
+                                        : Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: countdown.isImminent
+                                          ? accent.withValues(alpha: 0.45)
+                                          : Colors.white.withValues(alpha: 0.08),
+                                      width: 1,
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  child: Text(
+                                    countdown.label,
+                                    style: TextStyle(
+                                      color: countdown.isImminent ? accent : Colors.white70,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.4,
+                                    ),
+                                  ),
                                 ),
-                              ),
                               const SizedBox(width: 8),
                               // Pulsing Green dot + CONFIRMADA text
                               Row(
@@ -312,29 +345,47 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 14),
 
-                          // Services names (Premium layout)
+                          // Servicio (línea principal)
                           Text(
                             serviceNames,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.3,
+                              height: 1.2,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 10),
 
-                          // Barbero · Fecha · Hora · Precio info row
+                          // Barbero · Fecha
                           Row(
                             children: [
-                              const Icon(Icons.person_outline_rounded, color: Colors.white38, size: 13),
-                              const SizedBox(width: 4),
+                              Icon(Icons.content_cut_rounded, color: Colors.white54, size: 13),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  '$professionalName  ·  $dateStr  ·  $timeStr',
+                                  '$professionalName  ·  $dateStr · $timeStr',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          // Sede + Precio
+                          Row(
+                            children: [
+                              const Icon(Icons.place_outlined, color: Colors.white38, size: 13),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  centerName,
                                   style: const TextStyle(color: Colors.white38, fontSize: 11),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -342,9 +393,9 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
                               ),
                               Text(
                                 priceStr,
-                                style: const TextStyle(
-                                  color: Color(0xFFD4AF37),
-                                  fontSize: 13,
+                                style: TextStyle(
+                                  color: accent,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),

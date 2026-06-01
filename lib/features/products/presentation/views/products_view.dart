@@ -22,6 +22,7 @@ import 'package:trim_flow/features/products/presentation/widgets/favorites_botto
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
+import 'package:trim_flow/features/home/view/home_page.dart';
 
 class ProductsView extends StatefulWidget {
   const ProductsView({super.key});
@@ -35,6 +36,29 @@ class _ProductsViewState extends State<ProductsView> {
   void initState() {
     super.initState();
     context.read<ProductBloc>().add(const ProductEvent.started());
+    HomePage.requestedProductId.addListener(_handleRequestedProduct);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleRequestedProduct());
+  }
+
+  @override
+  void dispose() {
+    HomePage.requestedProductId.removeListener(_handleRequestedProduct);
+    super.dispose();
+  }
+
+  void _handleRequestedProduct() {
+    final requested = HomePage.requestedProductId.value;
+    if (requested == null || !mounted) return;
+    HomePage.requestedProductId.value = null;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Buscando: $requested'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: context.primaryGold,
+      ),
+    );
+    // Filtra por nombre para mostrar el producto enfocado en la lista
+    context.read<ProductBloc>().add(ProductEvent.searchChanged(requested));
   }
 
   @override
@@ -72,7 +96,7 @@ class _ProductsViewState extends State<ProductsView> {
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   if (state.isLoading)
-                    const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: Color(0xFFD4AF37))))
+                    SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: context.primaryGold)))
                   else if (state.products.isEmpty)
                     const SliverToBoxAdapter(child: SizedBox.shrink())
                   else
@@ -306,10 +330,11 @@ class _ProductsViewState extends State<ProductsView> {
         final favCount = state.allProducts.where((p) => p.isFavorite).length;
         return Row(
           children: [
-            _actionIcon(Icons.favorite_border_rounded, favCount, () => FavoritesBottomSheet.show(context)),
+            _actionIcon(context, Icons.favorite_border_rounded, favCount, () => FavoritesBottomSheet.show(context)),
             const SizedBox(width: 12),
             BlocBuilder<CartBloc, CartState>(
               builder: (context, cart) => _actionIcon(
+                context,
                 Icons.shopping_cart_outlined,
                 cart.totalItems,
                 () => CartBottomSheet.show(context),
@@ -322,7 +347,7 @@ class _ProductsViewState extends State<ProductsView> {
     );
   }
 
-  Widget _actionIcon(IconData icon, int count, VoidCallback onTap, {bool isGold = false}) {
+  Widget _actionIcon(BuildContext context, IconData icon, int count, VoidCallback onTap, {bool isGold = false}) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -345,7 +370,7 @@ class _ProductsViewState extends State<ProductsView> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: isGold ? const Color(0xFFD4AF37) : const Color(0xFFFF4D4D),
+                color: isGold ? context.primaryGold : const Color(0xFFFF4D4D),
                 shape: BoxShape.circle,
               ),
               constraints: const BoxConstraints(minWidth: 18, minHeight: 18),

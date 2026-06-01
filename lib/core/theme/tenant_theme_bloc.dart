@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/default_tenant_colors.dart';
+import 'package:trim_flow/core/theme/tenant_branding_colors.dart';
 
 const String kDefaultTenantId = 'default';
 
@@ -13,11 +14,17 @@ class TenantThemeState {
   final String tenantId;
   final AppColorsInterface colors;
   final ThemeData themeData;
+  final bool isResolving;
+  final bool isResolved;
+  final String? resolvedForUserId;
 
   TenantThemeState({
     required this.tenantId,
     required this.colors,
     required this.themeData,
+    this.isResolving = false,
+    this.isResolved = false,
+    this.resolvedForUserId,
   });
 
   factory TenantThemeState.initial() {
@@ -26,6 +33,8 @@ class TenantThemeState {
       tenantId: kDefaultTenantId,
       colors: colors,
       themeData: _buildTheme(colors),
+      isResolving: false,
+      isResolved: false,
     );
   }
 
@@ -42,18 +51,35 @@ class TenantThemeState {
         error: colors.errorRed,
       ),
       fontFamily: 'Inter',
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _PremiumFadeTransitionsBuilder(),
+          TargetPlatform.iOS: _PremiumFadeTransitionsBuilder(),
+          TargetPlatform.fuchsia: _PremiumFadeTransitionsBuilder(),
+        },
+      ),
+      splashFactory: NoSplash.splashFactory,
     );
   }
 
   TenantThemeState copyWith({
     String? tenantId,
     AppColorsInterface? colors,
+    bool? isResolving,
+    bool? isResolved,
+    String? resolvedForUserId,
+    bool clearResolvedForUserId = false,
   }) {
     final newColors = colors ?? this.colors;
     return TenantThemeState(
       tenantId: tenantId ?? this.tenantId,
       colors: newColors,
       themeData: _buildTheme(newColors),
+      isResolving: isResolving ?? this.isResolving,
+      isResolved: isResolved ?? this.isResolved,
+      resolvedForUserId: clearResolvedForUserId
+          ? null
+          : (resolvedForUserId ?? this.resolvedForUserId),
     );
   }
 }
@@ -76,26 +102,52 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
 
   Future<void> _resolveTenantFromAuth() async {
     if (_resolving) return;
-    _resolving = true;
-    try {
-      final client = Supabase.instance.client;
-      final user = client.auth.currentUser;
 
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    final currentUserId = user?.id;
+
+    // Guarda: si ya está resuelto para este mismo usuario, no re-fetch.
+    // Evita el loader transitorio cuando Supabase re-emite signedIn al
+    // arrancar (sesión restaurada).
+    if (state.isResolved && state.resolvedForUserId == currentUserId) {
+      return;
+    }
+
+    _resolving = true;
+    emit(state.copyWith(isResolving: true));
+    try {
       if (user == null) {
-        emit(state.copyWith(tenantId: kDefaultTenantId));
+        emit(TenantThemeState.initial().copyWith(
+          isResolved: true,
+          clearResolvedForUserId: true,
+        ));
         return;
       }
 
       final resolvedTenantId = await _lookupTenantId(client, user.id);
 
       if (resolvedTenantId != null) {
-        emit(state.copyWith(tenantId: resolvedTenantId));
+        final colors = await _fetchTenantColors(client, resolvedTenantId);
+        emit(state.copyWith(
+          tenantId: resolvedTenantId,
+          colors: colors,
+          isResolving: false,
+          isResolved: true,
+          resolvedForUserId: user.id,
+        ));
       } else {
-        emit(state.copyWith(tenantId: kDefaultTenantId));
+        emit(TenantThemeState.initial().copyWith(
+          isResolved: true,
+          resolvedForUserId: user.id,
+        ));
       }
     } catch (e) {
       debugPrint('TenantThemeBloc: tenant resolution failed -> $e');
-      emit(state.copyWith(tenantId: kDefaultTenantId));
+      emit(TenantThemeState.initial().copyWith(
+        isResolved: true,
+        resolvedForUserId: user?.id,
+      ));
     } finally {
       _resolving = false;
     }
@@ -127,14 +179,43 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     return null;
   }
 
+  Future<AppColorsInterface> _fetchTenantColors(
+      SupabaseClient client, String tenantId) async {
+    try {
+      final row = await client
+          .from('tenants')
+          .select('branding')
+          .eq('id', tenantId)
+          .maybeSingle();
+      final raw = row?['branding'];
+      if (raw is Map<String, dynamic>) {
+        return TenantBrandingColors.tryParse(raw) ?? DefaultTenantColors();
+      }
+    } catch (e) {
+      debugPrint('TenantThemeBloc: branding fetch failed -> $e');
+    }
+    return DefaultTenantColors();
+  }
+
   void _ensureAuthSubscription() {
     if (_authSub != null) return;
     try {
       _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final event = data.event;
-        if (event == AuthChangeEvent.signedIn ||
-            event == AuthChangeEvent.signedOut ||
-            event == AuthChangeEvent.userUpdated) {
+        if (event == AuthChangeEvent.signedIn) {
+          final newUserId = data.session?.user.id;
+          // Skip si ya resolvimos para este mismo usuario (Supabase puede
+          // re-emitir signedIn al arrancar con sesión restaurada).
+          if (state.isResolved && state.resolvedForUserId == newUserId) {
+            return;
+          }
+          // Marca el tema como "no resuelto" inmediatamente para que App muestre
+          // el loader neutro mientras se resuelve el tenant del nuevo usuario.
+          if (!isClosed && !_resolving) {
+            emit(state.copyWith(isResolved: false, isResolving: true));
+          }
+          _resolveTenantFromAuth();
+        } else if (event == AuthChangeEvent.signedOut) {
           _resolveTenantFromAuth();
         }
       });
@@ -148,5 +229,28 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     await _authSub?.cancel();
     _authSub = null;
     return super.close();
+  }
+}
+
+class _PremiumFadeTransitionsBuilder extends PageTransitionsBuilder {
+  const _PremiumFadeTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final fade = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.03),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(position: slide, child: child),
+    );
   }
 }

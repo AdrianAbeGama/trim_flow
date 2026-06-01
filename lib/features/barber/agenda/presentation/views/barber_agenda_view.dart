@@ -117,7 +117,7 @@ class _AgendaScaffold extends StatelessWidget {
                 onRefresh: () async {
                   context.read<AgendaBloc>().add(const AgendaEvent.refreshRequested());
                 },
-                child: _buildBody(state),
+                child: _buildBody(context, state),
               ),
             ),
           ),
@@ -126,15 +126,15 @@ class _AgendaScaffold extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(AgendaUiState state) {
+  Widget _buildBody(BuildContext context, AgendaUiState state) {
     if (state.status == AgendaStatusUi.loading && state.appointments.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
+        children: [
+          const SizedBox(height: 120),
           Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFD4AF37),
+              color: context.primaryGold,
               strokeWidth: 2,
             ),
           ),

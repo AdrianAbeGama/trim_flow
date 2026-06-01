@@ -79,6 +79,7 @@ class HomeStoriesBar extends StatelessWidget {
   }
 
   Widget _buildStoryItem(BuildContext context, Map<String, String> story, int index) {
+    final isVideo = _isVideoUrl(story['image'] ?? '');
     return Padding(
       padding: const EdgeInsets.only(right: 24),
       child: Stack(
@@ -87,7 +88,10 @@ class HomeStoriesBar extends StatelessWidget {
             onTap: () => _openStory(context, index),
             child: Column(
               children: [
-                Container(
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
                   padding: const EdgeInsets.all(3.5),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -105,11 +109,18 @@ class HomeStoriesBar extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 36,
                       backgroundColor: Colors.white.withValues(alpha: 0.05),
-                      backgroundImage: story['image']!.startsWith('http')
-                          ? CachedNetworkImageProvider(story['image']!)
-                          : FileImage(File(story['image']!)) as ImageProvider,
+                      backgroundImage: isVideo
+                          ? null
+                          : (story['image']!.startsWith('http')
+                              ? CachedNetworkImageProvider(story['image']!)
+                              : FileImage(File(story['image']!)) as ImageProvider),
+                      child: isVideo
+                          ? Icon(Icons.play_circle_fill_rounded, color: context.primaryGold, size: 40)
+                          : null,
                     ),
                   ),
+                ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -135,16 +146,33 @@ class HomeStoriesBar extends StatelessWidget {
     );
   }
 
+  bool _isVideoUrl(String url) {
+    final lower = url.toLowerCase();
+    return lower.endsWith('.mp4') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.m4v');
+  }
+
   void _openStory(BuildContext context, int initialIndex) {
     final items = content.stories.map((s) {
       final url = s['image']!;
+      final caption = Text(
+        s['label']!,
+        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+      );
+      if (_isVideoUrl(url)) {
+        return StoryItem.pageVideo(
+          url,
+          controller: storyController,
+          caption: caption,
+          duration: const Duration(seconds: 15),
+        );
+      }
       return StoryItem.pageImage(
         url: url,
         controller: storyController,
-        caption: Text(
-          s['label']!,
-          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-        ),
+        caption: caption,
       );
     }).toList();
 

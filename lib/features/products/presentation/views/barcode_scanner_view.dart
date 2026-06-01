@@ -189,6 +189,7 @@ class _ScanningLineAnimationState extends State<_ScanningLineAnimation> with Sin
 
   @override
   Widget build(BuildContext context) {
+    final accent = context.primaryGold;
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
@@ -199,10 +200,10 @@ class _ScanningLineAnimationState extends State<_ScanningLineAnimation> with Sin
           child: Container(
             height: 2,
             decoration: BoxDecoration(
-              color: const Color(0xFFD4AF37),
+              color: accent,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFD4AF37).withValues(alpha: 0.5),
+                  color: accent.withValues(alpha: 0.5),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),

@@ -80,10 +80,10 @@ class _Phase4DateTimeSelectorState extends State<Phase4DateTimeSelector> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header fijo con Título de Fase
-          const Text(
+          Text(
             '4. FECHA Y HORA',
             style: TextStyle(
-              color: Color(0xFFD4AF37),
+              color: context.primaryGold,
               fontSize: 12,
               fontWeight: FontWeight.w900,
               letterSpacing: 2,

@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart' as trim_flow_bloc;
-import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart' as trim_flow_bloc;
 import 'package:core/core.dart';
 
 class ProfileDetailsGlassCard extends StatelessWidget {
   final UserProfile user;
   final VoidCallback onEdit;
+  final bool isBarber;
 
   const ProfileDetailsGlassCard({
     super.key,
     required this.user,
     required this.onEdit,
+    this.isBarber = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final phoneVal = user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}';
+    final birthVal = user.birthDate.isEmpty ? 'Pendiente' : _formatBirthDate(user.birthDate);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -62,17 +63,45 @@ class ProfileDetailsGlassCard extends StatelessWidget {
                 isPending: user.phone.isEmpty,
                 onTap: onEdit,
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Divider(color: Colors.white10, height: 1),
-              ),
-              // 2. Branch Selector Dropdown
-              _buildBranchSelector(context, user),
+              if (!isBarber) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: Colors.white10, height: 1),
+                ),
+                _buildItemRow(
+                  context: context,
+                  icon: FontAwesomeIcons.cakeCandles,
+                  label: 'Fecha de nacimiento',
+                  value: birthVal,
+                  isPending: user.birthDate.isEmpty,
+                  onTap: onEdit,
+                ),
+              ],
+              if (isBarber) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Divider(color: Colors.white10, height: 1),
+                ),
+                _BranchReadonlyRow(branchId: user.branchId),
+              ],
             ],
           ),
         ),
       ],
     );
+  }
+
+  String _formatBirthDate(String raw) {
+    try {
+      final d = DateTime.parse(raw);
+      const months = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+      ];
+      return '${d.day} de ${months[d.month - 1]}';
+    } catch (_) {
+      return raw;
+    }
   }
 
   Widget _buildItemRow({
@@ -136,17 +165,35 @@ class ProfileDetailsGlassCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBranchSelector(BuildContext context, UserProfile user) {
-    // Sucursales hardcodeadas como solicitó el usuario para simulación
-    final branches = [
-      {'id': 'sede-centro', 'name': 'Sede Centro'},
-      {'id': 'sede-principal', 'name': 'Sede Principal'},
-      {'id': 'sede-miraflores', 'name': 'Sede Miraflores'},
-    ];
+}
 
-    final currentBranchId = user.branchId ?? 'sede-principal';
-    final profileBloc = context.read<trim_flow_bloc.ProfileBloc>();
+class _BranchReadonlyRow extends StatelessWidget {
+  const _BranchReadonlyRow({required this.branchId});
 
+  final String? branchId;
+
+  static final Map<String, String> _cache = {};
+
+  Future<String?> _fetchBranchName(String id) async {
+    final cached = _cache[id];
+    if (cached != null) return cached;
+    try {
+      final row = await Supabase.instance.client
+          .from('branches')
+          .select('name')
+          .eq('id', id)
+          .maybeSingle();
+      final name = row?['name'] as String?;
+      if (name != null) _cache[id] = name;
+      return name;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final id = branchId;
     return Padding(
       padding: const EdgeInsets.all(6),
       child: Row(
@@ -166,7 +213,7 @@ class ProfileDetailsGlassCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'SUCURSAL ACTIVA',
+                  'SUCURSAL ASIGNADA',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.3),
                     fontSize: 9,
@@ -175,34 +222,27 @@ class ProfileDetailsGlassCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: branches.any((b) => b['id'] == currentBranchId) ? currentBranchId : branches.first['id'] as String,
-                    icon: Icon(Icons.keyboard_arrow_down_rounded, color: context.primaryGold, size: 16),
-                    isDense: true,
-                    dropdownColor: const Color(0xFF161616),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        profileBloc.add(trim_flow_bloc.ProfileEvent.updateBranchId(newValue));
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Sucursal cambiada a ${branches.firstWhere((b) => b['id'] == newValue)['name']}'),
-                          backgroundColor: Colors.green,
-                        ));
-                      }
-                    },
-                    items: branches.map((branch) {
-                      return DropdownMenuItem<String>(
-                        value: branch['id'] as String,
-                        child: Text(branch['name'] as String),
+                if (id == null)
+                  const Text(
+                    'Sin asignar',
+                    style: TextStyle(color: Colors.white38, fontSize: 14, fontWeight: FontWeight.bold),
+                  )
+                else
+                  FutureBuilder<String?>(
+                    future: _fetchBranchName(id),
+                    builder: (context, snap) {
+                      final isLoading = snap.connectionState == ConnectionState.waiting;
+                      final name = snap.data ?? 'Sede asignada';
+                      return Text(
+                        isLoading ? 'Cargando...' : name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       );
-                    }).toList(),
+                    },
                   ),
-                ),
               ],
             ),
           ),

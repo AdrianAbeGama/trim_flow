@@ -74,7 +74,7 @@ class _ProductFormViewState extends State<ProductFormView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Código escaneado: $scannedCode', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          backgroundColor: const Color(0xFFD4AF37),
+          backgroundColor: context.primaryGold,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -235,8 +235,8 @@ class _ProductFormViewState extends State<ProductFormView> {
                   Positioned.fill(
                     child: Container(
                       color: Colors.black45,
-                      child: const Center(
-                        child: CircularProgressIndicator(color: Color(0xFFD4AF37)),
+                      child: Center(
+                        child: CircularProgressIndicator(color: context.primaryGold, strokeWidth: 2),
                       ),
                     ),
                   ),
@@ -301,9 +301,10 @@ class _ProductFormViewState extends State<ProductFormView> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white10),
             ),
-            child: const Center(
+            child: Center(
               child: CircularProgressIndicator(
-                color: Color(0xFFD4AF37),
+                color: context.primaryGold,
+                strokeWidth: 2,
               ),
             ),
           )
@@ -404,6 +405,7 @@ class _ProductFormViewState extends State<ProductFormView> {
   Future<void> _cropImage() async {
     final imgPath = _imageController.text;
     if (imgPath.isEmpty || imgPath.startsWith('http')) return;
+    final accent = context.primaryGold;
 
     final cropped = await ImageCropper().cropImage(
       sourcePath: imgPath,
@@ -411,8 +413,8 @@ class _ProductFormViewState extends State<ProductFormView> {
         AndroidUiSettings(
           toolbarTitle: 'RECORTAR PRODUCTO',
           toolbarColor: Colors.black,
-          toolbarWidgetColor: const Color(0xFFD4AF37),
-          activeControlsWidgetColor: const Color(0xFFD4AF37),
+          toolbarWidgetColor: accent,
+          activeControlsWidgetColor: accent,
           hideBottomControls: true,
           lockAspectRatio: false,
           initAspectRatio: CropAspectRatioPreset.original,
@@ -473,11 +475,11 @@ class _ProductFormViewState extends State<ProductFormView> {
         content: TextField(
           controller: c,
           style: const TextStyle(color: Colors.white, fontSize: 13),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'https://...',
-            hintStyle: TextStyle(color: Colors.white10),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4AF37))),
+            hintStyle: const TextStyle(color: Colors.white10),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
           ),
         ),
         actions: [

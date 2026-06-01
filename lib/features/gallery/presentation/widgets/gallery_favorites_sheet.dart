@@ -10,8 +10,6 @@ import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart'
 import 'package:trim_flow/features/gallery/presentation/views/gallery_favorites_full_view.dart';
 import 'package:trim_flow/features/gallery/presentation/views/gallery_fullscreen_viewer.dart';
 
-const Color kGalleryStarYellow = Color(0xFFFFD600);
-
 class GalleryFavoritesSheet extends StatelessWidget {
   const GalleryFavoritesSheet({super.key});
 
@@ -286,8 +284,8 @@ class _CompactList extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       item.categoryLabel.toUpperCase(),
-                      style: const TextStyle(
-                        color: kGalleryStarYellow,
+                      style: TextStyle(
+                        color: context.primaryGold,
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.2,
@@ -299,9 +297,9 @@ class _CompactList extends StatelessWidget {
               IconButton(
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(
+                icon: Icon(
                   Icons.star_rounded,
-                  color: kGalleryStarYellow,
+                  color: context.primaryGold,
                   size: 22,
                 ),
                 onPressed: () {
@@ -368,8 +366,8 @@ class GalleryFavoritesActionIcon extends StatelessWidget {
             right: -5,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: kGalleryStarYellow,
+              decoration: BoxDecoration(
+                color: context.primaryGold,
                 shape: BoxShape.circle,
               ),
               constraints: const BoxConstraints(minWidth: 18, minHeight: 18),

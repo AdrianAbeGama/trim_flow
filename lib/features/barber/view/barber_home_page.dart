@@ -1,5 +1,6 @@
 import 'package:trim_flow/features/home/presentation/views/home_view.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -57,7 +58,10 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
         backgroundColor: context.backgroundBlack,
         body: Stack(
           children: [
-            BottomBar(
+            ValueListenableBuilder<bool>(
+              valueListenable: HomePage.persistentNavBar,
+              builder: (context, isPersistent, _) {
+                return BottomBar(
               controller: _barController,
               layout: BottomBarLayout(
                 width: MediaQuery.of(context).size.width * 0.9,
@@ -65,8 +69,8 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                 offset: 20,
                 alignment: Alignment.bottomCenter,
               ),
-              scrollBehavior: const BottomBarScrollBehavior(
-                hideOnScroll: true,
+              scrollBehavior: BottomBarScrollBehavior(
+                hideOnScroll: !isPersistent,
               ),
               theme: BottomBarThemeData(
                 barDecoration: BoxDecoration(
@@ -90,7 +94,6 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                 valueListenable: HomePage.enableSwipe,
                 builder: (context, swipeEnabled, child) {
                   return TabBarView(
-                    key: ValueKey('barber_tabbarview_swipe_$swipeEnabled'),
                     controller: tabController,
                     physics: swipeEnabled
                         ? const BouncingScrollPhysics()
@@ -120,16 +123,27 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                 ),
                 labelPadding: EdgeInsets.zero,
                 dividerColor: Colors.transparent,
-                tabs: const [
-                  Tab(icon: Icon(Icons.home_filled, size: 22)),
-                  Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                  Tab(icon: Icon(Icons.calendar_today_rounded, size: 22)),
-                  Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                  Tab(icon: Icon(Icons.person_rounded, size: 22)),
+                overlayColor: WidgetStateProperty.all(Colors.transparent),
+                splashFactory: NoSplash.splashFactory,
+                tabs: [
+                  const Tab(icon: Icon(Icons.home_filled, size: 22)),
+                  const Tab(icon: FaIcon(FontAwesomeIcons.scissors, size: 20)),
+                  const Tab(icon: Icon(Icons.calendar_today_rounded, size: 22)),
+                  const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
+                  Tab(
+                    icon: Image.asset(
+                      'images/mustache.png',
+                      width: 26,
+                      height: 26,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
+            );
+              },
             ),
-            
+
 
   
             AnimatedPositioned(

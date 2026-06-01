@@ -97,37 +97,41 @@ class _HomeSmartNotificationState extends State<HomeSmartNotification> {
                     ),
                     const SizedBox(height: 24),
                     if (isBarber) ...[
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Use Wrap for maximum flexibility
-                          return Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: constraints.maxWidth > 300 ? (constraints.maxWidth - 12) / 2 : constraints.maxWidth,
-                                child: _buildBarberButton(
-                                  context, 
-                                  'GESTIONAR', 
-                                  Icons.calendar_month_rounded,
-                                  widget.onNavigateToAppointments ?? () {},
-                                  true,
-                                ),
-                              ),
-                              SizedBox(
-                                width: constraints.maxWidth > 300 ? (constraints.maxWidth - 12) / 2 : constraints.maxWidth,
-                                child: _buildBarberButton(
-                                  context, 
-                                  'CITAS HOY', 
-                                  _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                                  () => setState(() => _isExpanded = !_isExpanded),
-                                  false,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                      ElevatedButton(
+                        onPressed: widget.onNavigateToAppointments ?? () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: context.primaryGold,
+                          foregroundColor: Colors.black,
+                          minimumSize: const Size(double.infinity, 54),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.calendar_month_rounded, size: 18),
+                            SizedBox(width: 10),
+                            Text(
+                              'VER AGENDA COMPLETA',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1.5),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward_rounded, size: 16),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                        icon: Icon(
+                          _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                          color: Colors.white54,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _isExpanded ? 'Ocultar resumen del día' : 'Ver resumen del día',
+                          style: const TextStyle(color: Colors.white54, fontSize: 11, letterSpacing: 0.5),
+                        ),
                       ),
                       if (_isExpanded) _buildBarberTimeline(context),
                     ] else
@@ -148,37 +152,6 @@ class _HomeSmartNotificationState extends State<HomeSmartNotification> {
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildBarberButton(BuildContext context, String label, IconData icon, VoidCallback onTap, bool primary) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primary ? context.primaryGold : Colors.white.withValues(alpha: 0.05),
-        foregroundColor: primary ? Colors.black : Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: primary ? BorderSide.none : BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        elevation: 0,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              label, 
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)
-            ),
-          ),
-        ],
       ),
     );
   }

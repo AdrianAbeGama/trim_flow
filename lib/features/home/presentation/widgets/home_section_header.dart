@@ -80,6 +80,7 @@ class HomeSectionHeader extends StatelessWidget {
                 children: [
                   if (onAdd != null)
                     _buildActionButton(
+                      context,
                       icon: Icons.add_rounded,
                       label: 'AÑADIR NUEVO',
                       onTap: onAdd!,
@@ -88,6 +89,7 @@ class HomeSectionHeader extends StatelessWidget {
                   if (onAdd != null && onEdit != null) const SizedBox(width: 12),
                   if (onEdit != null)
                     _buildActionButton(
+                      context,
                       icon: Icons.edit_rounded,
                       label: 'EDITAR SECCIÓN',
                       onTap: onEdit!,
@@ -102,7 +104,8 @@ class HomeSectionHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildActionButton(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -113,7 +116,7 @@ class HomeSectionHeader extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isPrimary ? const Color(0xFFD4AF37) : Colors.white.withValues(alpha: 0.05),
+          color: isPrimary ? context.primaryGold : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: isPrimary ? null : Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),

@@ -54,10 +54,10 @@ class _Phase5ConfirmationReceiptState extends State<Phase5ConfirmationReceipt> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '5. CONFIRMA TU RESERVA',
           style: TextStyle(
-            color: Color(0xFFD4AF37),
+            color: context.primaryGold,
             fontSize: 12,
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
