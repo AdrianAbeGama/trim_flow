@@ -23,6 +23,20 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
     on<GalleryCategoryDeleted>(_onCategoryDeleted);
     on<GalleryFilterModeChanged>(_onFilterModeChanged);
     on<GalleryBarberSelected>(_onBarberSelected);
+    on<GalleryItemsReordered>(_onItemsReordered);
+  }
+
+  Future<void> _onItemsReordered(
+    GalleryItemsReordered event,
+    Emitter<GalleryState> emit,
+  ) async {
+    try {
+      await _repository.reorderItems(event.orderedBoxKeys);
+      final items = await _repository.loadAll();
+      emit(state.copyWith(allItems: items));
+    } catch (e) {
+      debugPrint('GalleryBloc.reorder error: $e');
+    }
   }
 
   void _onFilterModeChanged(GalleryFilterModeChanged event, Emitter<GalleryState> emit) {

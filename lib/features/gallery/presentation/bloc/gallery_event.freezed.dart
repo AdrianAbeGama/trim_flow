@@ -55,7 +55,7 @@ extension GalleryEventPatterns on GalleryEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GalleryLoadRequested value)?  loadRequested,TResult Function( GalleryCategoryChanged value)?  categoryChanged,TResult Function( GallerySearchChanged value)?  searchChanged,TResult Function( GalleryEditModeToggled value)?  editModeToggled,TResult Function( GalleryItemAdded value)?  itemAdded,TResult Function( GalleryItemDeleted value)?  itemDeleted,TResult Function( GalleryShowFeaturedToggled value)?  showFeaturedToggled,TResult Function( GalleryItemToggledFeatured value)?  itemToggledFeatured,TResult Function( GalleryCategoryAdded value)?  categoryAdded,TResult Function( GalleryCategoryUpdated value)?  categoryUpdated,TResult Function( GalleryCategoryDeleted value)?  categoryDeleted,TResult Function( GalleryFilterModeChanged value)?  filterModeChanged,TResult Function( GalleryBarberSelected value)?  barberSelected,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( GalleryLoadRequested value)?  loadRequested,TResult Function( GalleryCategoryChanged value)?  categoryChanged,TResult Function( GallerySearchChanged value)?  searchChanged,TResult Function( GalleryEditModeToggled value)?  editModeToggled,TResult Function( GalleryItemAdded value)?  itemAdded,TResult Function( GalleryItemDeleted value)?  itemDeleted,TResult Function( GalleryShowFeaturedToggled value)?  showFeaturedToggled,TResult Function( GalleryItemToggledFeatured value)?  itemToggledFeatured,TResult Function( GalleryCategoryAdded value)?  categoryAdded,TResult Function( GalleryCategoryUpdated value)?  categoryUpdated,TResult Function( GalleryCategoryDeleted value)?  categoryDeleted,TResult Function( GalleryFilterModeChanged value)?  filterModeChanged,TResult Function( GalleryBarberSelected value)?  barberSelected,TResult Function( GalleryItemsReordered value)?  itemsReordered,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case GalleryLoadRequested() when loadRequested != null:
@@ -71,7 +71,8 @@ return categoryAdded(_that);case GalleryCategoryUpdated() when categoryUpdated !
 return categoryUpdated(_that);case GalleryCategoryDeleted() when categoryDeleted != null:
 return categoryDeleted(_that);case GalleryFilterModeChanged() when filterModeChanged != null:
 return filterModeChanged(_that);case GalleryBarberSelected() when barberSelected != null:
-return barberSelected(_that);case _:
+return barberSelected(_that);case GalleryItemsReordered() when itemsReordered != null:
+return itemsReordered(_that);case _:
   return orElse();
 
 }
@@ -89,7 +90,7 @@ return barberSelected(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GalleryLoadRequested value)  loadRequested,required TResult Function( GalleryCategoryChanged value)  categoryChanged,required TResult Function( GallerySearchChanged value)  searchChanged,required TResult Function( GalleryEditModeToggled value)  editModeToggled,required TResult Function( GalleryItemAdded value)  itemAdded,required TResult Function( GalleryItemDeleted value)  itemDeleted,required TResult Function( GalleryShowFeaturedToggled value)  showFeaturedToggled,required TResult Function( GalleryItemToggledFeatured value)  itemToggledFeatured,required TResult Function( GalleryCategoryAdded value)  categoryAdded,required TResult Function( GalleryCategoryUpdated value)  categoryUpdated,required TResult Function( GalleryCategoryDeleted value)  categoryDeleted,required TResult Function( GalleryFilterModeChanged value)  filterModeChanged,required TResult Function( GalleryBarberSelected value)  barberSelected,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( GalleryLoadRequested value)  loadRequested,required TResult Function( GalleryCategoryChanged value)  categoryChanged,required TResult Function( GallerySearchChanged value)  searchChanged,required TResult Function( GalleryEditModeToggled value)  editModeToggled,required TResult Function( GalleryItemAdded value)  itemAdded,required TResult Function( GalleryItemDeleted value)  itemDeleted,required TResult Function( GalleryShowFeaturedToggled value)  showFeaturedToggled,required TResult Function( GalleryItemToggledFeatured value)  itemToggledFeatured,required TResult Function( GalleryCategoryAdded value)  categoryAdded,required TResult Function( GalleryCategoryUpdated value)  categoryUpdated,required TResult Function( GalleryCategoryDeleted value)  categoryDeleted,required TResult Function( GalleryFilterModeChanged value)  filterModeChanged,required TResult Function( GalleryBarberSelected value)  barberSelected,required TResult Function( GalleryItemsReordered value)  itemsReordered,}){
 final _that = this;
 switch (_that) {
 case GalleryLoadRequested():
@@ -105,7 +106,8 @@ return categoryAdded(_that);case GalleryCategoryUpdated():
 return categoryUpdated(_that);case GalleryCategoryDeleted():
 return categoryDeleted(_that);case GalleryFilterModeChanged():
 return filterModeChanged(_that);case GalleryBarberSelected():
-return barberSelected(_that);case _:
+return barberSelected(_that);case GalleryItemsReordered():
+return itemsReordered(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -122,7 +124,7 @@ return barberSelected(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GalleryLoadRequested value)?  loadRequested,TResult? Function( GalleryCategoryChanged value)?  categoryChanged,TResult? Function( GallerySearchChanged value)?  searchChanged,TResult? Function( GalleryEditModeToggled value)?  editModeToggled,TResult? Function( GalleryItemAdded value)?  itemAdded,TResult? Function( GalleryItemDeleted value)?  itemDeleted,TResult? Function( GalleryShowFeaturedToggled value)?  showFeaturedToggled,TResult? Function( GalleryItemToggledFeatured value)?  itemToggledFeatured,TResult? Function( GalleryCategoryAdded value)?  categoryAdded,TResult? Function( GalleryCategoryUpdated value)?  categoryUpdated,TResult? Function( GalleryCategoryDeleted value)?  categoryDeleted,TResult? Function( GalleryFilterModeChanged value)?  filterModeChanged,TResult? Function( GalleryBarberSelected value)?  barberSelected,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( GalleryLoadRequested value)?  loadRequested,TResult? Function( GalleryCategoryChanged value)?  categoryChanged,TResult? Function( GallerySearchChanged value)?  searchChanged,TResult? Function( GalleryEditModeToggled value)?  editModeToggled,TResult? Function( GalleryItemAdded value)?  itemAdded,TResult? Function( GalleryItemDeleted value)?  itemDeleted,TResult? Function( GalleryShowFeaturedToggled value)?  showFeaturedToggled,TResult? Function( GalleryItemToggledFeatured value)?  itemToggledFeatured,TResult? Function( GalleryCategoryAdded value)?  categoryAdded,TResult? Function( GalleryCategoryUpdated value)?  categoryUpdated,TResult? Function( GalleryCategoryDeleted value)?  categoryDeleted,TResult? Function( GalleryFilterModeChanged value)?  filterModeChanged,TResult? Function( GalleryBarberSelected value)?  barberSelected,TResult? Function( GalleryItemsReordered value)?  itemsReordered,}){
 final _that = this;
 switch (_that) {
 case GalleryLoadRequested() when loadRequested != null:
@@ -138,7 +140,8 @@ return categoryAdded(_that);case GalleryCategoryUpdated() when categoryUpdated !
 return categoryUpdated(_that);case GalleryCategoryDeleted() when categoryDeleted != null:
 return categoryDeleted(_that);case GalleryFilterModeChanged() when filterModeChanged != null:
 return filterModeChanged(_that);case GalleryBarberSelected() when barberSelected != null:
-return barberSelected(_that);case _:
+return barberSelected(_that);case GalleryItemsReordered() when itemsReordered != null:
+return itemsReordered(_that);case _:
   return null;
 
 }
@@ -155,7 +158,7 @@ return barberSelected(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String? slug)?  categoryChanged,TResult Function( String query)?  searchChanged,TResult Function()?  editModeToggled,TResult Function( GalleryItem item)?  itemAdded,TResult Function( int boxKey)?  itemDeleted,TResult Function()?  showFeaturedToggled,TResult Function( int boxKey)?  itemToggledFeatured,TResult Function( String label)?  categoryAdded,TResult Function( String oldSlug,  String newLabel)?  categoryUpdated,TResult Function( String slug)?  categoryDeleted,TResult Function( GalleryFilterMode mode)?  filterModeChanged,TResult Function( String? barberName)?  barberSelected,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loadRequested,TResult Function( String? slug)?  categoryChanged,TResult Function( String query)?  searchChanged,TResult Function()?  editModeToggled,TResult Function( GalleryItem item)?  itemAdded,TResult Function( int boxKey)?  itemDeleted,TResult Function()?  showFeaturedToggled,TResult Function( int boxKey)?  itemToggledFeatured,TResult Function( String label)?  categoryAdded,TResult Function( String oldSlug,  String newLabel)?  categoryUpdated,TResult Function( String slug)?  categoryDeleted,TResult Function( GalleryFilterMode mode)?  filterModeChanged,TResult Function( String? barberName)?  barberSelected,TResult Function( List<int> orderedBoxKeys)?  itemsReordered,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case GalleryLoadRequested() when loadRequested != null:
 return loadRequested();case GalleryCategoryChanged() when categoryChanged != null:
@@ -170,7 +173,8 @@ return categoryAdded(_that.label);case GalleryCategoryUpdated() when categoryUpd
 return categoryUpdated(_that.oldSlug,_that.newLabel);case GalleryCategoryDeleted() when categoryDeleted != null:
 return categoryDeleted(_that.slug);case GalleryFilterModeChanged() when filterModeChanged != null:
 return filterModeChanged(_that.mode);case GalleryBarberSelected() when barberSelected != null:
-return barberSelected(_that.barberName);case _:
+return barberSelected(_that.barberName);case GalleryItemsReordered() when itemsReordered != null:
+return itemsReordered(_that.orderedBoxKeys);case _:
   return orElse();
 
 }
@@ -188,7 +192,7 @@ return barberSelected(_that.barberName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String? slug)  categoryChanged,required TResult Function( String query)  searchChanged,required TResult Function()  editModeToggled,required TResult Function( GalleryItem item)  itemAdded,required TResult Function( int boxKey)  itemDeleted,required TResult Function()  showFeaturedToggled,required TResult Function( int boxKey)  itemToggledFeatured,required TResult Function( String label)  categoryAdded,required TResult Function( String oldSlug,  String newLabel)  categoryUpdated,required TResult Function( String slug)  categoryDeleted,required TResult Function( GalleryFilterMode mode)  filterModeChanged,required TResult Function( String? barberName)  barberSelected,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loadRequested,required TResult Function( String? slug)  categoryChanged,required TResult Function( String query)  searchChanged,required TResult Function()  editModeToggled,required TResult Function( GalleryItem item)  itemAdded,required TResult Function( int boxKey)  itemDeleted,required TResult Function()  showFeaturedToggled,required TResult Function( int boxKey)  itemToggledFeatured,required TResult Function( String label)  categoryAdded,required TResult Function( String oldSlug,  String newLabel)  categoryUpdated,required TResult Function( String slug)  categoryDeleted,required TResult Function( GalleryFilterMode mode)  filterModeChanged,required TResult Function( String? barberName)  barberSelected,required TResult Function( List<int> orderedBoxKeys)  itemsReordered,}) {final _that = this;
 switch (_that) {
 case GalleryLoadRequested():
 return loadRequested();case GalleryCategoryChanged():
@@ -203,7 +207,8 @@ return categoryAdded(_that.label);case GalleryCategoryUpdated():
 return categoryUpdated(_that.oldSlug,_that.newLabel);case GalleryCategoryDeleted():
 return categoryDeleted(_that.slug);case GalleryFilterModeChanged():
 return filterModeChanged(_that.mode);case GalleryBarberSelected():
-return barberSelected(_that.barberName);case _:
+return barberSelected(_that.barberName);case GalleryItemsReordered():
+return itemsReordered(_that.orderedBoxKeys);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -220,7 +225,7 @@ return barberSelected(_that.barberName);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String? slug)?  categoryChanged,TResult? Function( String query)?  searchChanged,TResult? Function()?  editModeToggled,TResult? Function( GalleryItem item)?  itemAdded,TResult? Function( int boxKey)?  itemDeleted,TResult? Function()?  showFeaturedToggled,TResult? Function( int boxKey)?  itemToggledFeatured,TResult? Function( String label)?  categoryAdded,TResult? Function( String oldSlug,  String newLabel)?  categoryUpdated,TResult? Function( String slug)?  categoryDeleted,TResult? Function( GalleryFilterMode mode)?  filterModeChanged,TResult? Function( String? barberName)?  barberSelected,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loadRequested,TResult? Function( String? slug)?  categoryChanged,TResult? Function( String query)?  searchChanged,TResult? Function()?  editModeToggled,TResult? Function( GalleryItem item)?  itemAdded,TResult? Function( int boxKey)?  itemDeleted,TResult? Function()?  showFeaturedToggled,TResult? Function( int boxKey)?  itemToggledFeatured,TResult? Function( String label)?  categoryAdded,TResult? Function( String oldSlug,  String newLabel)?  categoryUpdated,TResult? Function( String slug)?  categoryDeleted,TResult? Function( GalleryFilterMode mode)?  filterModeChanged,TResult? Function( String? barberName)?  barberSelected,TResult? Function( List<int> orderedBoxKeys)?  itemsReordered,}) {final _that = this;
 switch (_that) {
 case GalleryLoadRequested() when loadRequested != null:
 return loadRequested();case GalleryCategoryChanged() when categoryChanged != null:
@@ -235,7 +240,8 @@ return categoryAdded(_that.label);case GalleryCategoryUpdated() when categoryUpd
 return categoryUpdated(_that.oldSlug,_that.newLabel);case GalleryCategoryDeleted() when categoryDeleted != null:
 return categoryDeleted(_that.slug);case GalleryFilterModeChanged() when filterModeChanged != null:
 return filterModeChanged(_that.mode);case GalleryBarberSelected() when barberSelected != null:
-return barberSelected(_that.barberName);case _:
+return barberSelected(_that.barberName);case GalleryItemsReordered() when itemsReordered != null:
+return itemsReordered(_that.orderedBoxKeys);case _:
   return null;
 
 }
@@ -995,6 +1001,78 @@ class _$GalleryBarberSelectedCopyWithImpl<$Res>
   return _then(GalleryBarberSelected(
 freezed == barberName ? _self.barberName : barberName // ignore: cast_nullable_to_non_nullable
 as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class GalleryItemsReordered implements GalleryEvent {
+  const GalleryItemsReordered(final  List<int> orderedBoxKeys): _orderedBoxKeys = orderedBoxKeys;
+  
+
+ final  List<int> _orderedBoxKeys;
+ List<int> get orderedBoxKeys {
+  if (_orderedBoxKeys is EqualUnmodifiableListView) return _orderedBoxKeys;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_orderedBoxKeys);
+}
+
+
+/// Create a copy of GalleryEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$GalleryItemsReorderedCopyWith<GalleryItemsReordered> get copyWith => _$GalleryItemsReorderedCopyWithImpl<GalleryItemsReordered>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GalleryItemsReordered&&const DeepCollectionEquality().equals(other._orderedBoxKeys, _orderedBoxKeys));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_orderedBoxKeys));
+
+@override
+String toString() {
+  return 'GalleryEvent.itemsReordered(orderedBoxKeys: $orderedBoxKeys)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $GalleryItemsReorderedCopyWith<$Res> implements $GalleryEventCopyWith<$Res> {
+  factory $GalleryItemsReorderedCopyWith(GalleryItemsReordered value, $Res Function(GalleryItemsReordered) _then) = _$GalleryItemsReorderedCopyWithImpl;
+@useResult
+$Res call({
+ List<int> orderedBoxKeys
+});
+
+
+
+
+}
+/// @nodoc
+class _$GalleryItemsReorderedCopyWithImpl<$Res>
+    implements $GalleryItemsReorderedCopyWith<$Res> {
+  _$GalleryItemsReorderedCopyWithImpl(this._self, this._then);
+
+  final GalleryItemsReordered _self;
+  final $Res Function(GalleryItemsReordered) _then;
+
+/// Create a copy of GalleryEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? orderedBoxKeys = null,}) {
+  return _then(GalleryItemsReordered(
+null == orderedBoxKeys ? _self._orderedBoxKeys : orderedBoxKeys // ignore: cast_nullable_to_non_nullable
+as List<int>,
   ));
 }
 

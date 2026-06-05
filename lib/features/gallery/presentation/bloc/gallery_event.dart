@@ -19,4 +19,5 @@ abstract class GalleryEvent with _$GalleryEvent {
   const factory GalleryEvent.categoryDeleted(String slug) = GalleryCategoryDeleted;
   const factory GalleryEvent.filterModeChanged(GalleryFilterMode mode) = GalleryFilterModeChanged;
   const factory GalleryEvent.barberSelected(String? barberName) = GalleryBarberSelected;
+  const factory GalleryEvent.itemsReordered(List<int> orderedBoxKeys) = GalleryItemsReordered;
 }

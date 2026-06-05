@@ -4,11 +4,12 @@ class GallerySeed {
   const GallerySeed._();
 
   static List<GalleryItem> initial() {
-    // Galería arranca vacía. Los barberos suben sus propias piezas vía Admin Panel.
-    return const <GalleryItem>[];
+    // 15 ejemplos curados con varios barberos, estilos y favoritos para que
+    // el portafolio luzca al primer arranque. Los barberos pueden agregar sus
+    // propias piezas vía Admin Panel; los seeds desaparecen al bumpear schema.
+    return _legacyDemoData();
   }
 
-  // ignore: unused_element
   static List<GalleryItem> _legacyDemoData() {
     final now = DateTime.now();
     final specs = <_SeedSpec>[

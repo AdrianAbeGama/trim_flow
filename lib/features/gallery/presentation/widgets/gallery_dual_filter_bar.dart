@@ -1,6 +1,6 @@
-// ignore_for_file: deprecated_member_use
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/gallery/domain/repositories/gallery_repository.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart';
@@ -40,8 +40,8 @@ class GalleryDualFilterBar extends StatelessWidget {
                 filterMode == GalleryFilterMode.styles
                     ? 'FILTRAR POR ESTILO'
                     : 'FILTRAR POR BARBERO',
-                style: const TextStyle(
-                  color: Colors.white38,
+                style: GoogleFonts.inter(
+                  color: Colors.white.withValues(alpha: 0.42),
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
@@ -205,28 +205,22 @@ class _FlatChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? context.primaryGold : Colors.white.withOpacity(0.05),
+          color: isSelected ? context.primaryGold : Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? context.primaryGold
-                : Colors.white.withOpacity(0.1),
+                : Colors.white.withValues(alpha: 0.08),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.black : Colors.white70,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1,
-              ),
-            ),
-          ],
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            color: isSelected ? Colors.black : Colors.white.withValues(alpha: 0.72),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
+          ),
         ),
       ),
     );
@@ -252,8 +246,8 @@ class _BarberChips extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Text(
           'AUN NO HAY BARBEROS REGISTRADOS',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.25),
+          style: GoogleFonts.inter(
+            color: Colors.white.withValues(alpha: 0.25),
             fontSize: 10,
             fontWeight: FontWeight.w900,
             letterSpacing: 1.4,

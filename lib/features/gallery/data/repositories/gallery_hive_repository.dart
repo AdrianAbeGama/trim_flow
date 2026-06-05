@@ -10,7 +10,7 @@ import 'package:trim_flow/features/gallery/domain/repositories/gallery_repositor
 /// Bumpear este número limpia el box localmente la próxima vez que se abra.
 /// Útil cuando se cambia el seed o se elimina demo data legacy.
 const String _kGallerySchemaVersionKey = 'gallery_schema_version';
-const int _kGallerySchemaVersion = 2;
+const int _kGallerySchemaVersion = 3;
 
 @LazySingleton(as: GalleryRepository)
 class GalleryHiveRepository implements GalleryRepository {
