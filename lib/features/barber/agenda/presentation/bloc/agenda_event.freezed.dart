@@ -140,7 +140,7 @@ return statusChanged(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  refreshRequested,TResult Function( DateTime day)?  daySelected,TResult Function( AgendaViewMode mode)?  viewModeChanged,TResult Function()?  realtimeTicked,TResult Function( WalkInRequest request)?  walkInRequested,TResult Function()?  resolveRefsRequested,TResult Function( String appointmentId,  AgendaStatus newStatus)?  statusChanged,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  refreshRequested,TResult Function( DateTime day)?  daySelected,TResult Function( AgendaViewMode mode)?  viewModeChanged,TResult Function()?  realtimeTicked,TResult Function( WalkInRequest request)?  walkInRequested,TResult Function()?  resolveRefsRequested,TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
 return started();case AgendaRefreshRequested() when refreshRequested != null:
@@ -150,7 +150,7 @@ return viewModeChanged(_that.mode);case AgendaRealtimeTicked() when realtimeTick
 return realtimeTicked();case AgendaWalkInRequested() when walkInRequested != null:
 return walkInRequested(_that.request);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested();case AgendaStatusChanged() when statusChanged != null:
-return statusChanged(_that.appointmentId,_that.newStatus);case _:
+return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case _:
   return orElse();
 
 }
@@ -168,7 +168,7 @@ return statusChanged(_that.appointmentId,_that.newStatus);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  refreshRequested,required TResult Function( DateTime day)  daySelected,required TResult Function( AgendaViewMode mode)  viewModeChanged,required TResult Function()  realtimeTicked,required TResult Function( WalkInRequest request)  walkInRequested,required TResult Function()  resolveRefsRequested,required TResult Function( String appointmentId,  AgendaStatus newStatus)  statusChanged,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  refreshRequested,required TResult Function( DateTime day)  daySelected,required TResult Function( AgendaViewMode mode)  viewModeChanged,required TResult Function()  realtimeTicked,required TResult Function( WalkInRequest request)  walkInRequested,required TResult Function()  resolveRefsRequested,required TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)  statusChanged,}) {final _that = this;
 switch (_that) {
 case AgendaStarted():
 return started();case AgendaRefreshRequested():
@@ -178,7 +178,7 @@ return viewModeChanged(_that.mode);case AgendaRealtimeTicked():
 return realtimeTicked();case AgendaWalkInRequested():
 return walkInRequested(_that.request);case AgendaResolveRefsRequested():
 return resolveRefsRequested();case AgendaStatusChanged():
-return statusChanged(_that.appointmentId,_that.newStatus);case _:
+return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,7 +195,7 @@ return statusChanged(_that.appointmentId,_that.newStatus);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  refreshRequested,TResult? Function( DateTime day)?  daySelected,TResult? Function( AgendaViewMode mode)?  viewModeChanged,TResult? Function()?  realtimeTicked,TResult? Function( WalkInRequest request)?  walkInRequested,TResult? Function()?  resolveRefsRequested,TResult? Function( String appointmentId,  AgendaStatus newStatus)?  statusChanged,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  refreshRequested,TResult? Function( DateTime day)?  daySelected,TResult? Function( AgendaViewMode mode)?  viewModeChanged,TResult? Function()?  realtimeTicked,TResult? Function( WalkInRequest request)?  walkInRequested,TResult? Function()?  resolveRefsRequested,TResult? Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,}) {final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
 return started();case AgendaRefreshRequested() when refreshRequested != null:
@@ -205,7 +205,7 @@ return viewModeChanged(_that.mode);case AgendaRealtimeTicked() when realtimeTick
 return realtimeTicked();case AgendaWalkInRequested() when walkInRequested != null:
 return walkInRequested(_that.request);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested();case AgendaStatusChanged() when statusChanged != null:
-return statusChanged(_that.appointmentId,_that.newStatus);case _:
+return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case _:
   return null;
 
 }
@@ -552,11 +552,12 @@ String toString() {
 
 
 class AgendaStatusChanged implements AgendaEvent {
-  const AgendaStatusChanged(this.appointmentId, this.newStatus);
+  const AgendaStatusChanged(this.appointmentId, this.newStatus, {this.reason});
   
 
  final  String appointmentId;
  final  AgendaStatus newStatus;
+ final  String? reason;
 
 /// Create a copy of AgendaEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -568,16 +569,16 @@ $AgendaStatusChangedCopyWith<AgendaStatusChanged> get copyWith => _$AgendaStatus
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AgendaStatusChanged&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.newStatus, newStatus) || other.newStatus == newStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AgendaStatusChanged&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.newStatus, newStatus) || other.newStatus == newStatus)&&(identical(other.reason, reason) || other.reason == reason));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,appointmentId,newStatus);
+int get hashCode => Object.hash(runtimeType,appointmentId,newStatus,reason);
 
 @override
 String toString() {
-  return 'AgendaEvent.statusChanged(appointmentId: $appointmentId, newStatus: $newStatus)';
+  return 'AgendaEvent.statusChanged(appointmentId: $appointmentId, newStatus: $newStatus, reason: $reason)';
 }
 
 
@@ -588,7 +589,7 @@ abstract mixin class $AgendaStatusChangedCopyWith<$Res> implements $AgendaEventC
   factory $AgendaStatusChangedCopyWith(AgendaStatusChanged value, $Res Function(AgendaStatusChanged) _then) = _$AgendaStatusChangedCopyWithImpl;
 @useResult
 $Res call({
- String appointmentId, AgendaStatus newStatus
+ String appointmentId, AgendaStatus newStatus, String? reason
 });
 
 
@@ -605,11 +606,12 @@ class _$AgendaStatusChangedCopyWithImpl<$Res>
 
 /// Create a copy of AgendaEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? appointmentId = null,Object? newStatus = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? appointmentId = null,Object? newStatus = null,Object? reason = freezed,}) {
   return _then(AgendaStatusChanged(
 null == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String,null == newStatus ? _self.newStatus : newStatus // ignore: cast_nullable_to_non_nullable
-as AgendaStatus,
+as AgendaStatus,reason: freezed == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

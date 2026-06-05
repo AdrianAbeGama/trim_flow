@@ -29,7 +29,7 @@ extension AgendaStatusX on AgendaStatus {
       case AgendaStatus.cancelled:
         return 'Cancelada';
       case AgendaStatus.noShow:
-        return 'No-show';
+        return 'No asistió';
       case AgendaStatus.unknown:
         return 'Sin estado';
     }

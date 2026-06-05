@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 
 class WalkInResult {
@@ -120,9 +123,9 @@ class _WalkInSheetState extends State<WalkInSheet> {
               children: [
                 FaIcon(FontAwesomeIcons.personWalking, color: gold, size: 14),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'REGISTRAR WALK-IN',
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
@@ -155,24 +158,29 @@ class _WalkInSheetState extends State<WalkInSheet> {
             const SizedBox(height: 14),
             _TimeRow(startTime: _startTime, onPick: _pickTime, gold: gold),
             const SizedBox(height: 22),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: hasMissingRefs ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: gold,
-                  foregroundColor: Colors.black,
-                  disabledBackgroundColor: Colors.white12,
-                  disabledForegroundColor: Colors.white38,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            PremiumPressable(
+              pressedScale: 0.98,
+              onTap: hasMissingRefs
+                  ? null
+                  : () {
+                      HapticFeedback.mediumImpact();
+                      _submit();
+                    },
+              child: Container(
+                width: double.infinity,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: hasMissingRefs ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFF7F3EC),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Text(
+                child: Text(
                   'CONFIRMAR WALK-IN',
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
+                    color: hasMissingRefs ? Colors.white.withValues(alpha: 0.3) : Colors.black,
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ),
@@ -206,7 +214,7 @@ class _LabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.inter(
             color: gold.withValues(alpha: 0.7),
             fontSize: 9,
             fontWeight: FontWeight.w900,
@@ -217,11 +225,11 @@ class _LabeledField extends StatelessWidget {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
           cursorColor: gold,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.white24, fontSize: 12),
+            hintStyle: GoogleFonts.inter(color: Colors.white24, fontSize: 12),
             filled: true,
             fillColor: const Color(0xFF161616),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -263,7 +271,7 @@ class _TimeRow extends StatelessWidget {
             children: [
               Text(
                 'HORA DE INICIO',
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: gold.withValues(alpha: 0.7),
                   fontSize: 9,
                   fontWeight: FontWeight.w900,
@@ -273,7 +281,7 @@ class _TimeRow extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 '$hh:$mm',
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: gold,
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
@@ -283,20 +291,27 @@ class _TimeRow extends StatelessWidget {
             ],
           ),
         ),
-        OutlinedButton(
-          onPressed: onPick,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: gold,
-            side: BorderSide(color: gold.withValues(alpha: 0.55)),
+        PremiumPressable(
+          pressedScale: 0.95,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onPick();
+          },
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-          child: const Text(
-            'CAMBIAR',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.4,
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: gold.withValues(alpha: 0.4)),
+            ),
+            child: Text(
+              'CAMBIAR',
+              style: GoogleFonts.inter(
+                color: gold,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.4,
+              ),
             ),
           ),
         ),
@@ -318,15 +333,15 @@ class _MissingRefsWarning extends StatelessWidget {
         border: Border.all(color: const Color(0x99CF6679), width: 1),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          FaIcon(FontAwesomeIcons.triangleExclamation, color: Color(0xFFE3A0AC), size: 14),
-          SizedBox(width: 10),
+          const FaIcon(FontAwesomeIcons.triangleExclamation, color: Color(0xFFE3A0AC), size: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               'Falta asignar sucursal o servicio activo en tu perfil.',
-              style: TextStyle(
-                color: Color(0xFFE3A0AC),
+              style: GoogleFonts.inter(
+                color: const Color(0xFFE3A0AC),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),

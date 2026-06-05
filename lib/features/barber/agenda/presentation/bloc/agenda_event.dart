@@ -16,5 +16,5 @@ abstract class AgendaEvent with _$AgendaEvent {
   const factory AgendaEvent.walkInRequested(WalkInRequest request) =
       AgendaWalkInRequested;
   const factory AgendaEvent.resolveRefsRequested() = AgendaResolveRefsRequested;
-  const factory AgendaEvent.statusChanged(String appointmentId, AgendaStatus newStatus) = AgendaStatusChanged;
+  const factory AgendaEvent.statusChanged(String appointmentId, AgendaStatus newStatus, {String? reason}) = AgendaStatusChanged;
 }

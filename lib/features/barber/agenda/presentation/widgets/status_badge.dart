@@ -2,6 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 
+Color agendaStatusColor(AgendaStatus status, Color gold) {
+  switch (status) {
+    case AgendaStatus.pending:
+      return gold;
+    case AgendaStatus.confirmed:
+      return Colors.white;
+    case AgendaStatus.completed:
+      return const Color(0xFF6E6E6E);
+    case AgendaStatus.cancelled:
+    case AgendaStatus.noShow:
+      return const Color(0xFFCF6679);
+    case AgendaStatus.unknown:
+      return Colors.white38;
+  }
+}
+
 class AgendaStatusBadge extends StatelessWidget {
   const AgendaStatusBadge({super.key, required this.status, this.compact = false});
 
@@ -51,37 +67,37 @@ class AgendaStatusBadge extends StatelessWidget {
 
   _StatusPalette _palette(Color gold) {
     switch (status) {
-      case AgendaStatus.confirmed:
-        return const _StatusPalette(
-          bg: Color(0x223B82F6),
-          border: Color(0xAA3B82F6),
-          dot: Color(0xFF3B82F6),
-          text: Color(0xFF60A5FA),
-          glow: true,
-        );
       case AgendaStatus.pending:
-        return const _StatusPalette(
-          bg: Color(0x11F59E0B),
-          border: Color(0x66F59E0B),
-          dot: Color(0xFFF59E0B),
-          text: Color(0xFFFBBF24),
+        return _StatusPalette(
+          bg: gold.withValues(alpha: 0.12),
+          border: gold.withValues(alpha: 0.45),
+          dot: gold,
+          text: gold,
+          glow: false,
+        );
+      case AgendaStatus.confirmed:
+        return _StatusPalette(
+          bg: Colors.white.withValues(alpha: 0.06),
+          border: Colors.white.withValues(alpha: 0.18),
+          dot: Colors.white.withValues(alpha: 0.85),
+          text: Colors.white.withValues(alpha: 0.8),
           glow: false,
         );
       case AgendaStatus.completed:
-        return const _StatusPalette(
-          bg: Color(0x1F4ADE80),
-          border: Color(0xFF4ADE80),
-          dot: Color(0xFF4ADE80),
-          text: Color(0xFF8FE9B0),
+        return _StatusPalette(
+          bg: Colors.white.withValues(alpha: 0.04),
+          border: Colors.white.withValues(alpha: 0.10),
+          dot: const Color(0xFF6E6E6E),
+          text: Colors.white.withValues(alpha: 0.42),
           glow: false,
         );
       case AgendaStatus.cancelled:
       case AgendaStatus.noShow:
         return const _StatusPalette(
-          bg: Color(0x33CF6679),
-          border: Color(0x99CF6679),
+          bg: Color(0x22CF6679),
+          border: Color(0x66CF6679),
           dot: Color(0xFFCF6679),
-          text: Color(0xFFE3A0AC),
+          text: Color(0xFFD79BA6),
           glow: false,
         );
       case AgendaStatus.unknown:

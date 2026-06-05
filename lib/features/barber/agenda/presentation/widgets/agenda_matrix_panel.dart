@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_bloc.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/widgets/appointment_action_sheet.dart';
@@ -29,7 +30,7 @@ class AgendaMatrixPanel extends StatelessWidget {
           children: [
             CustomPaint(
               size: Size.infinite,
-              painter: _GridPainter(gridColor: Colors.white.withValues(alpha: 0.08)),
+              painter: _HourLinesPainter(line: Colors.white.withValues(alpha: 0.06)),
             ),
             ..._buildHourLabels(),
             ..._buildAppointmentBlocks(context),
@@ -47,16 +48,16 @@ class AgendaMatrixPanel extends StatelessWidget {
       labels.add(
         Positioned(
           left: 0,
-          top: top - 6,
-          width: _kHourLabelWidth - 8,
+          top: top - 7,
+          width: _kHourLabelWidth - 10,
           child: Text(
             '${hour.toString().padLeft(2, '0')}:00',
             textAlign: TextAlign.right,
             style: TextStyle(
-              color: Colors.white38,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+              color: Colors.white.withValues(alpha: 0.32),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
             ),
           ),
         ),
@@ -136,41 +137,27 @@ class AgendaMatrixPanel extends StatelessWidget {
   }
 }
 
-class _GridPainter extends CustomPainter {
-  _GridPainter({required this.gridColor});
-  final Color gridColor;
+class _HourLinesPainter extends CustomPainter {
+  _HourLinesPainter({required this.line});
+
+  final Color line;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final left = _kHourLabelWidth;
     final linePaint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 0.8;
-    final dashedPaint = Paint()
-      ..color = gridColor.withValues(alpha: 0.5)
-      ..strokeWidth = 0.6;
+      ..color = line
+      ..strokeWidth = 1;
 
+    // Una sola línea hairline por hora (estilo calendario de día iOS).
     for (var hour = _kStartHour; hour <= _kEndHour; hour++) {
       final y = (hour - _kStartHour) * _kHourHeight;
-      canvas.drawLine(Offset(_kHourLabelWidth, y), Offset(size.width, y), linePaint);
-      final halfY = y + _kHourHeight / 2;
-      if (halfY < size.height) {
-        _drawDashedLine(canvas, Offset(_kHourLabelWidth, halfY), Offset(size.width, halfY), dashedPaint);
-      }
-    }
-  }
-
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
-    const dashWidth = 4.0;
-    const gap = 4.0;
-    double x = start.dx;
-    while (x < end.dx) {
-      canvas.drawLine(Offset(x, start.dy), Offset((x + dashWidth).clamp(0, end.dx), start.dy), paint);
-      x += dashWidth + gap;
+      canvas.drawLine(Offset(left, y), Offset(size.width, y), linePaint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _GridPainter oldDelegate) => oldDelegate.gridColor != gridColor;
+  bool shouldRepaint(covariant _HourLinesPainter oldDelegate) => oldDelegate.line != line;
 }
 
 class _MatrixBlock extends StatelessWidget {
@@ -178,21 +165,13 @@ class _MatrixBlock extends StatelessWidget {
 
   final AgendaAppointment appointment;
 
-  Color getStatusColor() {
-    switch (appointment.status) {
-      case AgendaStatus.confirmed: return const Color(0xFF3B82F6);
-      case AgendaStatus.pending: return const Color(0xFFF59E0B);
-      case AgendaStatus.completed: return const Color(0xFF4ADE80);
-      case AgendaStatus.cancelled:
-      case AgendaStatus.noShow: return const Color(0xFFCF6679);
-      default: return Colors.white38;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final statusColor = getStatusColor();
-    
+    final statusColor = agendaStatusColor(appointment.status, context.primaryGold);
+    final hh = appointment.startTime.hour.toString().padLeft(2, '0');
+    final mm = appointment.startTime.minute.toString().padLeft(2, '0');
+    final timeStr = '$hh:$mm';
+
     return Padding(
       padding: const EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 2),
       child: GestureDetector(
@@ -200,6 +179,7 @@ class _MatrixBlock extends StatelessWidget {
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
+            isScrollControlled: true,
             builder: (ctx) => BlocProvider.value(
               value: context.read<AgendaBloc>(),
               child: AppointmentActionSheet(appointment: appointment),
@@ -207,56 +187,61 @@ class _MatrixBlock extends StatelessWidget {
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: statusColor.withValues(alpha: 1.0),
-              width: 1.5,
-            ),
+            color: const Color(0xFF141414),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.topLeft,
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width - _kHourLabelWidth - 36,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          (appointment.customerName ?? 'Cliente').toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
+          clipBehavior: Clip.antiAlias,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: statusColor),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxHeight < 54;
+                    final service = appointment.serviceName;
+                    return Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 9, vertical: compact ? 4 : 7),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  (appointment.customerName ?? 'Cliente').toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w900, letterSpacing: 0.6),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                timeStr,
+                                style: TextStyle(color: statusColor, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.2),
+                              ),
+                            ],
                           ),
-                        ),
+                          if (!compact && service != null && service.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              service,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white60, fontSize: 10.5, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ],
                       ),
-                      AgendaStatusBadge(status: appointment.status, compact: true),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    appointment.serviceName ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

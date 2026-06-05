@@ -100,6 +100,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                         : const NeverScrollableScrollPhysics(),
                     children: [
                       HomeView(
+                        isBarberMode: true,
                         onNavigateToServices: () => tabController.animateTo(1),
                         onNavigateToProducts: () => tabController.animateTo(3),
                         onNavigateToAppointments: () => tabController.animateTo(2),
@@ -125,19 +126,12 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                 dividerColor: Colors.transparent,
                 overlayColor: WidgetStateProperty.all(Colors.transparent),
                 splashFactory: NoSplash.splashFactory,
-                tabs: [
-                  const Tab(icon: Icon(Icons.home_filled, size: 22)),
-                  const Tab(icon: FaIcon(FontAwesomeIcons.scissors, size: 20)),
-                  const Tab(icon: Icon(Icons.calendar_today_rounded, size: 22)),
-                  const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                  Tab(
-                    icon: Image.asset(
-                      'images/mustache.png',
-                      width: 26,
-                      height: 26,
-                      color: Colors.white,
-                    ),
-                  ),
+                tabs: const [
+                  Tab(icon: Icon(Icons.home_filled, size: 22)),
+                  Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                  Tab(icon: FaIcon(FontAwesomeIcons.scissors, size: 20)),
+                  Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
+                  Tab(icon: Icon(Icons.person_rounded, size: 22)),
                 ],
               ),
             );

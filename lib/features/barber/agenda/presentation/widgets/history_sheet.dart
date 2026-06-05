@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_state.dart';
+import 'package:trim_flow/features/barber/agenda/presentation/views/agenda_history_full_view.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/widgets/appointment_card.dart';
 
 class HistorySheet extends StatefulWidget {
@@ -15,8 +16,6 @@ class HistorySheet extends StatefulWidget {
 }
 
 class _HistorySheetState extends State<HistorySheet> {
-  bool _isMaximized = false;
-
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
@@ -32,14 +31,8 @@ class _HistorySheetState extends State<HistorySheet> {
 
     // Calcular altura base según reglas
     final screenHeight = MediaQuery.of(context).size.height;
-    double targetHeight;
-    if (_isMaximized) {
-      targetHeight = screenHeight * 0.9;
-    } else if (historyItems.length <= 1) {
-      targetHeight = screenHeight * 0.35; // Un poco mas de 1/4 para evitar overflow del contenido
-    } else {
-      targetHeight = screenHeight * 0.5;
-    }
+    final double targetHeight =
+        historyItems.length <= 1 ? screenHeight * 0.35 : screenHeight * 0.5;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -81,16 +74,16 @@ class _HistorySheetState extends State<HistorySheet> {
                   ],
                 ),
               ),
-              if (historyItems.length > 3)
+              if (historyItems.isNotEmpty)
                 IconButton(
-                  icon: Icon(
-                    _isMaximized ? Icons.close_fullscreen_rounded : Icons.open_in_full_rounded,
-                    color: gold,
-                  ),
+                  icon: Icon(Icons.fullscreen_rounded, color: gold),
                   onPressed: () {
-                    setState(() {
-                      _isMaximized = !_isMaximized;
-                    });
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => AgendaHistoryFullView(appointments: historyItems),
+                      ),
+                    );
                   },
                 ),
               IconButton(
