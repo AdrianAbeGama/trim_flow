@@ -17,10 +17,14 @@ import 'package:trim_flow/features/products/presentation/views/products_view.dar
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  static const int galleryTabIndex = 0;
   static const int reservationsTabIndex = 2;
   static final ValueNotifier<bool> enableSwipe = ValueNotifier<bool>(false);
   static final ValueNotifier<bool> persistentNavBar = ValueNotifier<bool>(false);
   static final ValueNotifier<int?> requestedTab = ValueNotifier<int?>(null);
+  // Se activa tras confirmar una reserva: la tarjeta de próxima cita del perfil
+  // reproduce una vez el efecto de ondas radiales al consumirlo.
+  static final ValueNotifier<bool> justBooked = ValueNotifier<bool>(false);
   // Pre-selección cross-tab: cuando el usuario toca un servicio o producto del
   // home, se setea aquí y el destino lo consume al activarse.
   static final ValueNotifier<Map<String, String>?> requestedService = ValueNotifier<Map<String, String>?>(null);
@@ -136,6 +140,13 @@ class _HomePageState extends State<HomePage>
   void initState() {
     currentPage = 0;
     tabController = TabController(length: 5, vsync: this);
+    // Si se pidió un tab inicial antes de construir (ej. tras reservar), arranca ahí.
+    final pendingTab = HomePage.requestedTab.value;
+    if (pendingTab != null && pendingTab >= 0 && pendingTab < tabController.length) {
+      tabController.index = pendingTab;
+      currentPage = pendingTab;
+      HomePage.requestedTab.value = null;
+    }
     tabController.animation!.addListener(() {
       final value = tabController.animation!.value.round();
       if (value != currentPage && mounted) {
