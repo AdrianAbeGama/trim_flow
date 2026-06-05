@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trim_flow/features/barber/view/barber_home_page.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_quick_action_card.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:core/core.dart';
@@ -14,11 +15,11 @@ import 'package:trim_flow/features/products/presentation/widgets/rotating_produc
 import 'package:trim_flow/features/products/presentation/widgets/product_card.dart';
 import 'package:trim_flow/features/products/presentation/widgets/product_search_bar.dart';
 import 'package:trim_flow/features/products/presentation/widgets/category_filter_bar.dart';
+import 'package:trim_flow/features/products/presentation/widgets/products_header.dart';
+import 'package:trim_flow/features/products/presentation/widgets/products_empty_state.dart';
 import 'package:trim_flow/features/products/presentation/views/product_detail_view.dart';
 import 'package:trim_flow/features/products/presentation/views/product_admin_dashboard_view.dart';
 import 'package:trim_flow/features/products/presentation/views/product_form_view.dart';
-import 'package:trim_flow/features/products/presentation/widgets/cart_bottom_sheet.dart';
-import 'package:trim_flow/features/products/presentation/widgets/favorites_bottom_sheet.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
@@ -57,7 +58,6 @@ class _ProductsViewState extends State<ProductsView> {
         backgroundColor: context.primaryGold,
       ),
     );
-    // Filtra por nombre para mostrar el producto enfocado en la lista
     context.read<ProductBloc>().add(ProductEvent.searchChanged(requested));
   }
 
@@ -68,11 +68,13 @@ class _ProductsViewState extends State<ProductsView> {
         return BlocBuilder<AppModeBloc, AppModeState>(
           builder: (context, modeState) {
             return Scaffold(
-              backgroundColor: context.backgroundBlack,
+              backgroundColor: const Color(0xFF0A0A0A),
               body: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  _buildHeader(context),
+                  SliverToBoxAdapter(
+                    child: ProductsHeader(isBarber: modeState.mode == AppMode.barber),
+                  ),
                   SliverToBoxAdapter(
                     child: _buildQuickActions(context, state, modeState),
                   ),
@@ -98,7 +100,7 @@ class _ProductsViewState extends State<ProductsView> {
                   if (state.isLoading)
                     SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: context.primaryGold)))
                   else if (state.products.isEmpty)
-                    const SliverToBoxAdapter(child: SizedBox.shrink())
+                    const SliverToBoxAdapter(child: ProductsEmptyState())
                   else
                     _buildMasonryGrid(context, state),
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -117,13 +119,13 @@ class _ProductsViewState extends State<ProductsView> {
     }
     final pb = context.read<ProductBloc>();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       child: Row(
         children: [
           Expanded(
-            child: _quickActionButton(
-              context,
-              label: 'CREAR PRODUCTO',
+            child: PremiumQuickActionCard(
+              icon: Icons.add_box_rounded,
+              label: 'CREAR\nPRODUCTO',
               onTap: () {
                 Navigator.push(
                   context,
@@ -134,11 +136,11 @@ class _ProductsViewState extends State<ProductsView> {
               },
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
-            child: _quickActionButton(
-              context,
-              label: 'PANEL ADMIN',
+            child: PremiumQuickActionCard(
+              icon: Icons.tune_rounded,
+              label: 'PANEL\nADMIN',
               onTap: () {
                 Navigator.push(
                   context,
@@ -150,30 +152,6 @@ class _ProductsViewState extends State<ProductsView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _quickActionButton(BuildContext context, {required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: const Color(0xFF111111),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: context.primaryGold.withValues(alpha: 0.4), width: 1.2),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFFF5F5DC),
-            fontSize: 9,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-          ),
-        ),
       ),
     );
   }
@@ -194,7 +172,8 @@ class _ProductsViewState extends State<ProductsView> {
               final product = state.products[index];
               final isInCart = cartState.items.any((item) => item.product.id == product.id);
               final ratio = aspectRatios[index % aspectRatios.length];
-              
+              final delay = (40 * (index % 6)).ms;
+
               return ProductCard(
                 key: ValueKey('grid_${product.id}'),
                 product: product,
@@ -203,7 +182,14 @@ class _ProductsViewState extends State<ProductsView> {
                 onFavorite: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
                 onAddToCart: () => context.read<CartBloc>().add(CartEvent.addItem(product)),
                 onTap: () => _openProductDetail(context, product),
-              );
+              )
+                  .animate()
+                  .fadeIn(delay: delay, duration: 350.ms)
+                  .slideY(
+                    begin: 0.08, end: 0,
+                    delay: delay, duration: 350.ms,
+                    curve: Curves.easeOutCubic,
+                  );
             },
           ),
         );
@@ -227,167 +213,4 @@ class _ProductsViewState extends State<ProductsView> {
       ),
     );
   }
-
-  Widget _buildHeader(BuildContext context) {
-    final modeState = context.read<AppModeBloc>().state;
-    final isBarber = modeState.mode == AppMode.barber;
-
-    return SliverToBoxAdapter(
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 24, 28, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopping_bag_rounded, color: context.primaryGold, size: 28),
-                  if (isBarber) ...[
-                    const SizedBox(width: 12),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: BarberHomePage.showBarberBadge,
-                      builder: (context, showBadge, child) {
-                        if (!showBadge) return const SizedBox.shrink();
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: context.primaryGold,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'MODO BARBERO',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                  const Spacer(),
-                  _buildActions(context),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'PRODUCTOS',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                  if (isBarber) ...[
-                    const SizedBox(width: 12),
-                    BlocBuilder<ProductBloc, ProductState>(
-                      builder: (context, state) {
-                        return GestureDetector(
-                          onTap: () => context.read<ProductBloc>().add(const ProductEvent.toggleEditMode()),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: state.isEditing ? Colors.white : const Color(0xFF1A1A1A),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: context.primaryGold.withValues(alpha: 0.5)),
-                            ),
-                            child: Text(
-                              state.isEditing ? 'LISTO' : 'EDITAR PRODUCTOS',
-                              style: TextStyle(
-                                color: state.isEditing ? Colors.black : context.primaryGold,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(width: 40, height: 3, color: context.primaryGold),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActions(BuildContext context) {
-    return BlocBuilder<ProductBloc, ProductState>(
-      builder: (context, state) {
-        final favCount = state.allProducts.where((p) => p.isFavorite).length;
-        return Row(
-          children: [
-            _actionIcon(context, Icons.favorite_border_rounded, favCount, () => FavoritesBottomSheet.show(context)),
-            const SizedBox(width: 12),
-            BlocBuilder<CartBloc, CartState>(
-              builder: (context, cart) => _actionIcon(
-                context,
-                Icons.shopping_cart_outlined,
-                cart.totalItems,
-                () => CartBottomSheet.show(context),
-                isGold: true,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _actionIcon(BuildContext context, IconData icon, int count, VoidCallback onTap, {bool isGold = false}) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
-          ),
-        ),
-        if (count > 0)
-          Positioned(
-            top: -5,
-            right: -5,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: isGold ? context.primaryGold : const Color(0xFFFF4D4D),
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-              child: Text(
-                '$count',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isGold ? Colors.black : Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-
 }

@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/core/widgets/safe_image.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
-import 'package:trim_flow/features/products/presentation/views/checkout_view.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
+import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
+import 'package:trim_flow/features/products/presentation/views/checkout_view.dart';
 import 'package:trim_flow/features/products/presentation/views/cart_view.dart';
 import 'package:trim_flow/features/products/presentation/views/product_detail_view.dart';
-import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
+import 'package:trim_flow/features/products/presentation/widgets/cart_list_row.dart';
+import 'package:trim_flow/features/products/presentation/widgets/cart_summary_bar.dart';
 
 class CartBottomSheet extends StatelessWidget {
   const CartBottomSheet({super.key});
@@ -19,7 +24,7 @@ class CartBottomSheet extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: const Color(0xFF0B0B0B),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -42,35 +47,67 @@ class CartBottomSheet extends StatelessWidget {
 
         return Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxHeight: MediaQuery.of(context).size.height * 0.82,
           ),
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          padding: const EdgeInsets.only(top: 12),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // ADAPTABLE
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 48), // Spacer for centering
-                  const Text(
-                    'MI CARRITO',
-                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2),
+              const SizedBox(height: 16),
+              _SheetHeader(count: state.totalItems),
+              if (isEmpty)
+                const _EmptyCart()
+              else ...[
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                    itemCount: state.items.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = state.items[index];
+                      return Dismissible(
+                        key: ValueKey('cart_sheet_dismiss_${item.product.id}'),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (_) {
+                          HapticFeedback.mediumImpact();
+                          context.read<CartBloc>().add(CartEvent.removeItem(item.product.id));
+                        },
+                        background: const CartDismissBackground(),
+                        child: CartListRow(
+                          key: ValueKey('cart_sheet_${item.product.id}'),
+                          item: item,
+                          onIncrement: () => context.read<CartBloc>().add(CartEvent.updateQuantity(item.product.id, 1)),
+                          onDecrement: () => context.read<CartBloc>().add(CartEvent.updateQuantity(item.product.id, -1)),
+                          onTap: () => _openDetail(context, item.product.id, state),
+                        ),
+                      ).animate().fadeIn(
+                            delay: (40 * index).clamp(0, 400).ms,
+                            duration: 400.ms,
+                            curve: Curves.easeOutCubic,
+                          ).slideY(begin: 0.08, end: 0, delay: (40 * index).clamp(0, 400).ms, duration: 450.ms, curve: Curves.easeOutCubic);
+                    },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.fullscreen_rounded, color: Colors.white70, size: 26),
-                    onPressed: () {
-                      Navigator.pop(context);
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                  child: CartSummaryBar(
+                    total: state.totalPrice,
+                    onCheckout: () {
                       final cartBloc = context.read<CartBloc>();
                       final productBloc = context.read<ProductBloc>();
+                      Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -79,149 +116,12 @@ class CartBottomSheet extends StatelessWidget {
                               BlocProvider.value(value: cartBloc),
                               BlocProvider.value(value: productBloc),
                             ],
-                            child: const CartView(),
+                            child: const CheckoutView(),
                           ),
                         ),
                       );
                     },
                   ),
-                ],
-              ),
-              if (!isEmpty) ...[
-                const SizedBox(height: 8),
-                const _PulsingInstructionText(text: 'Desliza a la izquierda para eliminar'),
-              ],
-              const SizedBox(height: 24),
-              if (isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Text(
-                    'AÚN NO HAY PRODUCTOS',
-                    style: TextStyle(color: Colors.white24, fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                )
-              else ...[
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: state.items.length,
-                    separatorBuilder: (context, i) => Divider(color: Colors.white.withValues(alpha: 0.05), height: 32),
-                    itemBuilder: (context, index) {
-                      final item = state.items[index];
-                      return Dismissible(
-                        key: Key('cart_item_${item.product.id}'),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF4D4D),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
-                        ),
-                        onDismissed: (_) {
-                          context.read<CartBloc>().add(CartEvent.removeItem(item.product.id));
-                        },
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context); // Close bottom sheet
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => MultiBlocProvider(
-                                  providers: [
-                                    BlocProvider.value(value: context.read<ProductBloc>()),
-                                    BlocProvider.value(value: context.read<CartBloc>()),
-                                  ],
-                                  child: ProductDetailView(product: item.product),
-                                ),
-                              ),
-                            );
-                          },
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: SafeImage(
-                                  url: item.product.imageUrl,
-                                width: 55,
-                                height: 55,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.product.name.toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'S/ ${item.product.price.toStringAsFixed(2)}',
-                                    style: TextStyle(color: context.primaryGold, fontSize: 13, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            _QuantitySelector(
-                              quantity: item.quantity,
-                              onIncrement: () => context.read<CartBloc>().add(CartEvent.updateQuantity(item.product.id, 1)),
-                              onDecrement: () => context.read<CartBloc>().add(CartEvent.updateQuantity(item.product.id, -1)),
-                            ),
-                          ],
-                        ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'TOTAL ESTIMADO',
-                      style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
-                    ),
-                    Text(
-                      'S/ ${state.totalPrice.toStringAsFixed(2)}',
-                      style: TextStyle(color: context.primaryGold, fontSize: 20, fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    final cartBloc = context.read<CartBloc>();
-                    final productBloc = context.read<ProductBloc>();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MultiBlocProvider(
-                          providers: [
-                            BlocProvider.value(value: cartBloc),
-                            BlocProvider.value(value: productBloc),
-                          ],
-                          child: const CheckoutView(),
-                        ),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.primaryGold,
-                    foregroundColor: Colors.black,
-                    minimumSize: const Size(double.infinity, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                  child: const Text('COMPRAR AHORA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
                 ),
               ],
             ],
@@ -230,94 +130,139 @@ class CartBottomSheet extends StatelessWidget {
       },
     );
   }
-}
 
-class _PulsingInstructionText extends StatefulWidget {
-  final String text;
-  const _PulsingInstructionText({required this.text});
-
-  @override
-  State<_PulsingInstructionText> createState() => _PulsingInstructionTextState();
-}
-
-class _PulsingInstructionTextState extends State<_PulsingInstructionText> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _opacity;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-    _opacity = Tween<double>(begin: 0.3, end: 1.0).animate(_controller);
-    
-    // Detener después de 3 segundos (2 ciclos aprox)
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) _controller.stop();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: Text(
-        widget.text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: context.primaryGold, 
-          fontSize: 9, 
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.5,
+  void _openDetail(BuildContext context, String productId, CartState state) {
+    final item = state.items.firstWhere((it) => it.product.id == productId);
+    final pb = context.read<ProductBloc>();
+    final cb = context.read<CartBloc>();
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: pb),
+            BlocProvider.value(value: cb),
+          ],
+          child: ProductDetailView(product: item.product),
         ),
       ),
     );
   }
 }
 
-class _QuantitySelector extends StatelessWidget {
-  final int quantity;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
+class _SheetHeader extends StatelessWidget {
+  const _SheetHeader({required this.count});
 
-  const _QuantitySelector({
-    required this.quantity,
-    required this.onIncrement,
-    required this.onDecrement,
-  });
+  final int count;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            icon: const Icon(Icons.remove, size: 14, color: Colors.white70),
-            onPressed: onDecrement,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Carrito',
+                      style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: -1.4, height: 1.0),
+                    ),
+                    const SizedBox(width: 9),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Text(
+                        count == 0 ? '' : '· ${count == 1 ? "1 producto" : "$count productos"}',
+                        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: gold, letterSpacing: -0.2),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PremiumPressable(
+                pressedScale: 0.85,
+                onTap: () {
+                  final cartBloc = context.read<CartBloc>();
+                  final productBloc = context.read<ProductBloc>();
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider.value(value: cartBloc),
+                          BlocProvider.value(value: productBloc),
+                        ],
+                        child: const CartView(),
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF161616),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  ),
+                  child: Icon(Icons.fullscreen_rounded, color: Colors.white.withValues(alpha: 0.7), size: 20),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Container(width: 16, height: 1.5, color: gold),
+              const SizedBox(width: 8),
+              Text(
+                count == 0 ? 'Tu carrito está vacío' : 'Listo para pagar cuando quieras',
+                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.45), letterSpacing: -0.1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyCart extends StatelessWidget {
+  const _EmptyCart();
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 44),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 84, height: 84,
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.06),
+              shape: BoxShape.circle,
+              border: Border.all(color: gold.withValues(alpha: 0.2)),
+            ),
+            child: Icon(Icons.shopping_bag_outlined, color: gold.withValues(alpha: 0.75), size: 32),
+          ),
+          const SizedBox(height: 18),
           Text(
-            '$quantity',
-            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            'Tu carrito está vacío',
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.3),
           ),
-          IconButton(
-            icon: const Icon(Icons.add, size: 14, color: Colors.white70),
-            onPressed: onIncrement,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          const SizedBox(height: 6),
+          Text(
+            'Agrega productos para verlos aquí.',
+            style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.45)),
           ),
         ],
       ),

@@ -1,24 +1,29 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 
 class ProductPurchaseSuccessView extends StatefulWidget {
   final CartState cartState;
   final String paymentMethod;
   final VoidCallback onGoHome;
+  final VoidCallback onViewOrders;
 
   const ProductPurchaseSuccessView({
     super.key,
     required this.cartState,
     required this.paymentMethod,
     required this.onGoHome,
+    required this.onViewOrders,
   });
 
   @override
@@ -63,7 +68,7 @@ class _ProductPurchaseSuccessViewState extends State<ProductPurchaseSuccessView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0A0A0A),
       body: Stack(
         children: [
           SafeArea(
@@ -86,33 +91,74 @@ class _ProductPurchaseSuccessViewState extends State<ProductPurchaseSuccessView>
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _shareTicketImage,
-                          icon: const Icon(Icons.ios_share_rounded, size: 18),
-                          label: const Text('COMPARTIR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white10),
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: PremiumPressable(
+                          pressedScale: 0.97,
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            _shareTicketImage();
+                          },
+                          child: Container(
+                            height: 56,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.ios_share_rounded, size: 17, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Text('COMPARTIR', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: widget.onGoHome,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.primaryGold,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            elevation: 0,
+                        flex: 2,
+                        child: PremiumPressable(
+                          pressedScale: 0.97,
+                          onTap: () {
+                            HapticFeedback.mediumImpact();
+                            widget.onViewOrders();
+                          },
+                          child: Container(
+                            height: 56,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF7F3EC),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.receipt_long_rounded, size: 17, color: Colors.black),
+                                const SizedBox(width: 8),
+                                Text('VER MIS PEDIDOS', style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 0.6, fontSize: 12)),
+                              ],
+                            ),
                           ),
-                          child: const Text('INICIO', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  PremiumPressable(
+                    pressedScale: 0.98,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      widget.onGoHome();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        'Ir al inicio',
+                        style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontWeight: FontWeight.w600, fontSize: 12),
+                      ),
+                    ),
                   ),
                 ],
               ),

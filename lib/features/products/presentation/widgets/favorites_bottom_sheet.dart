@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/core/widgets/safe_image.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/features/products/presentation/views/favorites_view.dart';
 import 'package:trim_flow/features/products/presentation/views/product_detail_view.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
@@ -61,9 +64,9 @@ class FavoritesBottomSheet extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(width: 48), // Spacer for centering
-                  const Text(
+                  Text(
                     'MIS FAVORITOS',
-                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2),
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2),
                   ),
                   IconButton(
                     icon: const Icon(Icons.fullscreen_rounded, color: Colors.white70, size: 26),
@@ -93,11 +96,11 @@ class FavoritesBottomSheet extends StatelessWidget {
               ],
               const SizedBox(height: 24),
               if (isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Text(
                     'AÚN NO TIENES FAVORITOS',
-                    style: TextStyle(color: Colors.white24, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5),
                   ),
                 )
               else ...[
@@ -121,10 +124,12 @@ class FavoritesBottomSheet extends StatelessWidget {
                           child: const Icon(Icons.favorite_border_rounded, color: Colors.white),
                         ),
                         onDismissed: (_) {
+                          HapticFeedback.lightImpact();
                           context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id));
                         },
                         child: GestureDetector(
                           onTap: () {
+                            HapticFeedback.lightImpact();
                             Navigator.pop(context); // Close bottom sheet
                             Navigator.push(
                               context,
@@ -157,21 +162,24 @@ class FavoritesBottomSheet extends StatelessWidget {
                                 children: [
                                   Text(
                                     product.name.toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                    style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'S/ ${product.price.toStringAsFixed(2)}',
-                                    style: TextStyle(color: context.primaryGold, fontSize: 13, fontWeight: FontWeight.w900),
+                                    style: GoogleFonts.inter(color: context.primaryGold, fontSize: 13, fontWeight: FontWeight.w900),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.favorite_rounded, color: Color(0xFFFF4D4D), size: 20),
-                              onPressed: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id));
+                              },
                             ),
                           ],
                         ),
@@ -181,20 +189,7 @@ class FavoritesBottomSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.05),
-                    foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                    minimumSize: const Size(double.infinity, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
-                  child: const Text('CONTINUAR COMPRANDO', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                ),
+                _ContinueButton(),
               ],
             ],
           ),
@@ -243,11 +238,43 @@ class _PulsingInstructionTextState extends State<_PulsingInstructionText> with S
       child: Text(
         widget.text,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: GoogleFonts.inter(
           color: context.primaryGold, 
           fontSize: 9, 
           fontWeight: FontWeight.w900,
           letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _ContinueButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return PremiumPressable(
+      pressedScale: 0.95,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.pop(context);
+      },
+      child: Container(
+        width: double.infinity,
+        height: 60,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Text(
+          'CONTINUAR COMPRANDO',
+          style: GoogleFonts.inter(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
         ),
       ),
     );

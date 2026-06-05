@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 
 class BarcodeScannerView extends StatefulWidget {
   const BarcodeScannerView({super.key});
@@ -85,19 +87,20 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                 children: [
                   Text(
                     'ESCANEANDO CÓDIGO DE BARRAS',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       color: context.primaryGold,
                       fontSize: 10,
-                      letterSpacing: 3,
+                      letterSpacing: 2.5,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Alinea el código dentro del recuadro',
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 11,
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withValues(alpha: 0.45),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -105,22 +108,11 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             ),
           ),
 
-          // Botón de cerrar elegante
+          // Botón de volver
           Positioned(
-            top: 60,
-            left: 30,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
-              ),
-            ),
+            top: MediaQuery.of(context).padding.top + 12,
+            left: 16,
+            child: PremiumBackButton(onTap: () => Navigator.pop(context)),
           ),
         ],
       ),

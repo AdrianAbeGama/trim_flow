@@ -5,9 +5,11 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
@@ -95,19 +97,20 @@ class _ProductFormViewState extends State<ProductFormView> {
           final showLoader = state.isLoading || _isSaving;
           return Scaffold(
             resizeToAvoidBottomInset: true,
-            backgroundColor: Colors.black,
+            backgroundColor: const Color(0xFF0A0A0A),
             appBar: AppBar(
-              backgroundColor: Colors.black,
+              backgroundColor: const Color(0xFF0A0A0A),
               surfaceTintColor: Colors.transparent,
               scrolledUnderElevation: 0,
               elevation: 0,
+              leadingWidth: 60,
               title: Text(
                 widget.product == null ? 'NUEVO PRODUCTO' : 'EDITAR PRODUCTO',
-                style: const TextStyle(color: Color(0xFFF5F5DC), fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 2),
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 2),
               ),
-              leading: IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: PremiumBackButton(onTap: () => Navigator.pop(context)),
               ),
               actions: [
                 if (widget.product != null)
@@ -211,18 +214,31 @@ class _ProductFormViewState extends State<ProductFormView> {
                         _buildLabel('Imagen del producto'),
                         _buildImageSelector(),
                         const SizedBox(height: 40),
-                        ElevatedButton(
-                          onPressed: showLoader ? null : _save,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.primaryGold,
-                            foregroundColor: Colors.black,
-                            minimumSize: const Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            widget.product == null ? 'CREAR PRODUCTO' : 'GUARDAR CAMBIOS',
-                            style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 13),
+                        PremiumPressable(
+                          pressedScale: 0.97,
+                          onTap: showLoader ? null : _save,
+                          child: Container(
+                            width: double.infinity,
+                            height: 56,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: context.primaryGold,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(color: context.primaryGold.withOpacity(0.3), blurRadius: 14, spreadRadius: 1),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(widget.product == null ? Icons.add_rounded : Icons.check_rounded, color: Colors.black, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.product == null ? 'CREAR PRODUCTO' : 'GUARDAR CAMBIOS',
+                                  style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 1.4, fontSize: 12.5),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 40),
@@ -250,11 +266,8 @@ class _ProductFormViewState extends State<ProductFormView> {
 
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white38, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-      ),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: PremiumSectionLabel(text),
     );
   }
 
@@ -271,17 +284,18 @@ class _ProductFormViewState extends State<ProductFormView> {
       maxLines: maxLines,
       enabled: enabled,
       keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
-      style: TextStyle(color: enabled ? Colors.white : Colors.white38, fontSize: 13),
+      cursorColor: context.primaryGold,
+      style: GoogleFonts.inter(color: enabled ? Colors.white : Colors.white38, fontSize: 13, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white10),
+        hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.3), fontSize: 13, fontWeight: FontWeight.w500),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.02),
+        fillColor: const Color(0xFF0E0E0E),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: context.primaryGold)),
-        disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.06))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: context.primaryGold, width: 1.2)),
+        disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.04))),
+        contentPadding: const EdgeInsets.all(15),
       ),
       validator: isRequired ? (v) => v == null || v.isEmpty ? 'Requerido' : null : null,
     );
@@ -471,29 +485,31 @@ class _ProductFormViewState extends State<ProductFormView> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF111111),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('PEGAR URL', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        title: Text('PEGAR URL', style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1)),
         content: TextField(
           controller: c,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+          cursorColor: context.primaryGold,
           decoration: InputDecoration(
             hintText: 'https://...',
-            hintStyle: const TextStyle(color: Colors.white10),
+            hintStyle: GoogleFonts.inter(color: Colors.white.withOpacity(0.2)),
             enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
             focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCELAR', style: TextStyle(color: Colors.white38))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('CANCELAR', style: GoogleFonts.inter(color: Colors.white38, fontWeight: FontWeight.w700, fontSize: 11))),
           ElevatedButton(
             onPressed: () {
               setState(() => _imageController.text = c.text);
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.primaryGold,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: const Color(0xFFF7F3EC),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('ACEPTAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: Text('ACEPTAR', style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 11)),
           ),
         ],
       ),
@@ -584,31 +600,15 @@ class _ProductFormViewState extends State<ProductFormView> {
 
 
 
-  void _confirmDeleteProduct() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF111111),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('ELIMINAR PRODUCTO', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-        content: const Text('¿Estás seguro de que deseas eliminar este producto?', style: TextStyle(color: Colors.white38, fontSize: 11)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCELAR', style: TextStyle(color: Colors.white38, fontSize: 11))),
-          ElevatedButton(
-            onPressed: () {
-              context.read<ProductBloc>().add(ProductEvent.deleteProduct(widget.product!.id));
-              Navigator.pop(dialogContext); // Close dialog
-              Navigator.pop(context); // Go back to products view
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF4D4D),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text('ELIMINAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
-          ),
-        ],
-      ),
+  Future<void> _confirmDeleteProduct() async {
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Eliminar producto',
+      message: '¿Seguro que deseas eliminar "${widget.product?.name ?? 'este producto'}"? Esta acción no se puede deshacer.',
     );
+    if (!ok || !mounted) return;
+    context.read<ProductBloc>().add(ProductEvent.deleteProduct(widget.product!.id));
+    if (mounted) Navigator.pop(context);
   }
 
   void _save() {

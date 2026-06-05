@@ -1,7 +1,8 @@
-// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/domain/models/product_catalog.dart';
 import 'package:trim_flow/features/products/domain/models/product_category.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
@@ -25,6 +26,8 @@ class _OrganizationTabState extends State<OrganizationTab> {
   final _categoryNameController = TextEditingController();
   String? _selectedCatalogIdForCategory;
 
+  static const Color _danger = Color(0xFFFF8A95);
+
   @override
   void dispose() {
     _catalogNameController.dispose();
@@ -40,70 +43,47 @@ class _OrganizationTabState extends State<OrganizationTab> {
           children: [
             ListView(
               physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
               children: [
-                // SECCIÓN: CATÁLOGOS
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'CATÁLOGOS',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    _buildNewCatalogButton(context),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (_showCatalogForm) _buildInlineCatalogForm(context),
-                if (state.catalogs.isEmpty)
-                  const SizedBox.shrink()
-                else
-                  ...state.catalogs.map((catalog) => _buildCatalogCard(context, catalog)),
-
-                const SizedBox(height: 36),
-
-                // SECCIÓN: CATEGORÍAS
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'CATEGORÍAS',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    _buildNewCategoryButton(context),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (_showCategoryForm) _buildInlineCategoryForm(context, state.catalogs),
-                if (state.categories.isEmpty)
-                  const SizedBox.shrink()
-                else
-                  ...state.categories.map((category) {
-                    final associatedCatalog = state.catalogs.firstWhere(
-                      (c) => c.id == category.catalogId,
-                      orElse: () => const ProductCatalog(id: '', name: 'SIN CATÁLOGO', isActive: false),
-                    );
-                    return _buildCategoryCard(context, category, associatedCatalog);
+                _sectionHeader(
+                  'Catálogos',
+                  isOpen: _showCatalogForm && _editingCatalog == null,
+                  onTap: () => setState(() {
+                    _showCatalogForm = !_showCatalogForm;
+                    _editingCatalog = null;
+                    _catalogNameController.clear();
                   }),
+                ),
+                const SizedBox(height: 12),
+                if (_showCatalogForm) _buildCatalogForm(context),
+                ...state.catalogs.map((c) => _buildCatalogCard(context, c)),
+                const SizedBox(height: 32),
+                _sectionHeader(
+                  'Categorías',
+                  isOpen: _showCategoryForm && _editingCategory == null,
+                  onTap: () => setState(() {
+                    _showCategoryForm = !_showCategoryForm;
+                    _editingCategory = null;
+                    _categoryNameController.clear();
+                    _selectedCatalogIdForCategory = null;
+                  }),
+                ),
+                const SizedBox(height: 12),
+                if (_showCategoryForm) _buildCategoryForm(context, state.catalogs),
+                ...state.categories.map((category) {
+                  final catalog = state.catalogs.firstWhere(
+                    (c) => c.id == category.catalogId,
+                    orElse: () => const ProductCatalog(id: '', name: 'SIN CATÁLOGO', isActive: false),
+                  );
+                  return _buildCategoryCard(context, category, catalog);
+                }),
               ],
             ),
             if (state.isLoading)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black45,
-                  child: Center(
-                    child: CircularProgressIndicator(color: context.primaryGold, strokeWidth: 2),
-                  ),
+                  color: Colors.black54,
+                  child: Center(child: CircularProgressIndicator(color: context.primaryGold, strokeWidth: 2)),
                 ),
               ),
           ],
@@ -112,186 +92,98 @@ class _OrganizationTabState extends State<OrganizationTab> {
     );
   }
 
-  Widget _buildNewCatalogButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showCatalogForm = !_showCatalogForm;
-          _editingCatalog = null;
-          _catalogNameController.clear();
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: context.primaryGold,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _showCatalogForm && _editingCatalog == null
-                  ? Icons.close_rounded
-                  : Icons.add_rounded,
-              color: Colors.black,
-              size: 14,
+  Widget _sectionHeader(String title, {required bool isOpen, required VoidCallback onTap}) {
+    final gold = context.primaryGold;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        PremiumSectionLabel(title),
+        PremiumPressable(
+          pressedScale: 0.92,
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: gold.withValues(alpha: 0.3)),
             ),
-            const SizedBox(width: 4),
-            Text(
-              _showCatalogForm && _editingCatalog == null
-                  ? 'CANCELAR'
-                  : 'NUEVO CATÁLOGO',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewCategoryButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showCategoryForm = !_showCategoryForm;
-          _editingCategory = null;
-          _categoryNameController.clear();
-          _selectedCatalogIdForCategory = null;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: context.primaryGold,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _showCategoryForm && _editingCategory == null
-                  ? Icons.close_rounded
-                  : Icons.add_rounded,
-              color: Colors.black,
-              size: 14,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              _showCategoryForm && _editingCategory == null
-                  ? 'CANCELAR'
-                  : 'NUEVA CATEGORÍA',
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInlineCatalogForm(BuildContext context) {
-    final title = _editingCatalog == null ? 'NUEVO CATÁLOGO' : 'EDITAR CATÁLOGO';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161616),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.primaryGold.withOpacity(0.3)),
-      ),
-      child: RepaintBoundary(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _catalogNameController,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: InputDecoration(
-                hintText: 'Nombre del catálogo',
-                hintStyle: const TextStyle(color: Colors.white10),
-                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showCatalogForm = false;
-                      _editingCatalog = null;
-                      _catalogNameController.clear();
-                    });
-                  },
-                  child: const Text('CANCELAR', style: TextStyle(color: Colors.white38, fontSize: 11)),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = _catalogNameController.text.trim();
-                    if (name.isNotEmpty) {
-                      final updated = _editingCatalog?.copyWith(name: name) ??
-                          ProductCatalog(
-                            id: 'cat_${DateTime.now().millisecondsSinceEpoch}',
-                            name: name,
-                            isActive: false,
-                          );
-                      context.read<ProductBloc>().add(ProductEvent.addCatalog(updated));
-                      setState(() {
-                        _showCatalogForm = false;
-                        _editingCatalog = null;
-                        _catalogNameController.clear();
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.primaryGold,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  child: const Text('GUARDAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11)),
+                Icon(isOpen ? Icons.close_rounded : Icons.add_rounded, color: gold, size: 13),
+                const SizedBox(width: 5),
+                Text(
+                  isOpen ? 'CANCELAR' : 'NUEVO',
+                  style: GoogleFonts.inter(color: gold, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.2),
                 ),
               ],
             ),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildCatalogForm(BuildContext context) {
+    final isEditing = _editingCatalog != null;
+    final canSave = _catalogNameController.text.trim().isNotEmpty;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.primaryGold.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            isEditing ? 'Editar catálogo' : 'Nuevo catálogo',
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: -0.3),
+          ),
+          const SizedBox(height: 14),
+          _field(_catalogNameController, 'Nombre del catálogo', onChanged: (_) => setState(() {})),
+          const SizedBox(height: 16),
+          _formActions(
+            canSave: canSave,
+            onCancel: () => setState(() {
+              _showCatalogForm = false;
+              _editingCatalog = null;
+              _catalogNameController.clear();
+            }),
+            onSave: () {
+              final name = _catalogNameController.text.trim();
+              final updated = _editingCatalog?.copyWith(name: name) ??
+                  ProductCatalog(id: 'cat_${name.hashCode}_${context.read<ProductBloc>().state.catalogs.length}', name: name, isActive: false);
+              context.read<ProductBloc>().add(ProductEvent.addCatalog(updated));
+              setState(() {
+                _showCatalogForm = false;
+                _editingCatalog = null;
+                _catalogNameController.clear();
+              });
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCatalogCard(BuildContext context, ProductCatalog catalog) {
+    final gold = context.primaryGold;
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: catalog.isActive
-            ? context.primaryGold.withOpacity(0.03)
-            : const Color(0xFF161616),
+        color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: catalog.isActive
-              ? context.primaryGold.withOpacity(0.3)
-              : Colors.white.withOpacity(0.05),
-          width: catalog.isActive ? 1.5 : 1.0,
+          color: catalog.isActive ? gold.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
+          width: catalog.isActive ? 1.4 : 1.0,
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Column(
@@ -299,106 +191,156 @@ class _OrganizationTabState extends State<OrganizationTab> {
               children: [
                 Text(
                   catalog.name.toUpperCase(),
-                  style: TextStyle(
-                    color: catalog.isActive ? Colors.white : Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                 ),
                 const SizedBox(height: 6),
-                _activeIndicator(context, catalog.isActive),
+                _activeBadge(catalog.isActive),
               ],
             ),
           ),
-          Row(
-            children: [
-              const Text(
-                'ACTIVO:',
-                style: TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-              ),
-              const SizedBox(width: 4),
-              Transform.scale(
-                scale: 0.75,
-                child: Switch(
-                  value: catalog.isActive,
-                  activeTrackColor: context.primaryGold.withOpacity(0.3),
-                  activeThumbColor: context.primaryGold,
-                  inactiveThumbColor: Colors.grey,
-                  inactiveTrackColor: Colors.white10,
-                  onChanged: (_) {
-                    context.read<ProductBloc>().add(ProductEvent.toggleCatalogActive(catalog.id));
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showCatalogForm = true;
-                    _editingCatalog = catalog;
-                    _catalogNameController.text = catalog.name;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.02),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: context.primaryGold.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    'EDITAR',
-                    style: TextStyle(
-                      color: context.primaryGold,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _confirmDelete(context, 'ELIMINAR CATÁLOGO', () {
-                  context.read<ProductBloc>().add(ProductEvent.deleteCatalog(catalog.id));
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF4D4D).withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: const Color(0xFFFF4D4D).withOpacity(0.3)),
-                  ),
-                  child: const Text(
-                    'ELIMINAR',
-                    style: TextStyle(
-                      color: Color(0xFFFF4D4D),
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          Transform.scale(
+            scale: 0.75,
+            child: Switch(
+              value: catalog.isActive,
+              activeTrackColor: gold.withValues(alpha: 0.35),
+              activeThumbColor: gold,
+              inactiveThumbColor: Colors.grey,
+              inactiveTrackColor: Colors.white10,
+              onChanged: (_) => context.read<ProductBloc>().add(ProductEvent.toggleCatalogActive(catalog.id)),
+            ),
+          ),
+          const SizedBox(width: 4),
+          _iconBtn(Icons.edit_rounded, gold, () {
+            setState(() {
+              _showCatalogForm = true;
+              _editingCatalog = catalog;
+              _catalogNameController.text = catalog.name;
+            });
+          }),
+          const SizedBox(width: 8),
+          _iconBtn(Icons.delete_outline_rounded, _danger, () => _confirmDelete(
+                context,
+                'Eliminar catálogo',
+                '¿Eliminar "${catalog.name}"? Las categorías asociadas quedarán sin catálogo.',
+                () => context.read<ProductBloc>().add(ProductEvent.deleteCatalog(catalog.id)),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryForm(BuildContext context, List<ProductCatalog> catalogs) {
+    final isEditing = _editingCategory != null;
+    // Valor seguro: evita el crash de "exactly one item" si el catalogId
+    // ya no existe en la lista de catálogos.
+    final safeCatalogId =
+        catalogs.any((c) => c.id == _selectedCatalogIdForCategory) ? _selectedCatalogIdForCategory : null;
+    final canSave = _categoryNameController.text.trim().isNotEmpty && safeCatalogId != null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: context.primaryGold.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            isEditing ? 'Editar categoría' : 'Nueva categoría',
+            style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: -0.3),
+          ),
+          const SizedBox(height: 14),
+          _field(_categoryNameController, 'Nombre de la categoría', onChanged: (_) => setState(() {})),
+          const SizedBox(height: 14),
+          const PremiumSectionLabel('Catálogo (requerido)'),
+          const SizedBox(height: 8),
+          if (catalogs.isEmpty)
+            _notice('Crea un catálogo primero para poder asignarlo.')
+          else
+            _catalogDropdown(catalogs, safeCatalogId),
+          const SizedBox(height: 16),
+          _formActions(
+            canSave: canSave,
+            onCancel: () => setState(() {
+              _showCategoryForm = false;
+              _editingCategory = null;
+              _categoryNameController.clear();
+              _selectedCatalogIdForCategory = null;
+            }),
+            onSave: () {
+              final name = _categoryNameController.text.trim();
+              final updated = _editingCategory?.copyWith(name: name, catalogId: safeCatalogId) ??
+                  ProductCategory(
+                    id: 'category_${name.hashCode}_${context.read<ProductBloc>().state.categories.length}',
+                    name: name,
+                    icon: 'category',
+                    catalogId: safeCatalogId,
+                  );
+              context.read<ProductBloc>().add(ProductEvent.addCategory(updated));
+              setState(() {
+                _showCategoryForm = false;
+                _editingCategory = null;
+                _categoryNameController.clear();
+                _selectedCatalogIdForCategory = null;
+              });
+            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryCard(BuildContext context, ProductCategory category, ProductCatalog associatedCatalog) {
+  Widget _catalogDropdown(List<ProductCatalog> catalogs, String? safeValue) {
+    final gold = context.primaryGold;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0E0E0E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: safeValue,
+          isExpanded: true,
+          dropdownColor: const Color(0xFF161616),
+          borderRadius: BorderRadius.circular(12),
+          icon: Icon(Icons.expand_more_rounded, color: gold.withValues(alpha: 0.8), size: 20),
+          hint: Text(
+            'Selecciona un catálogo',
+            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3), fontSize: 12.5, fontWeight: FontWeight.w500),
+          ),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+          items: catalogs
+              .map((c) => DropdownMenuItem<String>(
+                    value: c.id,
+                    child: Text(c.name.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ))
+              .toList(),
+          onChanged: (val) => setState(() => _selectedCatalogIdForCategory = val),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryCard(BuildContext context, ProductCategory category, ProductCatalog catalog) {
+    final gold = context.primaryGold;
+    final hasCatalog = catalog.id.isNotEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF161616),
+        color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Row(
@@ -406,268 +348,164 @@ class _OrganizationTabState extends State<OrganizationTab> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: associatedCatalog.id.isNotEmpty
-                        ? context.primaryGold.withOpacity(0.1)
-                        : Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(4),
+                    color: hasCatalog ? gold.withValues(alpha: 0.1) : _danger.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    associatedCatalog.name.toUpperCase(),
-                    style: TextStyle(
-                      color: associatedCatalog.id.isNotEmpty ? context.primaryGold : Colors.white30,
+                    catalog.name.toUpperCase(),
+                    style: GoogleFonts.inter(
+                      color: hasCatalog ? gold : _danger,
                       fontSize: 8,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  color: context.primaryGold.withOpacity(0.5),
-                  size: 12,
-                ),
+                Icon(Icons.arrow_forward_rounded, color: gold.withValues(alpha: 0.5), size: 12),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     category.name.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                   ),
                 ),
               ],
             ),
           ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showCategoryForm = true;
-                    _editingCategory = category;
-                    _categoryNameController.text = category.name;
-                    _selectedCatalogIdForCategory = category.catalogId;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.02),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: context.primaryGold.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    'EDITAR',
-                    style: TextStyle(
-                      color: context.primaryGold,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _confirmDelete(context, 'ELIMINAR CATEGORÍA', () {
-                  context.read<ProductBloc>().add(ProductEvent.deleteCategory(category.id));
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF4D4D).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: const Color(0xFFFF4D4D).withOpacity(0.4)),
-                  ),
-                  child: const Text(
-                    'ELIMINAR',
-                    style: TextStyle(
-                      color: Color(0xFFFF4D4D),
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(width: 8),
+          _iconBtn(Icons.edit_rounded, gold, () {
+            setState(() {
+              _showCategoryForm = true;
+              _editingCategory = category;
+              _categoryNameController.text = category.name;
+              _selectedCatalogIdForCategory = category.catalogId;
+            });
+          }),
+          const SizedBox(width: 8),
+          _iconBtn(Icons.delete_outline_rounded, _danger, () => _confirmDelete(
+                context,
+                'Eliminar categoría',
+                '¿Eliminar la categoría "${category.name}"?',
+                () => context.read<ProductBloc>().add(ProductEvent.deleteCategory(category.id)),
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildInlineCategoryForm(BuildContext context, List<ProductCatalog> catalogs) {
-    final title = _editingCategory == null ? 'NUEVA CATEGORÍA' : 'EDITAR CATEGORÍA';
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.primaryGold.withOpacity(0.3)),
+  Widget _field(TextEditingController controller, String hint, {ValueChanged<String>? onChanged}) {
+    final gold = context.primaryGold;
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      cursorColor: gold,
+      style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.3), fontSize: 13, fontWeight: FontWeight.w500),
+        filled: true,
+        fillColor: const Color(0xFF0E0E0E),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: gold, width: 1.2)),
       ),
-      child: RepaintBoundary(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _categoryNameController,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              decoration: InputDecoration(
-                hintText: 'Nombre de la categoría',
-                hintStyle: const TextStyle(color: Colors.white10),
-                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: context.primaryGold)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'CATÁLOGO ASOCIADO',
-              style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              height: 48,
+    );
+  }
+
+  Widget _formActions({required bool canSave, required VoidCallback onCancel, required VoidCallback onSave}) {
+    final gold = context.primaryGold;
+    return Row(
+      children: [
+        Expanded(
+          child: PremiumPressable(
+            onTap: onCancel,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.02),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedCatalogIdForCategory,
-                  dropdownColor: const Color(0xFF111111),
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                  isExpanded: true,
-                  hint: const Text('Sin catálogo (General)', style: TextStyle(color: Colors.white24, fontSize: 11)),
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('Sin catálogo (General)'),
-                    ),
-                    ...catalogs.map((catalog) => DropdownMenuItem<String>(
-                          value: catalog.id,
-                          child: Text(catalog.name.toUpperCase()),
-                        )),
-                  ],
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCatalogIdForCategory = val;
-                    });
-                  },
-                ),
-              ),
+              child: Text('CANCELAR', style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showCategoryForm = false;
-                      _editingCategory = null;
-                      _categoryNameController.clear();
-                      _selectedCatalogIdForCategory = null;
-                    });
-                  },
-                  child: const Text('CANCELAR', style: TextStyle(color: Colors.white38, fontSize: 10)),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    final name = _categoryNameController.text.trim();
-                    if (name.isNotEmpty) {
-                      final updated = _editingCategory?.copyWith(
-                            name: name,
-                            catalogId: _selectedCatalogIdForCategory,
-                          ) ??
-                          ProductCategory(
-                            id: 'category_${DateTime.now().millisecondsSinceEpoch}',
-                            name: name,
-                            icon: 'category',
-                            catalogId: _selectedCatalogIdForCategory,
-                          );
-                      context.read<ProductBloc>().add(ProductEvent.addCategory(updated));
-                      setState(() {
-                        _showCategoryForm = false;
-                        _editingCategory = null;
-                        _categoryNameController.clear();
-                        _selectedCatalogIdForCategory = null;
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.primaryGold,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  ),
-                  child: const Text('GUARDAR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _activeIndicator(BuildContext context, bool isActive) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        decoration: BoxDecoration(
-          color: isActive ? context.primaryGold.withValues(alpha: 0.15) : Colors.white10,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          isActive ? 'ACTIVO' : 'INACTIVO',
-          style: TextStyle(
-            color: isActive ? context.primaryGold : Colors.white24,
-            fontSize: 7,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
           ),
         ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: PremiumPressable(
+            onTap: canSave ? onSave : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canSave ? gold : Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text('GUARDAR', style: GoogleFonts.inter(color: canSave ? Colors.black : Colors.white24, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _iconBtn(IconData icon, Color color, VoidCallback onTap) {
+    return PremiumPressable(
+      pressedScale: 0.85,
+      onTap: onTap,
+      child: Container(
+        width: 34, height: 34,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
+        child: Icon(icon, color: color, size: 16),
       ),
     );
   }
 
-  void _confirmDelete(BuildContext parentContext, String title, VoidCallback onConfirm) {
-    showDialog(
-      context: parentContext,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF111111),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-        content: const Text('Esta acción purgará el elemento de forma permanente y sus relaciones.', style: TextStyle(color: Colors.white38, fontSize: 11)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCELAR', style: TextStyle(color: Colors.white38, fontSize: 11))),
-          ElevatedButton(
-            onPressed: () {
-              onConfirm();
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF4D4D),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+  Widget _activeBadge(bool isActive) {
+    final gold = context.primaryGold;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: isActive ? gold.withValues(alpha: 0.15) : Colors.white10,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        isActive ? 'ACTIVO' : 'INACTIVO',
+        style: GoogleFonts.inter(color: isActive ? gold : Colors.white24, fontSize: 7.5, fontWeight: FontWeight.w900, letterSpacing: 0.8),
+      ),
+    );
+  }
+
+  Widget _notice(String text) {
+    final gold = context.primaryGold;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: gold.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: gold.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded, color: gold, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.7), fontSize: 11.5, fontWeight: FontWeight.w500, height: 1.4)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, String title, String message, VoidCallback onConfirm) async {
+    final ok = await PremiumConfirmDelete.show(context, title: title, message: message);
+    if (ok) onConfirm();
   }
 }
