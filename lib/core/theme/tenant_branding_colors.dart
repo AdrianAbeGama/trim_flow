@@ -33,12 +33,13 @@ class TenantBrandingColors implements AppColorsInterface {
     final accent = _parseHex(branding['accent_color']);
     if (primary == null || accent == null) return null;
     final secondary = _parseHex(branding['secondary_color']);
+    final tertiary = _parseHex(branding['tertiary_color']);
 
     return TenantBrandingColors._(
       primaryGold: accent,
       backgroundBlack: primary,
       surfaceDark: secondary ?? _lighten(primary, 0.06),
-      accentGold: _darken(accent, 0.08),
+      accentGold: tertiary ?? _darken(accent, 0.08),
     );
   }
 

@@ -136,15 +136,29 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   }
 
   Future<void> _onRequestLogout(RequestLogout event, Emitter<AppModeState> emit) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kAccessCodeKey);
-    await prefs.remove(_kAppModeKey);
-    if (GetIt.I.hasScope(_kBarberScope)) {
-      GetIt.I.popScope();
-    }
-    await _authService.signOut();
+    // Emite el nuevo estado INMEDIATAMENTE para que la UI reaccione (sin
+    // esperar a la red). Si signOut tarda, el usuario ya está en AccessCode.
     _lastKnownUserId = null;
     emit(const AppModeState(isInitialized: true));
+
+    // Limpia prefs y scope DI (rápido, local).
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_kAccessCodeKey);
+      await prefs.remove(_kAppModeKey);
+    } catch (_) {/* prefs falló, no bloquea logout local */}
+
+    if (GetIt.I.hasScope(_kBarberScope)) {
+      try { GetIt.I.popScope(); } catch (_) {}
+    }
+
+    // signOut a Supabase con timeout — si la red falla, el logout local
+    // ya está hecho (estado emitido arriba).
+    try {
+      await _authService.signOut().timeout(const Duration(seconds: 4));
+    } catch (e) {
+      // Logout local hecho; si Supabase no respondió, no rompemos UX.
+    }
   }
 
   Future<void> _onLogout(Logout event, Emitter<AppModeState> emit) async {

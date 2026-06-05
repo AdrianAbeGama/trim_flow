@@ -18,6 +18,8 @@ import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
+import 'package:trim_flow/features/products/presentation/bloc/orders_bloc.dart';
+import 'package:trim_flow/features/products/presentation/bloc/orders_event.dart';
 import 'package:core/core.dart';
 
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
@@ -131,6 +133,7 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => getIt<ProfileBloc>()..add(const LoadProfileEvent())),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
         BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
+        BlocProvider(create: (_) => OrdersBloc()..add(const OrdersEvent.started())),
         BlocProvider(create: (_) => ReservationBloc()),
         BlocProvider(
           create: (_) {

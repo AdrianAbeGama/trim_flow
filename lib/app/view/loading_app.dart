@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:trim_flow/core/widgets/premium/trimflow_logo.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:trim_flow/core/config/app_config.dart';
@@ -313,13 +315,16 @@ class _BrandHeader extends StatelessWidget {
           duration: _kAccentTransitionDuration,
           curve: Curves.easeInOutCubic,
           builder: (context, color, _) {
-            return Icon(
-              Icons.content_cut_rounded,
+            return TrimflowLogo(
+              size: 72,
               color: color ?? _kBrandAccent,
-              size: 48,
+              shimmer: true,
             );
           },
-        ),
+        )
+            .animate()
+            .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+            .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1), duration: 700.ms, curve: Curves.easeOutBack),
         const SizedBox(height: 24),
         const Text(
           'TRIMFLOW',

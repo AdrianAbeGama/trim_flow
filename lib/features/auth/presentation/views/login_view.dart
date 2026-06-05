@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/trimflow_logo.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key, required this.onLoginSuccess});
@@ -21,18 +23,21 @@ class LoginView extends StatelessWidget {
           children: [
             const Spacer(flex: 3),
             
-            // Icono de la marca
+            // Logo de marca TrimFlow
             Container(
-              padding: const EdgeInsets.all(25),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: context.primaryGold.withValues(alpha: 0.2)),
               ),
-              child: Icon(Icons.auto_awesome_rounded, color: context.primaryGold, size: 50),
-            ),
-            
+              child: TrimflowLogo(size: 64, color: context.primaryGold),
+            )
+                .animate()
+                .fadeIn(duration: 500.ms)
+                .scale(begin: const Offset(0.85, 0.85), end: const Offset(1, 1), duration: 550.ms, curve: Curves.easeOutBack),
+
             const SizedBox(height: 40),
-            
+
             const Text(
               'BIENVENIDO',
               style: TextStyle(
@@ -41,7 +46,10 @@ class LoginView extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
               ),
-            ),
+            )
+                .animate()
+                .fadeIn(delay: 150.ms, duration: 500.ms)
+                .slideY(begin: 0.25, end: 0, delay: 150.ms, duration: 500.ms, curve: Curves.easeOutCubic),
             const SizedBox(height: 12),
             Text(
               'ELEVA TU ESTILO CON TRIMFLOW',
@@ -51,10 +59,10 @@ class LoginView extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 letterSpacing: 4,
               ),
-            ),
-            
+            ).animate().fadeIn(delay: 280.ms, duration: 500.ms),
+
             const Spacer(flex: 2),
-            
+
             // Botón Google Rediseñado
             GestureDetector(
               onTap: () => context.read<AppModeBloc>().add(const AppModeEvent.loginWithGoogle()),
@@ -92,10 +100,13 @@ class LoginView extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            
+            )
+                .animate()
+                .fadeIn(delay: 420.ms, duration: 500.ms)
+                .slideY(begin: 0.3, end: 0, delay: 420.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+
             const SizedBox(height: 20),
-            
+
             Text(
               'Acceso rápido y seguro',
               style: TextStyle(
@@ -103,8 +114,8 @@ class LoginView extends StatelessWidget {
                 fontSize: 11,
                 letterSpacing: 1,
               ),
-            ),
-            
+            ).animate().fadeIn(delay: 560.ms, duration: 500.ms),
+
             const Spacer(flex: 1),
           ],
         ),

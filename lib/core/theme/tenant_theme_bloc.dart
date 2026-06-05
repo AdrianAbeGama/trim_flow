@@ -129,13 +129,19 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
 
       if (resolvedTenantId != null) {
         final colors = await _fetchTenantColors(client, resolvedTenantId);
-        emit(state.copyWith(
-          tenantId: resolvedTenantId,
-          colors: colors,
-          isResolving: false,
-          isResolved: true,
-          resolvedForUserId: user.id,
-        ));
+        if (colors != null) {
+          emit(state.copyWith(
+            tenantId: resolvedTenantId,
+            colors: colors,
+            isResolving: false,
+            isResolved: true,
+            resolvedForUserId: user.id,
+          ));
+        } else {
+          // Fallo transitorio al leer el branding: no degradar a titanio si ya
+          // teníamos un tenant real resuelto; conservar sus colores.
+          _emitPreservingColors(user.id);
+        }
       } else {
         emit(TenantThemeState.initial().copyWith(
           isResolved: true,
@@ -144,12 +150,26 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
       }
     } catch (e) {
       debugPrint('TenantThemeBloc: tenant resolution failed -> $e');
-      emit(TenantThemeState.initial().copyWith(
-        isResolved: true,
-        resolvedForUserId: user?.id,
-      ));
+      _emitPreservingColors(user?.id);
     } finally {
       _resolving = false;
+    }
+  }
+
+  /// Marca el tema como resuelto conservando los colores del tenant ya
+  /// resuelto (si lo había). Solo cae a titanio si nunca hubo tenant real.
+  void _emitPreservingColors(String? userId) {
+    if (state.tenantId != kDefaultTenantId) {
+      emit(state.copyWith(
+        isResolving: false,
+        isResolved: true,
+        resolvedForUserId: userId,
+      ));
+    } else {
+      emit(TenantThemeState.initial().copyWith(
+        isResolved: true,
+        resolvedForUserId: userId,
+      ));
     }
   }
 
@@ -179,22 +199,31 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     return null;
   }
 
-  Future<AppColorsInterface> _fetchTenantColors(
+  /// Devuelve los colores del tenant. `null` señala un fallo de red tras
+  /// reintentar (para que el caller conserve los colores ya resueltos).
+  /// Si la consulta funciona pero no hay branding válido, devuelve el default.
+  Future<AppColorsInterface?> _fetchTenantColors(
       SupabaseClient client, String tenantId) async {
-    try {
-      final row = await client
-          .from('tenants')
-          .select('branding')
-          .eq('id', tenantId)
-          .maybeSingle();
-      final raw = row?['branding'];
-      if (raw is Map<String, dynamic>) {
-        return TenantBrandingColors.tryParse(raw) ?? DefaultTenantColors();
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final row = await client
+            .from('tenants')
+            .select('branding')
+            .eq('id', tenantId)
+            .maybeSingle();
+        final raw = row?['branding'];
+        if (raw is Map<String, dynamic>) {
+          return TenantBrandingColors.tryParse(raw) ?? DefaultTenantColors();
+        }
+        return DefaultTenantColors();
+      } catch (e) {
+        debugPrint('TenantThemeBloc: branding fetch attempt ${attempt + 1} failed -> $e');
+        if (attempt < 2) {
+          await Future<void>.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+        }
       }
-    } catch (e) {
-      debugPrint('TenantThemeBloc: branding fetch failed -> $e');
     }
-    return DefaultTenantColors();
+    return null;
   }
 
   void _ensureAuthSubscription() {
