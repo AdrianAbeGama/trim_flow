@@ -1,15 +1,22 @@
 import 'package:core/core.dart';
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 
 class ProfileLoadResult {
   final UserProfile user;
   final int loyaltyPoints;
   final bool isRewardAvailable;
+  final String? clientCode;
+  final String? lastVisit;
+  final String? branchName;
 
   const ProfileLoadResult({
     required this.user,
     required this.loyaltyPoints,
     required this.isRewardAvailable,
+    this.clientCode,
+    this.lastVisit,
+    this.branchName,
   });
 }
 
@@ -57,5 +64,9 @@ abstract class ProfileRepository {
   Future<List<PastAppointment>> loadAppointmentHistory({
     required String customerId,
     int limit = 50,
+  });
+
+  Future<List<CustomerCoupon>> loadCustomerCoupons({
+    required String customerId,
   });
 }

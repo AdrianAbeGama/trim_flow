@@ -12,7 +12,6 @@ import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:trim_flow/core/widgets/premium/smart_calendar.dart';
-import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_bloc.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_event.dart';
@@ -181,20 +180,12 @@ class _Header extends StatelessWidget {
     final barberName = profile != null ? '${profile.firstName} ${profile.lastName}'.trim() : '';
     final displayName = barberName.isEmpty ? 'Barbero' : barberName;
 
-    final now = DateTime.now();
-    bool isToday(DateTime d) => d.year == now.year && d.month == now.month && d.day == now.day;
-    final completedToday = state.appointments
-        .where((a) => a.status == AgendaStatus.completed && isToday(a.startTime));
-    final cutsToday = completedToday.length;
-    final revenueToday = completedToday.fold<double>(0, (s, a) => s + (a.priceAtBooking ?? 0));
-    final upcoming = state.appointments
-        .where((a) =>
-            a.startTime.isAfter(now) &&
-            (a.status == AgendaStatus.confirmed || a.status == AgendaStatus.pending))
-        .toList()
-      ..sort((a, b) => a.startTime.compareTo(b.startTime));
-    final nextStr = upcoming.isNotEmpty
-        ? '${upcoming.first.startTime.hour.toString().padLeft(2, '0')}:${upcoming.first.startTime.minute.toString().padLeft(2, '0')}'
+    // Metricas SIEMPRE de hoy + proxima cita global (no del dia que se ve).
+    final cutsToday = state.todayCuts;
+    final revenueToday = state.todayRevenue;
+    final next = state.nextStart;
+    final nextStr = next != null
+        ? '${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}'
         : '—';
 
     return Container(
@@ -371,7 +362,7 @@ class _Header extends StatelessWidget {
 
           SmartCalendar(
             selectedDate: state.selectedDay,
-            markedDates: context.read<AgendaBloc>().demoDays,
+            markedDates: state.markedDays,
             collapseOnSelect: true,
             onDaySelected: (date) => context.read<AgendaBloc>().add(AgendaEvent.daySelected(date)),
           )

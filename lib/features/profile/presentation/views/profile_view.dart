@@ -19,9 +19,9 @@ import 'package:trim_flow/features/profile/presentation/widgets/profile_view/pro
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_fidelity.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_next_appointment.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_data_settings.dart';
+import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_coupons_section.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_history.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
-import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_stats_scheduled.dart';
 
 import '../widgets/profile_edit_sheet.dart';
 import '../widgets/profile_ticket_modal.dart';
@@ -192,6 +192,7 @@ class _ProfileBodyState extends State<_ProfileBody> {
                   onSettingsTap: () => _openSettings(user),
                   onOrdersTap: _openOrders,
                   hasActiveOrders: hasActiveOrders,
+                  clientCode: state.clientCode,
                 ),
 
                 // 2. FIDELITY RING (hero element animado)
@@ -209,27 +210,17 @@ class _ProfileBodyState extends State<_ProfileBody> {
                     onTap: () => _openTicket(next),
                   ),
 
-                // 4. QUICK STATS ROW
-                ProfileQuickStatsRow(
-                  totalCuts: state.completedCuts,
-                  scheduled: state.scheduledAppointments.length,
-                  history: state.appointmentHistory,
-                ),
+                // 4. MIS CUPONES (reales del cliente)
+                ProfileCouponsSection(coupons: state.coupons),
 
-                // 5. CITAS PROGRAMADAS (carousel si hay > 1)
-                if (state.scheduledAppointments.length > 1)
-                  ProfileScheduledCarousel(
-                    appointments: state.scheduledAppointments.sublist(1),
-                    onTap: _openTicket,
-                  ),
-
-                // 6. HISTORIAL TIMELINE — siempre visible (con empty state)
+                // 5. HISTORIAL TIMELINE — siempre visible (con empty state)
                 ProfileHistoryTimeline(history: state.appointmentHistory),
 
                 // 7. DATOS PERSONALES
                 ProfilePersonalDataGrid(
                   user: user,
                   onTap: () => _editProfile(user),
+                  lastVisit: state.lastVisit,
                 ),
 
                 // 8. LOGOUT

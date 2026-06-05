@@ -14,6 +14,38 @@ import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 Color premiumOnAccent(Color accent) =>
     accent.computeLuminance() > 0.55 ? Colors.black : Colors.white;
 
+/// Decoracion compartida de la barra inferior flotante: gradiente oscuro teñido
+/// con el acento del tenant (no gris neutro) + hairline y glow del mismo acento,
+/// para que la barra lleve el color de la marca y la pildora activa resalte.
+BoxDecoration premiumBarDecoration(BuildContext context) {
+  final gold = context.primaryGold;
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Color.lerp(gold, Colors.black, 0.55)!,
+        Color.lerp(gold, Colors.black, 0.80)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(500),
+    border: Border.all(color: gold.withValues(alpha: 0.22), width: 1),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.55),
+        blurRadius: 24,
+        offset: const Offset(0, 10),
+      ),
+      BoxShadow(
+        color: gold.withValues(alpha: 0.22),
+        blurRadius: 22,
+        spreadRadius: -6,
+        offset: const Offset(0, 6),
+      ),
+    ],
+  );
+}
+
 /// Wrapper que aplica AnimatedScale al press con haptic.
 class PremiumPressable extends StatefulWidget {
   const PremiumPressable({

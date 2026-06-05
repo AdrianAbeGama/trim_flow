@@ -87,6 +87,8 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Cumpleanos solo se pone una vez: si ya tiene, queda bloqueado.
+    final birthLocked = !widget.isBarber && widget.user.birthDate.trim().isNotEmpty;
     return BlocProvider.value(
       value: widget.profileBloc,
       child: Container(
@@ -136,11 +138,14 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                 ),
                 if (!widget.isBarber)
                   ObInputField(
-                    label: 'Fecha de Nacimiento',
+                    label: birthLocked
+                        ? 'Fecha de Nacimiento (no editable)'
+                        : 'Fecha de Nacimiento',
                     controller: _birthDateController,
                     hintText: 'DD / MM / AAAA',
+                    readOnly: birthLocked,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [DateInputFormatter()],
+                    inputFormatters: birthLocked ? null : [DateInputFormatter()],
                     validator: (val) {
                       if (val == null || val.isEmpty) return 'Campo requerido';
                       if (!_isValidDate(val)) return 'Fecha no válida';

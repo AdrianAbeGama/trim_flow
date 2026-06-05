@@ -99,6 +99,143 @@ class AgendaSupabaseRepository implements AgendaRepository {
   }
 
   @override
+  Future<void> completeReservation({
+    required String reservationId,
+    required num amount,
+    String? couponCode,
+  }) async {
+    final key =
+        'complete_${reservationId}_${DateTime.now().millisecondsSinceEpoch}';
+    await _client.rpc('complete_reservation_atomic', params: {
+      'p_reservation_id': reservationId,
+      'p_amount_value': amount,
+      'p_payment_method': 'cash',
+      'p_idempotency_key': key,
+      'p_coupon_unique_code': couponCode,
+    });
+  }
+
+  @override
+  Future<List<AgendaCoupon>> fetchUsableCoupons({
+    required String customerId,
+  }) async {
+    final rows = await _client
+        .from('customer_coupons')
+        .select(
+          'unique_code, redeemed_at, valid_until, '
+          'promotion:promotions!promotion_id(name, discount_type, discount_value, is_active)',
+        )
+        .eq('customer_id', customerId)
+        .filter('redeemed_at', 'is', null);
+
+    final now = DateTime.now();
+    final out = <AgendaCoupon>[];
+    for (final r in (rows as List)) {
+      if (r is! Map) continue;
+      final promo = r['promotion'] as Map<String, dynamic>?;
+      if (promo == null || (promo['is_active'] as bool? ?? false) == false) {
+        continue;
+      }
+      final vu = DateTime.tryParse(r['valid_until'] as String? ?? '');
+      if (vu == null || vu.toLocal().isBefore(now)) continue;
+      out.add(AgendaCoupon(
+        code: (r['unique_code'] as String?) ?? '',
+        name: (promo['name'] as String?) ?? 'Promoción',
+        discountType: (promo['discount_type'] as String?) ?? 'percentage',
+        discountValue: (promo['discount_value'] as num?)?.toDouble() ?? 0,
+      ));
+    }
+    return out;
+  }
+
+  @override
+  Future<void> markNoShow({required String reservationId}) async {
+    final key =
+        'noshow_${reservationId}_${DateTime.now().millisecondsSinceEpoch}';
+    await _client.rpc('mark_no_show_atomic', params: {
+      'p_reservation_id': reservationId,
+      'p_idempotency_key': key,
+    });
+  }
+
+  @override
+  Future<AgendaTodaySummary> fetchTodaySummary({required String barberId}) async {
+    final now = DateTime.now();
+    final startLocal = DateTime(now.year, now.month, now.day);
+    final endLocal = startLocal.add(const Duration(days: 1));
+
+    final completedRows = await _client
+        .from('reservations')
+        .select('price_at_booking')
+        .eq('barber_id', barberId)
+        .eq('status', 'completed')
+        .filter('deleted_at', 'is', null)
+        .gte('start_time', startLocal.toUtc().toIso8601String())
+        .lt('start_time', endLocal.toUtc().toIso8601String());
+
+    var cuts = 0;
+    var revenue = 0.0;
+    for (final r in (completedRows as List)) {
+      if (r is Map) {
+        cuts++;
+        final p = r['price_at_booking'];
+        if (p is num) revenue += p.toDouble();
+      }
+    }
+
+    final nextRows = await _client
+        .from('reservations')
+        .select('start_time')
+        .eq('barber_id', barberId)
+        .inFilter('status', ['pending', 'confirmed'])
+        .filter('deleted_at', 'is', null)
+        .gte('start_time', now.toUtc().toIso8601String())
+        .order('start_time', ascending: true)
+        .limit(1);
+
+    DateTime? nextStart;
+    final nList = nextRows as List;
+    if (nList.isNotEmpty &&
+        nList.first is Map &&
+        (nList.first as Map)['start_time'] != null) {
+      nextStart =
+          DateTime.tryParse((nList.first as Map)['start_time'] as String)?.toLocal();
+    }
+
+    return AgendaTodaySummary(
+      completedCuts: cuts,
+      revenue: revenue,
+      nextStart: nextStart,
+    );
+  }
+
+  @override
+  Future<List<DateTime>> fetchMarkedDays({
+    required String barberId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final rows = await _client
+        .from('reservations')
+        .select('start_time')
+        .eq('barber_id', barberId)
+        .inFilter('status', _kVisibleAgendaStatuses)
+        .filter('deleted_at', 'is', null)
+        .gte('start_time', from.toUtc().toIso8601String())
+        .lt('start_time', to.toUtc().toIso8601String());
+
+    final days = <DateTime>{};
+    for (final r in (rows as List)) {
+      if (r is Map && r['start_time'] != null) {
+        final dt = DateTime.tryParse(r['start_time'] as String)?.toLocal();
+        if (dt != null) days.add(DateTime(dt.year, dt.month, dt.day));
+      }
+    }
+    final sorted = days.toList()..sort();
+    return sorted;
+  }
+
+  @override
   Stream<void> watchChanges({required String barberId}) {
     late RealtimeChannel channel;
     late StreamController<void> controller;

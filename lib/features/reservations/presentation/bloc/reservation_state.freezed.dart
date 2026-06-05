@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReservationState {
 
- ReservationStatus get status; int get currentPhase; Reservation get reservation; bool get professionalSelected; bool get isDiscountActive; String? get errorMessage;
+ ReservationStatus get status; int get currentPhase; Reservation get reservation; bool get professionalSelected; bool get isDiscountActive; List<DateTime> get availableSlots; SlotsStatus get slotsStatus; DateTime? get selectedSlotUtc; String? get effectiveBarberId; String? get idempotencyKey; String? get errorMessage;
 /// Create a copy of ReservationState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ReservationStateCopyWith<ReservationState> get copyWith => _$ReservationStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReservationState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase)&&(identical(other.reservation, reservation) || other.reservation == reservation)&&(identical(other.professionalSelected, professionalSelected) || other.professionalSelected == professionalSelected)&&(identical(other.isDiscountActive, isDiscountActive) || other.isDiscountActive == isDiscountActive)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReservationState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase)&&(identical(other.reservation, reservation) || other.reservation == reservation)&&(identical(other.professionalSelected, professionalSelected) || other.professionalSelected == professionalSelected)&&(identical(other.isDiscountActive, isDiscountActive) || other.isDiscountActive == isDiscountActive)&&const DeepCollectionEquality().equals(other.availableSlots, availableSlots)&&(identical(other.slotsStatus, slotsStatus) || other.slotsStatus == slotsStatus)&&(identical(other.selectedSlotUtc, selectedSlotUtc) || other.selectedSlotUtc == selectedSlotUtc)&&(identical(other.effectiveBarberId, effectiveBarberId) || other.effectiveBarberId == effectiveBarberId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,currentPhase,reservation,professionalSelected,isDiscountActive,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,currentPhase,reservation,professionalSelected,isDiscountActive,const DeepCollectionEquality().hash(availableSlots),slotsStatus,selectedSlotUtc,effectiveBarberId,idempotencyKey,errorMessage);
 
 @override
 String toString() {
-  return 'ReservationState(status: $status, currentPhase: $currentPhase, reservation: $reservation, professionalSelected: $professionalSelected, isDiscountActive: $isDiscountActive, errorMessage: $errorMessage)';
+  return 'ReservationState(status: $status, currentPhase: $currentPhase, reservation: $reservation, professionalSelected: $professionalSelected, isDiscountActive: $isDiscountActive, availableSlots: $availableSlots, slotsStatus: $slotsStatus, selectedSlotUtc: $selectedSlotUtc, effectiveBarberId: $effectiveBarberId, idempotencyKey: $idempotencyKey, errorMessage: $errorMessage)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ReservationStateCopyWith<$Res>  {
   factory $ReservationStateCopyWith(ReservationState value, $Res Function(ReservationState) _then) = _$ReservationStateCopyWithImpl;
 @useResult
 $Res call({
- ReservationStatus status, int currentPhase, Reservation reservation, bool professionalSelected, bool isDiscountActive, String? errorMessage
+ ReservationStatus status, int currentPhase, Reservation reservation, bool professionalSelected, bool isDiscountActive, List<DateTime> availableSlots, SlotsStatus slotsStatus, DateTime? selectedSlotUtc, String? effectiveBarberId, String? idempotencyKey, String? errorMessage
 });
 
 
@@ -62,14 +62,19 @@ class _$ReservationStateCopyWithImpl<$Res>
 
 /// Create a copy of ReservationState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? currentPhase = null,Object? reservation = null,Object? professionalSelected = null,Object? isDiscountActive = null,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? currentPhase = null,Object? reservation = null,Object? professionalSelected = null,Object? isDiscountActive = null,Object? availableSlots = null,Object? slotsStatus = null,Object? selectedSlotUtc = freezed,Object? effectiveBarberId = freezed,Object? idempotencyKey = freezed,Object? errorMessage = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ReservationStatus,currentPhase: null == currentPhase ? _self.currentPhase : currentPhase // ignore: cast_nullable_to_non_nullable
 as int,reservation: null == reservation ? _self.reservation : reservation // ignore: cast_nullable_to_non_nullable
 as Reservation,professionalSelected: null == professionalSelected ? _self.professionalSelected : professionalSelected // ignore: cast_nullable_to_non_nullable
 as bool,isDiscountActive: null == isDiscountActive ? _self.isDiscountActive : isDiscountActive // ignore: cast_nullable_to_non_nullable
-as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as bool,availableSlots: null == availableSlots ? _self.availableSlots : availableSlots // ignore: cast_nullable_to_non_nullable
+as List<DateTime>,slotsStatus: null == slotsStatus ? _self.slotsStatus : slotsStatus // ignore: cast_nullable_to_non_nullable
+as SlotsStatus,selectedSlotUtc: freezed == selectedSlotUtc ? _self.selectedSlotUtc : selectedSlotUtc // ignore: cast_nullable_to_non_nullable
+as DateTime?,effectiveBarberId: freezed == effectiveBarberId ? _self.effectiveBarberId : effectiveBarberId // ignore: cast_nullable_to_non_nullable
+as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -164,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  List<DateTime> availableSlots,  SlotsStatus slotsStatus,  DateTime? selectedSlotUtc,  String? effectiveBarberId,  String? idempotencyKey,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReservationState() when $default != null:
-return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.errorMessage);case _:
+return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.availableSlots,_that.slotsStatus,_that.selectedSlotUtc,_that.effectiveBarberId,_that.idempotencyKey,_that.errorMessage);case _:
   return orElse();
 
 }
@@ -185,10 +190,10 @@ return $default(_that.status,_that.currentPhase,_that.reservation,_that.professi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  List<DateTime> availableSlots,  SlotsStatus slotsStatus,  DateTime? selectedSlotUtc,  String? effectiveBarberId,  String? idempotencyKey,  String? errorMessage)  $default,) {final _that = this;
 switch (_that) {
 case _ReservationState():
-return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.errorMessage);case _:
+return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.availableSlots,_that.slotsStatus,_that.selectedSlotUtc,_that.effectiveBarberId,_that.idempotencyKey,_that.errorMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +210,10 @@ return $default(_that.status,_that.currentPhase,_that.reservation,_that.professi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReservationStatus status,  int currentPhase,  Reservation reservation,  bool professionalSelected,  bool isDiscountActive,  List<DateTime> availableSlots,  SlotsStatus slotsStatus,  DateTime? selectedSlotUtc,  String? effectiveBarberId,  String? idempotencyKey,  String? errorMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _ReservationState() when $default != null:
-return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.errorMessage);case _:
+return $default(_that.status,_that.currentPhase,_that.reservation,_that.professionalSelected,_that.isDiscountActive,_that.availableSlots,_that.slotsStatus,_that.selectedSlotUtc,_that.effectiveBarberId,_that.idempotencyKey,_that.errorMessage);case _:
   return null;
 
 }
@@ -220,7 +225,7 @@ return $default(_that.status,_that.currentPhase,_that.reservation,_that.professi
 
 
 class _ReservationState implements ReservationState {
-  const _ReservationState({this.status = ReservationStatus.initial, this.currentPhase = 1, this.reservation = const Reservation(tenantId: ''), this.professionalSelected = false, this.isDiscountActive = false, this.errorMessage});
+  const _ReservationState({this.status = ReservationStatus.initial, this.currentPhase = 1, this.reservation = const Reservation(tenantId: ''), this.professionalSelected = false, this.isDiscountActive = false, final  List<DateTime> availableSlots = const <DateTime>[], this.slotsStatus = SlotsStatus.initial, this.selectedSlotUtc, this.effectiveBarberId, this.idempotencyKey, this.errorMessage}): _availableSlots = availableSlots;
   
 
 @override@JsonKey() final  ReservationStatus status;
@@ -228,6 +233,17 @@ class _ReservationState implements ReservationState {
 @override@JsonKey() final  Reservation reservation;
 @override@JsonKey() final  bool professionalSelected;
 @override@JsonKey() final  bool isDiscountActive;
+ final  List<DateTime> _availableSlots;
+@override@JsonKey() List<DateTime> get availableSlots {
+  if (_availableSlots is EqualUnmodifiableListView) return _availableSlots;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_availableSlots);
+}
+
+@override@JsonKey() final  SlotsStatus slotsStatus;
+@override final  DateTime? selectedSlotUtc;
+@override final  String? effectiveBarberId;
+@override final  String? idempotencyKey;
 @override final  String? errorMessage;
 
 /// Create a copy of ReservationState
@@ -240,16 +256,16 @@ _$ReservationStateCopyWith<_ReservationState> get copyWith => __$ReservationStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReservationState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase)&&(identical(other.reservation, reservation) || other.reservation == reservation)&&(identical(other.professionalSelected, professionalSelected) || other.professionalSelected == professionalSelected)&&(identical(other.isDiscountActive, isDiscountActive) || other.isDiscountActive == isDiscountActive)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReservationState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentPhase, currentPhase) || other.currentPhase == currentPhase)&&(identical(other.reservation, reservation) || other.reservation == reservation)&&(identical(other.professionalSelected, professionalSelected) || other.professionalSelected == professionalSelected)&&(identical(other.isDiscountActive, isDiscountActive) || other.isDiscountActive == isDiscountActive)&&const DeepCollectionEquality().equals(other._availableSlots, _availableSlots)&&(identical(other.slotsStatus, slotsStatus) || other.slotsStatus == slotsStatus)&&(identical(other.selectedSlotUtc, selectedSlotUtc) || other.selectedSlotUtc == selectedSlotUtc)&&(identical(other.effectiveBarberId, effectiveBarberId) || other.effectiveBarberId == effectiveBarberId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,currentPhase,reservation,professionalSelected,isDiscountActive,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,currentPhase,reservation,professionalSelected,isDiscountActive,const DeepCollectionEquality().hash(_availableSlots),slotsStatus,selectedSlotUtc,effectiveBarberId,idempotencyKey,errorMessage);
 
 @override
 String toString() {
-  return 'ReservationState(status: $status, currentPhase: $currentPhase, reservation: $reservation, professionalSelected: $professionalSelected, isDiscountActive: $isDiscountActive, errorMessage: $errorMessage)';
+  return 'ReservationState(status: $status, currentPhase: $currentPhase, reservation: $reservation, professionalSelected: $professionalSelected, isDiscountActive: $isDiscountActive, availableSlots: $availableSlots, slotsStatus: $slotsStatus, selectedSlotUtc: $selectedSlotUtc, effectiveBarberId: $effectiveBarberId, idempotencyKey: $idempotencyKey, errorMessage: $errorMessage)';
 }
 
 
@@ -260,7 +276,7 @@ abstract mixin class _$ReservationStateCopyWith<$Res> implements $ReservationSta
   factory _$ReservationStateCopyWith(_ReservationState value, $Res Function(_ReservationState) _then) = __$ReservationStateCopyWithImpl;
 @override @useResult
 $Res call({
- ReservationStatus status, int currentPhase, Reservation reservation, bool professionalSelected, bool isDiscountActive, String? errorMessage
+ ReservationStatus status, int currentPhase, Reservation reservation, bool professionalSelected, bool isDiscountActive, List<DateTime> availableSlots, SlotsStatus slotsStatus, DateTime? selectedSlotUtc, String? effectiveBarberId, String? idempotencyKey, String? errorMessage
 });
 
 
@@ -277,14 +293,19 @@ class __$ReservationStateCopyWithImpl<$Res>
 
 /// Create a copy of ReservationState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? currentPhase = null,Object? reservation = null,Object? professionalSelected = null,Object? isDiscountActive = null,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? currentPhase = null,Object? reservation = null,Object? professionalSelected = null,Object? isDiscountActive = null,Object? availableSlots = null,Object? slotsStatus = null,Object? selectedSlotUtc = freezed,Object? effectiveBarberId = freezed,Object? idempotencyKey = freezed,Object? errorMessage = freezed,}) {
   return _then(_ReservationState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ReservationStatus,currentPhase: null == currentPhase ? _self.currentPhase : currentPhase // ignore: cast_nullable_to_non_nullable
 as int,reservation: null == reservation ? _self.reservation : reservation // ignore: cast_nullable_to_non_nullable
 as Reservation,professionalSelected: null == professionalSelected ? _self.professionalSelected : professionalSelected // ignore: cast_nullable_to_non_nullable
 as bool,isDiscountActive: null == isDiscountActive ? _self.isDiscountActive : isDiscountActive // ignore: cast_nullable_to_non_nullable
-as bool,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as bool,availableSlots: null == availableSlots ? _self._availableSlots : availableSlots // ignore: cast_nullable_to_non_nullable
+as List<DateTime>,slotsStatus: null == slotsStatus ? _self.slotsStatus : slotsStatus // ignore: cast_nullable_to_non_nullable
+as SlotsStatus,selectedSlotUtc: freezed == selectedSlotUtc ? _self.selectedSlotUtc : selectedSlotUtc // ignore: cast_nullable_to_non_nullable
+as DateTime?,effectiveBarberId: freezed == effectiveBarberId ? _self.effectiveBarberId : effectiveBarberId // ignore: cast_nullable_to_non_nullable
+as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

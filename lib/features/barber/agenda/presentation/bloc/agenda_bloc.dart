@@ -14,18 +14,6 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
 
   StreamSubscription<void>? _realtimeSub;
 
-  // Días con citas demo (hoy, +2, +5). Permite que cada día muestre lo suyo y
-  // que el calendario marque los días con citas.
-  late final DateTime _refDay = _dayOnly(DateTime.now());
-  List<DateTime> get demoDays => [
-        _refDay,
-        _refDay.add(const Duration(days: 2)),
-        _refDay.add(const Duration(days: 5)),
-      ];
-
-  static DateTime _dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-  static bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
-
   AgendaBloc({
     required this.barberId,
     required this.tenantId,
@@ -40,10 +28,13 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
     on<AgendaWalkInRequested>(_onWalkIn);
     on<AgendaResolveRefsRequested>(_onResolveRefs);
     on<AgendaStatusChanged>(_onStatusChanged);
+    on<AgendaCompleteRequested>(_onCompleteRequested);
   }
 
   Future<void> _onStarted(AgendaStarted event, Emitter<AgendaUiState> emit) async {
     await _fetchAndEmit(emit, isFirstLoad: true);
+    await _loadMarkedDays(emit);
+    await _loadSummary(emit);
     add(const AgendaResolveRefsRequested());
     _realtimeSub?.cancel();
     _realtimeSub = _repository.watchChanges(barberId: barberId).listen((_) {
@@ -72,6 +63,8 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
   Future<void> _onRealtimeTicked(
       AgendaRealtimeTicked event, Emitter<AgendaUiState> emit) async {
     await _fetchAndEmit(emit, isFirstLoad: false);
+    await _loadMarkedDays(emit);
+    await _loadSummary(emit);
   }
 
   Future<void> _onResolveRefs(
@@ -93,6 +86,8 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
     try {
       await _repository.registerWalkIn(event.request);
       await _fetchAndEmit(emit, isFirstLoad: false);
+      await _loadMarkedDays(emit);
+      await _loadSummary(emit);
     } catch (e, stack) {
       debugPrint('AgendaBloc.walkIn error: $e\n$stack');
       emit(state.copyWith(
@@ -115,14 +110,9 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
         barberId: barberId,
         day: state.selectedDay,
       );
-
-      // Demo: si no hay citas reales para el día, mostramos ejemplos
-      // para visualizar la agenda poblada (mock, no persiste).
-      final effective = list.isEmpty ? _demoAppointments(state.selectedDay) : list;
-
       emit(state.copyWith(
         status: AgendaStatusUi.loaded,
-        appointments: effective,
+        appointments: list,
         errorMessage: null,
       ));
     } catch (e, stack) {
@@ -134,62 +124,80 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
     }
   }
 
-  List<AgendaAppointment> _demoAppointments(DateTime day) {
-    final dd = _dayOnly(day);
-    // Solo los días demo tienen citas; el resto queda vacío (cada día su agenda).
-    if (!demoDays.any((d) => _isSameDay(d, dd))) return [];
-    DateTime at(int h, int m) => DateTime(day.year, day.month, day.day, h, m);
-    final all = [
-      AgendaAppointment(
-        id: 'demo-1', tenantId: tenantId,
-        startTime: at(9, 0), endTime: at(9, 45),
-        status: AgendaStatus.pending,
-        customerName: 'Carlos Ruiz', customerWhatsapp: '+51 999 123 456',
-        serviceName: 'Corte + Barba', serviceDurationMinutes: 45,
-        priceAtBooking: 55, branchName: 'Local Centro',
-        notes: 'Cliente frecuente · fade medio',
-      ),
-      AgendaAppointment(
-        id: 'demo-2', tenantId: tenantId,
-        startTime: at(10, 30), endTime: at(11, 0),
-        status: AgendaStatus.confirmed,
-        customerName: 'Miguel Soto', customerWhatsapp: '+51 988 222 111',
-        serviceName: 'Corte Clásico', serviceDurationMinutes: 30,
-        priceAtBooking: 35, branchName: 'Local Centro',
-      ),
-      AgendaAppointment(
-        id: 'demo-3', tenantId: tenantId,
-        startTime: at(12, 0), endTime: at(13, 0),
-        status: AgendaStatus.completed,
-        customerName: 'José Pérez', serviceName: 'Platinado Premium',
-        serviceDurationMinutes: 60, priceAtBooking: 120, branchName: 'Local Centro',
-        notes: 'Decolorado + matiz',
-      ),
-      AgendaAppointment(
-        id: 'demo-4', tenantId: tenantId,
-        startTime: at(15, 0), endTime: at(15, 30),
-        status: AgendaStatus.cancelled,
-        customerName: 'Andrés Vega', serviceName: 'Perfilado de barba',
-        serviceDurationMinutes: 30, priceAtBooking: 25, branchName: 'Local Centro',
-        notes: 'Imprevisto del cliente',
-      ),
-      AgendaAppointment(
-        id: 'demo-5', tenantId: tenantId,
-        startTime: at(17, 30), endTime: at(18, 15),
-        status: AgendaStatus.noShow,
-        customerName: 'Diego Flores', customerWhatsapp: '+51 977 333 222',
-        serviceName: 'Corte + Diseño', serviceDurationMinutes: 45,
-        priceAtBooking: 60, branchName: 'Local Centro',
-      ),
-    ];
-    // Variar por día para que se note el cambio: +2 días → 2 citas, +5 → 3.
-    if (_isSameDay(dd, demoDays[1])) return all.take(2).toList();
-    if (_isSameDay(dd, demoDays[2])) return all.sublist(2);
-    return all;
+  Future<void> _loadMarkedDays(Emitter<AgendaUiState> emit) async {
+    try {
+      final now = DateTime.now();
+      final base = DateTime(now.year, now.month, now.day);
+      final days = await _repository.fetchMarkedDays(
+        barberId: barberId,
+        from: base.subtract(const Duration(days: 60)),
+        to: base.add(const Duration(days: 180)),
+      );
+      emit(state.copyWith(markedDays: days));
+    } catch (e, stack) {
+      debugPrint('AgendaBloc.markedDays error: $e\n$stack');
+    }
   }
 
-  void _onStatusChanged(
-      AgendaStatusChanged event, Emitter<AgendaUiState> emit) {
+  Future<void> _loadSummary(Emitter<AgendaUiState> emit) async {
+    try {
+      final summary = await _repository.fetchTodaySummary(barberId: barberId);
+      emit(state.copyWith(
+        todayCuts: summary.completedCuts,
+        todayRevenue: summary.revenue,
+        nextStart: summary.nextStart,
+      ));
+    } catch (e, stack) {
+      debugPrint('AgendaBloc.summary error: $e\n$stack');
+    }
+  }
+
+  Future<void> _onCompleteRequested(
+      AgendaCompleteRequested event, Emitter<AgendaUiState> emit) async {
+    emit(state.copyWith(isBusy: true, errorMessage: null));
+    try {
+      await _repository.completeReservation(
+        reservationId: event.appointmentId,
+        amount: event.amount,
+        couponCode: event.couponCode,
+      );
+      await _fetchAndEmit(emit, isFirstLoad: false);
+      await _loadMarkedDays(emit);
+      await _loadSummary(emit);
+      emit(state.copyWith(isBusy: false));
+    } catch (e, stack) {
+      debugPrint('AgendaBloc.complete error: $e\n$stack');
+      emit(state.copyWith(
+        isBusy: false,
+        status: AgendaStatusUi.error,
+        errorMessage: _friendlyError(e),
+      ));
+    }
+  }
+
+  Future<void> _onStatusChanged(
+      AgendaStatusChanged event, Emitter<AgendaUiState> emit) async {
+    // No asistio: se persiste via RPC SECURITY DEFINER (ADR-0015).
+    if (event.newStatus == AgendaStatus.noShow) {
+      emit(state.copyWith(isBusy: true, errorMessage: null));
+      try {
+        await _repository.markNoShow(reservationId: event.appointmentId);
+        await _fetchAndEmit(emit, isFirstLoad: false);
+        await _loadMarkedDays(emit);
+        await _loadSummary(emit);
+        emit(state.copyWith(isBusy: false));
+      } catch (e, stack) {
+        debugPrint('AgendaBloc.statusChanged error: $e\n$stack');
+        emit(state.copyWith(
+          isBusy: false,
+          status: AgendaStatusUi.error,
+          errorMessage: _friendlyError(e),
+        ));
+      }
+      return;
+    }
+
+    // Confirmar / Cancelar: sin RPC dedicada todavia -> actualizacion local.
     final newList = state.appointments.map((a) {
       if (a.id == event.appointmentId) {
         return AgendaAppointment(
@@ -210,6 +218,15 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
       return a;
     }).toList();
     emit(state.copyWith(appointments: newList));
+  }
+
+  String _friendlyError(Object e) {
+    final s = e.toString().toLowerCase();
+    if (s.contains('invalid_transition')) {
+      return 'Esta cita ya cambió de estado. Refresca la agenda.';
+    }
+    if (s.contains('reservation_not_found')) return 'No se encontró la cita.';
+    return 'No se pudo guardar el cambio. Intenta de nuevo.';
   }
 
   @override

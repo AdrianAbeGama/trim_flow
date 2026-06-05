@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:core/core.dart';
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 
 part 'profile_state.freezed.dart';
 
@@ -42,7 +43,11 @@ abstract class ProfileState with _$ProfileState {
     @Default(false) bool isBenefitActive,
     @Default([]) List<Reservation> scheduledAppointments,
     @Default([]) List<PastAppointment> appointmentHistory,
+    @Default(<CustomerCoupon>[]) List<CustomerCoupon> coupons,
     @Default(0) int notificationIndex,
     @Default(false) bool hasPendingBadge,
+    String? clientCode,
+    String? lastVisit,
+    String? branchName,
   }) = _ProfileState;
 }

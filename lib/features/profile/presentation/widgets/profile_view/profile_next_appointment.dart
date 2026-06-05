@@ -2,15 +2,11 @@ import 'dart:math' as math;
 
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
 
 class ProfileNextAppointmentHero extends StatelessWidget {
@@ -19,122 +15,6 @@ class ProfileNextAppointmentHero extends StatelessWidget {
 
   final Reservation appointment;
   final VoidCallback onTap;
-
-  static const List<String> _cancelReasons = [
-    'Tuve un imprevisto',
-    'Cambié de opinión',
-    'Emergencia familiar',
-    'Ya no puedo asistir',
-    'Otro motivo',
-  ];
-
-  void _showCancelSheet(BuildContext context, Reservation r) {
-    HapticFeedback.mediumImpact();
-    final gold = context.primaryGold;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetCtx) {
-        return SafeArea(
-          top: false,
-          child: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF111111),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B6B).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Color(0xFFFF6B6B),
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cancelar cita',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Selecciona un motivo',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.42),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                ..._cancelReasons.map(
-                  (reason) => _CancelReasonTile(
-                    label: reason,
-                    onTap: () {
-                      Navigator.pop(sheetCtx);
-                      HapticFeedback.heavyImpact();
-                      context.read<ProfileBloc>().add(
-                            ProfileEvent.cancelAppointment(
-                              reservationId: r.id ?? '',
-                              reason: reason,
-                            ),
-                          );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(sheetCtx),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      child: Text(
-                        'Mantener cita',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: gold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -283,26 +163,7 @@ class ProfileNextAppointmentHero extends StatelessWidget {
 
                           Row(
                             children: [
-                              // Cancelar (texto rojo sutil, izquierda)
-                              GestureDetector(
-                                onTap: () {
-                                  HapticFeedback.lightImpact();
-                                  _showCancelSheet(context, appointment);
-                                },
-                                behavior: HitTestBehavior.opaque,
-                                child: Text(
-                                  'Cancelar',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFFFF6B6B)
-                                        .withValues(alpha: 0.85),
-                                    letterSpacing: -0.1,
-                                  ),
-                                ),
-                              ),
                               const Spacer(),
-                              // Ver ticket (derecha)
                               Text(
                                 'Ver ticket completo',
                                 style: GoogleFonts.inter(
@@ -356,68 +217,6 @@ class ProfileNextAppointmentHero extends StatelessWidget {
 // ============================================================================
 // 4. QUICK STATS ROW
 // ============================================================================
-
-class _CancelReasonTile extends StatefulWidget {
-  const _CancelReasonTile({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  State<_CancelReasonTile> createState() => _CancelReasonTileState();
-}
-
-class _CancelReasonTileState extends State<_CancelReasonTile> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: () {
-        HapticFeedback.selectionClick();
-        widget.onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: _pressed
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white.withValues(alpha: 0.02),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.05),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                widget.label,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.85),
-                  letterSpacing: -0.2,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 16,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Bolitas luminosas de distintos tamaños y colores que estallan desde el
 /// centro de la tarjeta en TODAS las direcciones (360°) y se desvanecen

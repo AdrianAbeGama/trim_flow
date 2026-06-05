@@ -42,6 +42,7 @@ class AgendaAppointment {
   final DateTime startTime;
   final DateTime endTime;
   final AgendaStatus status;
+  final String? customerId;
   final String? customerName;
   final String? customerWhatsapp;
   final String? serviceName;
@@ -56,6 +57,7 @@ class AgendaAppointment {
     required this.startTime,
     required this.endTime,
     required this.status,
+    this.customerId,
     this.customerName,
     this.customerWhatsapp,
     this.serviceName,

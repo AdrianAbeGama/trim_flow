@@ -4,26 +4,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/features/barber/view/widgets/barber_profile_client_sheet.dart';
-import 'package:trim_flow/features/barber/view/widgets/barber_profile_clients.dart';
+import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
+import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_header.dart';
-import 'package:trim_flow/features/barber/view/widgets/barber_profile_history.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_more.dart';
-import 'package:trim_flow/features/barber/view/widgets/barber_profile_history_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_primitives.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_stats.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_profile_today_agenda.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_settings_view.dart';
 
-/// BarberProfileView — orquestador limpio.
-/// Toda la UI vive en widgets/. Este archivo es solo el state + composición.
+/// BarberProfileView — perfil del barbero: identidad + resumen real de hoy +
+/// datos personales + logout. La agenda (citas, historial) vive en su pestaña,
+/// no se repite aqui.
 class BarberProfileView extends StatelessWidget {
   const BarberProfileView({super.key});
 
@@ -39,64 +41,24 @@ class _BarberProfileBody extends StatefulWidget {
 }
 
 class _BarberProfileBodyState extends State<_BarberProfileBody> {
-  // === MOCK DATA (mientras no hay backend) ===
-  static const int _mockCutsToday = 5;
-  static const int _mockCutsWeek = 24;
-  static const double _mockRevenueToday = 175.0;
+  Future<AgendaTodaySummary>? _summaryFuture;
+  Future<List<AgendaAppointment>>? _agendaFuture;
 
-  static final List<BarberClientItem> _mockNextClients = [
-    const BarberClientItem(
-      time: '15:00',
-      name: 'Luis Pérez',
-      service: 'Corte + Barba',
-      dateLabel: 'HOY',
-    ),
-    const BarberClientItem(
-      time: '16:30',
-      name: 'Carlos Ruiz',
-      service: 'Corte Clásico',
-      dateLabel: 'HOY',
-    ),
-    const BarberClientItem(
-      time: '10:00',
-      name: 'Miguel Soto',
-      service: 'Barba Premium',
-      dateLabel: 'MAÑ',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-  static final List<BarberHistoryItem> _mockHistory = [
-    const BarberHistoryItem(
-      service: 'Corte Clásico',
-      client: 'José Castro',
-      dateStr: 'Hoy · 10:30',
-      price: 35,
-      isCompleted: true,
-    ),
-    const BarberHistoryItem(
-      service: 'Corte + Barba',
-      client: 'Pedro Vega',
-      dateStr: 'Hoy · 09:00',
-      price: 65,
-      isCompleted: true,
-    ),
-    const BarberHistoryItem(
-      service: 'Barba Premium',
-      client: 'Ana López',
-      dateStr: 'Ayer · 18:00',
-      price: 0,
-      isCompleted: false,
-    ),
-    const BarberHistoryItem(
-      service: 'Corte Clásico',
-      client: 'Juan Díaz',
-      dateStr: 'Ayer · 16:30',
-      price: 35,
-      isCompleted: true,
-    ),
-  ];
-
-  // === ACTIONS ===
+  void _loadData() {
+    final barberId = Supabase.instance.client.auth.currentUser?.id;
+    if (barberId != null) {
+      final repo = getIt<AgendaRepository>();
+      _summaryFuture = repo.fetchTodaySummary(barberId: barberId);
+      _agendaFuture =
+          repo.fetchAgendaForDay(barberId: barberId, day: DateTime.now());
+    }
+  }
 
   void _editProfile(UserProfile user) {
     HapticFeedback.lightImpact();
@@ -154,7 +116,13 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
     context.read<ProfileBloc>().add(const ProfileEvent.load());
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    if (mounted) setState(_loadData);
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+  }
+
+  String _nextLabel(DateTime? next) {
+    if (next == null) return '—';
+    return '${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -166,7 +134,7 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
           if (state.status == ProfileStatus.loading) {
             return Center(
               child: CupertinoActivityIndicator(
-                color: context.primaryGold, radius: 14),
+                  color: context.primaryGold, radius: 14),
             );
           }
           final user = state.user;
@@ -193,29 +161,34 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                   onAvatarTap: () => _editProfile(user),
                   onSettingsTap: () => _openSettings(user),
                 ),
-                BarberProfileNextClient(
-                  client: _mockNextClients.first,
-                  onTap: () => BarberClientDetailSheet.show(
-                    context,
-                    _mockNextClients.first,
+                SliverToBoxAdapter(
+                  child: FutureBuilder<AgendaTodaySummary>(
+                    future: _summaryFuture,
+                    builder: (context, snap) {
+                      final s = snap.data;
+                      return BarberProfileStatsRow(
+                        cutsToday: s?.completedCuts ?? 0,
+                        revenueToday: s?.revenue ?? 0,
+                        nextLabel: _nextLabel(s?.nextStart),
+                      );
+                    },
                   ),
                 ),
-                BarberProfileStatsRow(
-                  cutsToday: _mockCutsToday,
-                  cutsWeek: _mockCutsWeek,
-                  revenueToday: _mockRevenueToday,
-                ),
-                BarberProfileScheduledList(
-                  clients: _mockNextClients.sublist(1),
-                ),
-                BarberProfileHistory(
-                  history: _mockHistory,
-                  onSeeAll: () =>
-                      BarberProfileFullHistorySheet.show(context, _mockHistory),
+                SliverToBoxAdapter(
+                  child: FutureBuilder<List<AgendaAppointment>>(
+                    future: _agendaFuture,
+                    builder: (context, snap) {
+                      return BarberProfileTodayAgenda(
+                        appointments: snap.data ?? const [],
+                        loading: snap.connectionState == ConnectionState.waiting,
+                      );
+                    },
+                  ),
                 ),
                 BarberProfilePersonalData(
                   user: user,
                   onTap: () => _editProfile(user),
+                  branchName: state.branchName,
                 ),
                 SliverToBoxAdapter(
                   child: Padding(

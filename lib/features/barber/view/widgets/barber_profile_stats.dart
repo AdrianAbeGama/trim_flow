@@ -3,46 +3,45 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 
-/// Stats row del perfil del barbero — HOY / SEMANA / INGRESOS.
+/// Resumen de HOY del barbero en su perfil (datos reales): cortes, ingresos
+/// y proxima cita. Devuelve una caja (se envuelve en un sliver afuera).
 class BarberProfileStatsRow extends StatelessWidget {
   const BarberProfileStatsRow({
     super.key,
     required this.cutsToday,
-    required this.cutsWeek,
     required this.revenueToday,
+    required this.nextLabel,
   });
 
   final int cutsToday;
-  final int cutsWeek;
   final double revenueToday;
+  final String nextLabel;
 
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111111),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: Row(
-            children: [
-              Expanded(child: _StatSegment(icon: Icons.content_cut_rounded, value: '$cutsToday', label: 'Hoy', accent: gold)),
-              _StatDivider(),
-              Expanded(child: _StatSegment(icon: Icons.calendar_view_week_rounded, value: '$cutsWeek', label: 'Semana', accent: gold)),
-              _StatDivider(),
-              Expanded(child: _StatSegment(icon: Icons.payments_rounded, value: 'S/${revenueToday.toStringAsFixed(0)}', label: 'Ingresos', accent: gold)),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(delay: 220.ms, duration: 600.ms)
-            .slideY(begin: 0.06, end: 0, delay: 220.ms, duration: 600.ms, curve: Curves.easeOutCubic),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111111),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Row(
+          children: [
+            Expanded(child: _StatSegment(icon: Icons.content_cut_rounded, value: '$cutsToday', label: 'Cortes hoy', accent: gold)),
+            _StatDivider(),
+            Expanded(child: _StatSegment(icon: Icons.payments_rounded, value: 'S/${revenueToday.toStringAsFixed(0)}', label: 'Ingresos', accent: gold)),
+            _StatDivider(),
+            Expanded(child: _StatSegment(icon: Icons.schedule_rounded, value: nextLabel, label: 'Próxima', accent: gold)),
+          ],
+        ),
+      )
+          .animate()
+          .fadeIn(delay: 120.ms, duration: 500.ms)
+          .slideY(begin: 0.06, end: 0, delay: 120.ms, duration: 500.ms, curve: Curves.easeOutCubic),
     );
   }
 }

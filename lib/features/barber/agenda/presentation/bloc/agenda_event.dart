@@ -17,4 +17,5 @@ abstract class AgendaEvent with _$AgendaEvent {
       AgendaWalkInRequested;
   const factory AgendaEvent.resolveRefsRequested() = AgendaResolveRefsRequested;
   const factory AgendaEvent.statusChanged(String appointmentId, AgendaStatus newStatus, {String? reason}) = AgendaStatusChanged;
+  const factory AgendaEvent.completeRequested(String appointmentId, double amount, {String? couponCode}) = AgendaCompleteRequested;
 }

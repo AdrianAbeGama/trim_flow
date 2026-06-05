@@ -13,6 +13,7 @@ import 'package:trim_flow/core/notifications/notifications.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
@@ -161,6 +162,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (mode == AppMode.client && result.user.customerId != null) {
         final appointments = await _safeLoadAppointments(result.user.customerId!);
         final history = await _safeLoadHistory(result.user.customerId!);
+        final coupons = await _safeLoadCoupons(result.user.customerId!);
         emit(state.copyWith(
           status: ProfileStatus.loaded,
           user: result.user,
@@ -168,6 +170,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: appointments,
           appointmentHistory: history.isEmpty ? _demoHistory : history,
+          coupons: coupons,
+          clientCode: result.clientCode,
+          lastVisit: result.lastVisit,
+          branchName: result.branchName,
         ));
       } else {
         emit(state.copyWith(
@@ -177,6 +183,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: const [],
           appointmentHistory: const [],
+          clientCode: result.clientCode,
+          lastVisit: result.lastVisit,
+          branchName: result.branchName,
         ));
       }
     } catch (e, stack) {
@@ -203,6 +212,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       return await _repository.loadAppointmentHistory(customerId: customerId);
     } catch (e) {
       debugPrint('ProfileBloc.loadAppointmentHistory error: $e');
+      return const [];
+    }
+  }
+
+  Future<List<CustomerCoupon>> _safeLoadCoupons(String customerId) async {
+    try {
+      return await _repository.loadCustomerCoupons(customerId: customerId);
+    } catch (e) {
+      debugPrint('ProfileBloc.loadCustomerCoupons error: $e');
       return const [];
     }
   }

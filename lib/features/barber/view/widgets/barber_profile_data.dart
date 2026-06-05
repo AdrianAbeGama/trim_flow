@@ -12,15 +12,19 @@ class BarberProfilePersonalData extends StatelessWidget {
     super.key,
     required this.user,
     required this.onTap,
+    this.branchName,
   });
 
   final UserProfile user;
   final VoidCallback onTap;
+  final String? branchName;
 
   @override
   Widget build(BuildContext context) {
     final phoneVal = user.phone.isEmpty ? 'Pendiente' : '+51 ${user.phone}';
-    final branchVal = user.branchId == null ? 'Sin asignar' : 'Sede asignada';
+    final branchVal = (branchName != null && branchName!.isNotEmpty)
+        ? branchName!
+        : (user.branchId == null ? 'Sin asignar' : 'Sede asignada');
 
     return SliverToBoxAdapter(
       child: Padding(

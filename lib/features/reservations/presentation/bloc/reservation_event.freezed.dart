@@ -55,14 +55,15 @@ extension ReservationEventPatterns on ReservationEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _SelectDateTime value)?  selectDateTime,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _ActivateDiscount value)?  activateDiscount,TResult Function( _DeactivateDiscount value)?  deactivateDiscount,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _LoadSlots value)?  loadSlots,TResult Function( _SelectSlot value)?  selectSlot,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _ActivateDiscount value)?  activateDiscount,TResult Function( _DeactivateDiscount value)?  deactivateDiscount,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that);case _ToggleService() when toggleService != null:
 return toggleService(_that);case _SelectProfessional() when selectProfessional != null:
-return selectProfessional(_that);case _SelectDateTime() when selectDateTime != null:
-return selectDateTime(_that);case _GoToPhase() when goToPhase != null:
+return selectProfessional(_that);case _LoadSlots() when loadSlots != null:
+return loadSlots(_that);case _SelectSlot() when selectSlot != null:
+return selectSlot(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _ConfirmReservation() when confirmReservation != null:
 return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
@@ -85,14 +86,15 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _SelectDateTime value)  selectDateTime,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _ActivateDiscount value)  activateDiscount,required TResult Function( _DeactivateDiscount value)  deactivateDiscount,required TResult Function( _Reset value)  reset,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _LoadSlots value)  loadSlots,required TResult Function( _SelectSlot value)  selectSlot,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _ActivateDiscount value)  activateDiscount,required TResult Function( _DeactivateDiscount value)  deactivateDiscount,required TResult Function( _Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter():
 return selectCenter(_that);case _ToggleService():
 return toggleService(_that);case _SelectProfessional():
-return selectProfessional(_that);case _SelectDateTime():
-return selectDateTime(_that);case _GoToPhase():
+return selectProfessional(_that);case _LoadSlots():
+return loadSlots(_that);case _SelectSlot():
+return selectSlot(_that);case _GoToPhase():
 return goToPhase(_that);case _ConfirmReservation():
 return confirmReservation(_that);case _ActivateDiscount():
 return activateDiscount(_that);case _DeactivateDiscount():
@@ -114,14 +116,15 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _SelectDateTime value)?  selectDateTime,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _ActivateDiscount value)?  activateDiscount,TResult? Function( _DeactivateDiscount value)?  deactivateDiscount,TResult? Function( _Reset value)?  reset,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _LoadSlots value)?  loadSlots,TResult? Function( _SelectSlot value)?  selectSlot,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _ActivateDiscount value)?  activateDiscount,TResult? Function( _DeactivateDiscount value)?  deactivateDiscount,TResult? Function( _Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that);case _ToggleService() when toggleService != null:
 return toggleService(_that);case _SelectProfessional() when selectProfessional != null:
-return selectProfessional(_that);case _SelectDateTime() when selectDateTime != null:
-return selectDateTime(_that);case _GoToPhase() when goToPhase != null:
+return selectProfessional(_that);case _LoadSlots() when loadSlots != null:
+return loadSlots(_that);case _SelectSlot() when selectSlot != null:
+return selectSlot(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _ConfirmReservation() when confirmReservation != null:
 return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
@@ -143,15 +146,16 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String time)?  selectDateTime,TResult Function( int phase)?  goToPhase,TResult Function()?  confirmReservation,TResult Function()?  activateDiscount,TResult Function()?  deactivateDiscount,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String barberId)?  loadSlots,TResult Function( DateTime startUtc)?  selectSlot,TResult Function( int phase)?  goToPhase,TResult Function( String customerName,  String customerPhone)?  confirmReservation,TResult Function()?  activateDiscount,TResult Function()?  deactivateDiscount,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
 return toggleService(_that.service);case _SelectProfessional() when selectProfessional != null:
-return selectProfessional(_that.professional);case _SelectDateTime() when selectDateTime != null:
-return selectDateTime(_that.date,_that.time);case _GoToPhase() when goToPhase != null:
+return selectProfessional(_that.professional);case _LoadSlots() when loadSlots != null:
+return loadSlots(_that.date,_that.barberId);case _SelectSlot() when selectSlot != null:
+return selectSlot(_that.startUtc);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation();case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
@@ -172,15 +176,16 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String time)  selectDateTime,required TResult Function( int phase)  goToPhase,required TResult Function()  confirmReservation,required TResult Function()  activateDiscount,required TResult Function()  deactivateDiscount,required TResult Function()  reset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String barberId)  loadSlots,required TResult Function( DateTime startUtc)  selectSlot,required TResult Function( int phase)  goToPhase,required TResult Function( String customerName,  String customerPhone)  confirmReservation,required TResult Function()  activateDiscount,required TResult Function()  deactivateDiscount,required TResult Function()  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter():
 return selectCenter(_that.center);case _ToggleService():
 return toggleService(_that.service);case _SelectProfessional():
-return selectProfessional(_that.professional);case _SelectDateTime():
-return selectDateTime(_that.date,_that.time);case _GoToPhase():
+return selectProfessional(_that.professional);case _LoadSlots():
+return loadSlots(_that.date,_that.barberId);case _SelectSlot():
+return selectSlot(_that.startUtc);case _GoToPhase():
 return goToPhase(_that.phase);case _ConfirmReservation():
-return confirmReservation();case _ActivateDiscount():
+return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount():
 return activateDiscount();case _DeactivateDiscount():
 return deactivateDiscount();case _Reset():
 return reset();case _:
@@ -200,15 +205,16 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String time)?  selectDateTime,TResult? Function( int phase)?  goToPhase,TResult? Function()?  confirmReservation,TResult? Function()?  activateDiscount,TResult? Function()?  deactivateDiscount,TResult? Function()?  reset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String barberId)?  loadSlots,TResult? Function( DateTime startUtc)?  selectSlot,TResult? Function( int phase)?  goToPhase,TResult? Function( String customerName,  String customerPhone)?  confirmReservation,TResult? Function()?  activateDiscount,TResult? Function()?  deactivateDiscount,TResult? Function()?  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
 return toggleService(_that.service);case _SelectProfessional() when selectProfessional != null:
-return selectProfessional(_that.professional);case _SelectDateTime() when selectDateTime != null:
-return selectDateTime(_that.date,_that.time);case _GoToPhase() when goToPhase != null:
+return selectProfessional(_that.professional);case _LoadSlots() when loadSlots != null:
+return loadSlots(_that.date,_that.barberId);case _SelectSlot() when selectSlot != null:
+return selectSlot(_that.startUtc);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation();case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
@@ -450,44 +456,44 @@ $ProfessionalCopyWith<$Res>? get professional {
 /// @nodoc
 
 
-class _SelectDateTime implements ReservationEvent {
-  const _SelectDateTime(this.date, this.time);
+class _LoadSlots implements ReservationEvent {
+  const _LoadSlots(this.date, this.barberId);
   
 
  final  DateTime date;
- final  String time;
+ final  String barberId;
 
 /// Create a copy of ReservationEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$SelectDateTimeCopyWith<_SelectDateTime> get copyWith => __$SelectDateTimeCopyWithImpl<_SelectDateTime>(this, _$identity);
+_$LoadSlotsCopyWith<_LoadSlots> get copyWith => __$LoadSlotsCopyWithImpl<_LoadSlots>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SelectDateTime&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoadSlots&&(identical(other.date, date) || other.date == date)&&(identical(other.barberId, barberId) || other.barberId == barberId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,date,time);
+int get hashCode => Object.hash(runtimeType,date,barberId);
 
 @override
 String toString() {
-  return 'ReservationEvent.selectDateTime(date: $date, time: $time)';
+  return 'ReservationEvent.loadSlots(date: $date, barberId: $barberId)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$SelectDateTimeCopyWith<$Res> implements $ReservationEventCopyWith<$Res> {
-  factory _$SelectDateTimeCopyWith(_SelectDateTime value, $Res Function(_SelectDateTime) _then) = __$SelectDateTimeCopyWithImpl;
+abstract mixin class _$LoadSlotsCopyWith<$Res> implements $ReservationEventCopyWith<$Res> {
+  factory _$LoadSlotsCopyWith(_LoadSlots value, $Res Function(_LoadSlots) _then) = __$LoadSlotsCopyWithImpl;
 @useResult
 $Res call({
- DateTime date, String time
+ DateTime date, String barberId
 });
 
 
@@ -495,20 +501,86 @@ $Res call({
 
 }
 /// @nodoc
-class __$SelectDateTimeCopyWithImpl<$Res>
-    implements _$SelectDateTimeCopyWith<$Res> {
-  __$SelectDateTimeCopyWithImpl(this._self, this._then);
+class __$LoadSlotsCopyWithImpl<$Res>
+    implements _$LoadSlotsCopyWith<$Res> {
+  __$LoadSlotsCopyWithImpl(this._self, this._then);
 
-  final _SelectDateTime _self;
-  final $Res Function(_SelectDateTime) _then;
+  final _LoadSlots _self;
+  final $Res Function(_LoadSlots) _then;
 
 /// Create a copy of ReservationEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? date = null,Object? time = null,}) {
-  return _then(_SelectDateTime(
+@pragma('vm:prefer-inline') $Res call({Object? date = null,Object? barberId = null,}) {
+  return _then(_LoadSlots(
 null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
-as DateTime,null == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
+as DateTime,null == barberId ? _self.barberId : barberId // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _SelectSlot implements ReservationEvent {
+  const _SelectSlot(this.startUtc);
+  
+
+ final  DateTime startUtc;
+
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SelectSlotCopyWith<_SelectSlot> get copyWith => __$SelectSlotCopyWithImpl<_SelectSlot>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SelectSlot&&(identical(other.startUtc, startUtc) || other.startUtc == startUtc));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,startUtc);
+
+@override
+String toString() {
+  return 'ReservationEvent.selectSlot(startUtc: $startUtc)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SelectSlotCopyWith<$Res> implements $ReservationEventCopyWith<$Res> {
+  factory _$SelectSlotCopyWith(_SelectSlot value, $Res Function(_SelectSlot) _then) = __$SelectSlotCopyWithImpl;
+@useResult
+$Res call({
+ DateTime startUtc
+});
+
+
+
+
+}
+/// @nodoc
+class __$SelectSlotCopyWithImpl<$Res>
+    implements _$SelectSlotCopyWith<$Res> {
+  __$SelectSlotCopyWithImpl(this._self, this._then);
+
+  final _SelectSlot _self;
+  final $Res Function(_SelectSlot) _then;
+
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? startUtc = null,}) {
+  return _then(_SelectSlot(
+null == startUtc ? _self.startUtc : startUtc // ignore: cast_nullable_to_non_nullable
+as DateTime,
   ));
 }
 
@@ -585,33 +657,69 @@ as int,
 
 
 class _ConfirmReservation implements ReservationEvent {
-  const _ConfirmReservation();
+  const _ConfirmReservation({required this.customerName, required this.customerPhone});
   
 
+ final  String customerName;
+ final  String customerPhone;
 
-
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ConfirmReservationCopyWith<_ConfirmReservation> get copyWith => __$ConfirmReservationCopyWithImpl<_ConfirmReservation>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfirmReservation);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConfirmReservation&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.customerPhone, customerPhone) || other.customerPhone == customerPhone));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,customerName,customerPhone);
 
 @override
 String toString() {
-  return 'ReservationEvent.confirmReservation()';
+  return 'ReservationEvent.confirmReservation(customerName: $customerName, customerPhone: $customerPhone)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class _$ConfirmReservationCopyWith<$Res> implements $ReservationEventCopyWith<$Res> {
+  factory _$ConfirmReservationCopyWith(_ConfirmReservation value, $Res Function(_ConfirmReservation) _then) = __$ConfirmReservationCopyWithImpl;
+@useResult
+$Res call({
+ String customerName, String customerPhone
+});
 
 
+
+
+}
+/// @nodoc
+class __$ConfirmReservationCopyWithImpl<$Res>
+    implements _$ConfirmReservationCopyWith<$Res> {
+  __$ConfirmReservationCopyWithImpl(this._self, this._then);
+
+  final _ConfirmReservation _self;
+  final $Res Function(_ConfirmReservation) _then;
+
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? customerName = null,Object? customerPhone = null,}) {
+  return _then(_ConfirmReservation(
+customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
+as String,customerPhone: null == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

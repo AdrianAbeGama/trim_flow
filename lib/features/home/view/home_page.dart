@@ -7,6 +7,9 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart'
 import 'package:flutter/gestures.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_bar_trigger.dart';
+import 'package:trim_flow/core/widgets/premium/premium_bottom_nav_item.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_view.dart';
 import 'package:trim_flow/features/reservations/presentation/views/reservation_view.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
@@ -221,17 +224,11 @@ class _HomePageState extends State<HomePage>
                       hideOnScroll: !isPersistent,
                     ),
                 theme: BottomBarThemeData(
-                  barDecoration: BoxDecoration(
-                    color: const Color(0xFF111111),
-                    borderRadius: BorderRadius.circular(500),
-                    border: Border.all(
-                      color: context.primaryGold.withValues(alpha: 0.15),
-                      width: 1,
-                    ),
-                  ),
+                  barDecoration: premiumBarDecoration(context),
                 ),
                 showIcon: false,
                 body: BlocBuilder<ProfileBloc, ProfileState>(
+                  buildWhen: (previous, current) => false,
                   builder: (context, state) {
                     return ValueListenableBuilder<bool>(
                       valueListenable: HomePage.enableSwipe,
@@ -265,48 +262,10 @@ class _HomePageState extends State<HomePage>
                   },
                 ),
                 child: BlocBuilder<ProfileBloc, ProfileState>(
+                  buildWhen: (previous, current) =>
+                      previous.hasPendingBadge != current.hasPendingBadge,
                   builder: (context, state) {
-                    return TabBar(
-                      controller: tabController,
-                      onTap: (index) {
-                        // Navegación libre
-                      },
-                      indicator: UnderlineTabIndicator(
-                        borderSide: BorderSide(color: context.primaryGold, width: 2),
-                        insets: const EdgeInsets.symmetric(horizontal: 20),
-                      ),
-                      labelPadding: EdgeInsets.zero,
-                      dividerColor: Colors.transparent,
-                      overlayColor: WidgetStateProperty.all(Colors.transparent),
-                      splashFactory: NoSplash.splashFactory,
-                      tabs: [
-                        const Tab(icon: Icon(Icons.home_filled, size: 22)),
-                        const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                        _buildReservarTab(2),
-                        const Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                        Tab(
-                          icon: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              const Icon(Icons.person_rounded, size: 22),
-                              if (state.hasPendingBadge)
-                                Positioned(
-                                  right: -4,
-                                  top: -4,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.redAccent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
+                    return _buildPremiumBar(context, state);
                   },
                 ),
               );
@@ -322,43 +281,7 @@ class _HomePageState extends State<HomePage>
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 300),
                   opacity: _barVisible ? 0 : 1,
-                  child: GestureDetector(
-                    onTap: () => _barController.show(),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: context.primaryGold.withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: context.primaryGold.withValues(alpha: 0.15),
-                            blurRadius: 16,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Abrir',
-                            style: TextStyle(
-                              color: context.primaryGold,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: PremiumBarTrigger(onTap: () => _barController.show()),
                 ),
               ),
             ],
@@ -367,34 +290,18 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildReservarTab(int index) {
-    final isSelected = currentPage == index;
-    return Tab(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? context.primaryGold
-              : context.primaryGold.withOpacity(0.1),
-          shape: BoxShape.circle,
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: context.primaryGold.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
-        ),
-        child: Image.asset(
-          'images/mustache.png',
-          color: isSelected ? context.backgroundBlack : context.primaryGold,
-          width: 32,
-          height: 32,
-          fit: BoxFit.contain,
-        ),
+  Widget _buildPremiumBar(BuildContext context, ProfileState state) {
+    return SizedBox(
+      height: 58,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          PremiumBottomNavItem(icon: Icons.home_rounded, label: 'Inicio', active: currentPage == 0, onTap: () => tabController.animateTo(0)),
+          PremiumBottomNavItem(icon: Icons.grid_view_rounded, label: 'Galería', active: currentPage == 1, onTap: () => tabController.animateTo(1)),
+          PremiumBottomNavItem(imageAsset: 'images/mustache.png', label: 'Reservar', active: currentPage == 2, onTap: () => tabController.animateTo(2)),
+          PremiumBottomNavItem(icon: Icons.shopping_bag_rounded, label: 'Tienda', active: currentPage == 3, onTap: () => tabController.animateTo(3)),
+          PremiumBottomNavItem(icon: Icons.person_rounded, label: 'Perfil', active: currentPage == 4, badge: state.hasPendingBadge, onTap: () => tabController.animateTo(4)),
+        ],
       ),
     );
   }

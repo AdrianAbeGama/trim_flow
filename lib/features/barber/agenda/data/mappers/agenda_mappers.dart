@@ -24,6 +24,7 @@ class AgendaAppointmentMapper {
       startTime: start,
       endTime: end,
       status: AgendaStatusX.fromRaw(row['status'] as String?),
+      customerId: customer?['id'] as String?,
       customerName: customer?['full_name'] as String?,
       customerWhatsapp: customer?['whatsapp'] as String?,
       serviceName: service?['name'] as String?,

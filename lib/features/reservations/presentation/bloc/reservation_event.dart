@@ -8,11 +8,14 @@ abstract class ReservationEvent with _$ReservationEvent {
   const factory ReservationEvent.selectCenter(BarberCenter center) = _SelectCenter;
   const factory ReservationEvent.toggleService(Service service) = _ToggleService;
   const factory ReservationEvent.selectProfessional(Professional? professional) = _SelectProfessional;
-  const factory ReservationEvent.selectDateTime(DateTime date, String time) = _SelectDateTime;
+  const factory ReservationEvent.loadSlots(DateTime date, String barberId) = _LoadSlots;
+  const factory ReservationEvent.selectSlot(DateTime startUtc) = _SelectSlot;
   const factory ReservationEvent.goToPhase(int phase) = _GoToPhase;
-  const factory ReservationEvent.confirmReservation() = _ConfirmReservation;
+  const factory ReservationEvent.confirmReservation({
+    required String customerName,
+    required String customerPhone,
+  }) = _ConfirmReservation;
   const factory ReservationEvent.activateDiscount() = _ActivateDiscount;
   const factory ReservationEvent.deactivateDiscount() = _DeactivateDiscount;
   const factory ReservationEvent.reset() = _Reset;
 }
-

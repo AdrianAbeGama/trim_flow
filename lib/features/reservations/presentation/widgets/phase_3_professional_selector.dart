@@ -220,8 +220,9 @@ class _Phase3ProfessionalSelectorState extends State<Phase3ProfessionalSelector>
                     runSpacing: 6,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      Text('${professional.yearsOfExperience} años de experiencia',
-                          style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w500)),
+                      if (professional.yearsOfExperience > 0)
+                        Text('${professional.yearsOfExperience} años de experiencia',
+                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w500)),
                       PremiumPressable(
                         pressedScale: 0.92,
                         onTap: () => HomePage.requestedTab.value = HomePage.galleryTabIndex,

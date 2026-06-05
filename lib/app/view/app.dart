@@ -1,7 +1,10 @@
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
+import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
+import 'package:trim_flow/features/profile/presentation/views/complete_profile_view.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
+import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -102,6 +105,29 @@ class _PostLoginTransition extends StatelessWidget {
   }
 }
 
+/// Gate del cliente: si el perfil esta incompleto (cuenta nueva) obliga a
+/// completar datos antes de entrar a la app. Si esta completo, muestra Home.
+class _ClientGate extends StatelessWidget {
+  const _ClientGate();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        final user = state.user;
+        if (user == null) {
+          if (state.status == ProfileStatus.error) return const HomePage();
+          return const _PostLoginTransition();
+        }
+        final complete =
+            user.birthDate.trim().isNotEmpty && user.phone.trim().isNotEmpty;
+        if (!complete) return CompleteProfileView(user: user);
+        return const HomePage();
+      },
+    );
+  }
+}
+
 class App extends StatefulWidget {
   const App({super.key, this.bootstrapMode = BootstrapMode.client});
 
@@ -134,7 +160,8 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
         BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
         BlocProvider(create: (_) => OrdersBloc()..add(const OrdersEvent.started())),
-        BlocProvider(create: (_) => ReservationBloc()),
+        BlocProvider(create: (_) => getIt<ReservationBloc>()),
+        BlocProvider(create: (_) => getIt<CatalogBloc>()),
         BlocProvider(
           create: (_) {
             final repo = ProductRepositoryImpl();
@@ -221,7 +248,7 @@ class _AppState extends State<App> {
                   }
 
                   final destination = forcedMode == AppMode.client
-                      ? const HomePage()
+                      ? const _ClientGate()
                       : DeferredWidget(
                           loader: barber.loadLibrary,
                           builder: () => barber.BarberHomePage(),

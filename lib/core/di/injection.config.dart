@@ -24,6 +24,12 @@ import 'package:trim_flow/features/barber/agenda/data/repositories/agenda_supaba
     as _i781;
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart'
     as _i434;
+import 'package:trim_flow/features/catalog/data/repositories/catalog_supabase_repository.dart'
+    as _i681;
+import 'package:trim_flow/features/catalog/domain/repositories/catalog_repository.dart'
+    as _i812;
+import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart'
+    as _i206;
 import 'package:trim_flow/features/gallery/data/repositories/gallery_hive_repository.dart'
     as _i599;
 import 'package:trim_flow/features/gallery/domain/repositories/gallery_repository.dart'
@@ -42,6 +48,12 @@ import 'package:trim_flow/features/profile/domain/repositories/profile_repositor
     as _i956;
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart'
     as _i447;
+import 'package:trim_flow/features/reservations/data/repositories/reservation_supabase_repository.dart'
+    as _i156;
+import 'package:trim_flow/features/reservations/domain/repositories/reservation_repository.dart'
+    as _i224;
+import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart'
+    as _i316;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -67,8 +79,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i434.AgendaRepository>(
       () => _i781.AgendaSupabaseRepository(gh<_i454.SupabaseClient>()),
     );
+    gh.lazySingleton<_i812.CatalogRepository>(
+      () => _i681.CatalogSupabaseRepository(gh<_i454.SupabaseClient>()),
+    );
     gh.lazySingleton<_i698.StaffRepository>(
       () => _i952.StaffSupabaseRepository(gh<_i454.SupabaseClient>()),
+    );
+    gh.lazySingleton<_i224.ReservationRepository>(
+      () => _i156.ReservationSupabaseRepository(gh<_i454.SupabaseClient>()),
     );
     gh.lazySingleton<_i956.ProfileRepository>(
       () => _i915.ProfileSupabaseRepository(gh<_i454.SupabaseClient>()),
@@ -79,6 +97,15 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i882.AuthService>(),
         gh<_i956.ProfileRepository>(),
         gh<_i480.AppModeBloc>(),
+        gh<_i272.TenantThemeBloc>(),
+      ),
+    );
+    gh.factory<_i316.ReservationBloc>(
+      () => _i316.ReservationBloc(gh<_i224.ReservationRepository>()),
+    );
+    gh.factory<_i206.CatalogBloc>(
+      () => _i206.CatalogBloc(
+        gh<_i812.CatalogRepository>(),
         gh<_i272.TenantThemeBloc>(),
       ),
     );

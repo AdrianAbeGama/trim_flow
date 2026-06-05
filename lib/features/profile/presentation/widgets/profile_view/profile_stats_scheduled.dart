@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
 
 class ProfileQuickStatsRow extends StatelessWidget {
@@ -12,19 +11,15 @@ class ProfileQuickStatsRow extends StatelessWidget {
     super.key,
     required this.totalCuts,
     required this.scheduled,
-    required this.history,
+    required this.couponsCount,
   });
 
   final int totalCuts;
   final int scheduled;
-  final List<PastAppointment> history;
+  final int couponsCount;
 
   @override
   Widget build(BuildContext context) {
-    final saved = history
-        .where((h) => h.wasDiscounted && h.paidPrice != null)
-        .fold<double>(0, (sum, h) => sum + (h.paidPrice ?? 0));
-
     final gold = context.primaryGold;
     return SliverToBoxAdapter(
       child: Padding(
@@ -40,9 +35,9 @@ class ProfileQuickStatsRow extends StatelessWidget {
             children: [
               Expanded(child: _StatSegment(icon: Icons.content_cut_rounded, value: '$totalCuts', label: 'Cortes', accent: gold)),
               _StatDivider(),
-              Expanded(child: _StatSegment(icon: Icons.event_available_rounded, value: '$scheduled', label: 'Agendadas', accent: gold)),
+              Expanded(child: _StatSegment(icon: Icons.event_available_rounded, value: '$scheduled', label: 'Próximas', accent: gold)),
               _StatDivider(),
-              Expanded(child: _StatSegment(icon: Icons.savings_rounded, value: saved > 0 ? 'S/${saved.toStringAsFixed(0)}' : '—', label: 'Ahorrado', accent: gold)),
+              Expanded(child: _StatSegment(icon: Icons.confirmation_number_rounded, value: '$couponsCount', label: 'Cupones', accent: gold)),
             ],
           ),
         )

@@ -8,7 +8,7 @@ import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/reservation_progress.dart';
-import 'package:trim_flow/features/reservations/domain/reservation_mock_data.dart';
+import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_event.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_state.dart';
@@ -39,6 +39,7 @@ class _ReservationViewState extends State<ReservationView> {
   @override
   void initState() {
     super.initState();
+    context.read<CatalogBloc>().add(const CatalogEvent.load());
     HomePage.requestedService.addListener(_handleRequestedService);
     // Procesa request pendiente si llegó antes de que esta vista existiera
     WidgetsBinding.instance.addPostFrameCallback((_) => _handleRequestedService());
@@ -60,8 +61,8 @@ class _ReservationViewState extends State<ReservationView> {
     }
     // Viene un servicio preseleccionado desde Home → abrir el wizard.
     setState(() => _makingNew = true);
-    // Busca el servicio matching en el mock (case-insensitive)
-    final match = ReservationMockData.services.where(
+    // Busca el servicio matching en el catalogo real (case-insensitive)
+    final match = context.read<CatalogBloc>().state.services.where(
       (s) => s.name.toLowerCase() == name.toLowerCase(),
     ).firstOrNull;
     if (match != null) {
@@ -108,15 +109,19 @@ class _ReservationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ReservationBloc, ReservationState>(
-      listenWhen: (previous, current) =>
-          previous.status != ReservationStatus.success && current.status == ReservationStatus.success,
-      listener: (context, state) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ReservationBloc, ReservationState>(
+          listenWhen: (previous, current) =>
+              previous.status != ReservationStatus.success &&
+              current.status == ReservationStatus.success,
+          listener: (context, state) {
         if (state.status == ReservationStatus.success) {
           final reservationBloc = context.read<ReservationBloc>();
 
           // Agregar a citas programadas del perfil
           context.read<ProfileBloc>().add(ProfileEvent.addScheduledReservation(state.reservation));
+          context.read<ProfileBloc>().add(const LoadProfileEvent());
 
           // Programar recordatorios locales (24h + 1h antes)
           final reservation = state.reservation;
@@ -170,11 +175,37 @@ class _ReservationContent extends StatelessWidget {
           // en paso 1 (evita ver "5 de 5" con botones EDITAR tras reservar).
           reservationBloc.add(const ReservationEvent.reset());
         }
-      },
+          },
+        ),
+        BlocListener<ReservationBloc, ReservationState>(
+          listenWhen: (previous, current) =>
+              previous.status != ReservationStatus.failure &&
+              current.status == ReservationStatus.failure,
+          listener: (context, state) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'No se pudo crear la reserva.'),
+                backgroundColor: const Color(0xFFCF6679),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: const Color(0xFF0A0A0A),
         body: BlocBuilder<ReservationBloc, ReservationState>(
           builder: (context, state) {
+            final catalog = context.watch<CatalogBloc>().state;
+            final selectedCenterId = state.reservation.center?.id;
+            final professionals = catalog.team
+                .where((m) =>
+                    selectedCenterId == null || m.branchId == selectedCenterId)
+                .map((m) => m.toProfessional())
+                .toList();
+            final effectiveBarberId = state.reservation.professional?.id ??
+                (professionals.isNotEmpty ? professionals.first.id : null);
             return Stack(
               children: [
                 CustomScrollView(
@@ -301,7 +332,7 @@ class _ReservationContent extends StatelessWidget {
                             summaryLabel: 'Centro',
                             summaryValue: state.reservation.center?.name ?? '—',
                             child: Phase1CenterSelector(
-                              centers: ReservationMockData.centers,
+                              centers: catalog.centers,
                               selectedCenter: state.reservation.center,
                               isCompleted: state.currentPhase > 1,
                               onSelect: (center) => context
@@ -317,7 +348,7 @@ class _ReservationContent extends StatelessWidget {
                                 ? '${state.reservation.services.first.name} · S/ ${state.reservation.totalPrice.toStringAsFixed(2)}'
                                 : '—',
                             child: Phase2ServiceSelector(
-                              services: ReservationMockData.services,
+                              services: catalog.services,
                               selectedServices: state.reservation.services,
                               isCompleted: state.currentPhase > 2,
                               onToggle: (service) => context
@@ -333,7 +364,7 @@ class _ReservationContent extends StatelessWidget {
                                 ? (state.reservation.professional?.name ?? 'Máxima disponibilidad')
                                 : '—',
                             child: Phase3ProfessionalSelector(
-                              professionals: ReservationMockData.professionals,
+                              professionals: professionals,
                               selectedProfessional: state.reservation.professional,
                               hasSelectedAny: state.professionalSelected, // Corregido el bug de bloqueo
                               isCompleted: state.currentPhase > 3,
@@ -350,14 +381,21 @@ class _ReservationContent extends StatelessWidget {
                                 ? '${DateFormat("d MMM", 'es').format(state.reservation.date!)} · ${state.reservation.time}'
                                 : '—',
                             child: Phase4DateTimeSelector(
-                              totalDurationInMinutes: state.reservation.totalDurationInMinutes,
                               selectedDate: state.reservation.date,
-                              selectedTime: state.reservation.time,
-                              occupiedTimes: ReservationMockData.occupiedTimes,
+                              selectedSlotUtc: state.selectedSlotUtc,
+                              availableSlots: state.availableSlots,
+                              slotsStatus: state.slotsStatus,
                               isCompleted: state.currentPhase > 4,
-                              onSelectTime: (date, time) => context
+                              onDateChanged: (date) {
+                                if (effectiveBarberId != null) {
+                                  context.read<ReservationBloc>().add(
+                                        ReservationEvent.loadSlots(date, effectiveBarberId),
+                                      );
+                                }
+                              },
+                              onSelectSlot: (utc) => context
                                   .read<ReservationBloc>()
-                                  .add(ReservationEvent.selectDateTime(date, time)),
+                                  .add(ReservationEvent.selectSlot(utc)),
                             ),
                           ),
                           _PhaseWrapper(
@@ -566,7 +604,13 @@ class _BottomNavBar extends StatelessWidget {
 
     void onForward() {
       if (phase >= 5) {
-        context.read<ReservationBloc>().add(const ReservationEvent.confirmReservation());
+        final user = context.read<ProfileBloc>().state.user;
+        final phone = (user?.phone ?? '').trim();
+        final name = '${user?.firstName ?? ''} ${user?.lastName ?? ''}'.trim();
+        context.read<ReservationBloc>().add(ReservationEvent.confirmReservation(
+              customerName: name.isEmpty ? 'Cliente' : name,
+              customerPhone: phone.isEmpty ? '' : '+51$phone',
+            ));
       } else {
         context.read<ReservationBloc>().add(ReservationEvent.goToPhase(phase + 1));
       }

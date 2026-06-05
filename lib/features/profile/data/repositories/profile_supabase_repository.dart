@@ -1,7 +1,9 @@
 import 'package:core/core.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:trim_flow/features/profile/data/mappers/coupon_mappers.dart';
 import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 
@@ -60,7 +62,8 @@ class ProfileSupabaseRepository implements ProfileRepository {
 
     final row = await _client
         .from('profiles')
-        .select('id, tenant_id, full_name, phone, specialty, avatar_url, role, is_active, branch_id, hired_at')
+        .select('id, tenant_id, full_name, phone, specialty, avatar_url, role, is_active, branch_id, hired_at, '
+            'branch:branches!branch_id(id, name)')
         .eq('id', authUserId)
         .maybeSingle();
 
@@ -79,48 +82,22 @@ class ProfileSupabaseRepository implements ProfileRepository {
     required String? tenantId,
     required ProfileUpdateInput input,
   }) async {
-    final fullName = '${input.firstName} ${input.lastName}'.trim();
-    final payload = <String, dynamic>{
-      'full_name': fullName,
-      'whatsapp': input.phone.isEmpty ? null : '+51${input.phone}',
-      'birth_date': input.birthDate.isEmpty ? null : input.birthDate,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-    if (tenantId != null && tenantId.isNotEmpty) {
-      payload['tenant_id'] = tenantId;
-    }
-
-    final updated = await _client
-        .from('customers')
-        .update(payload)
-        .eq('auth_user_id', authUserId)
-        .select('id');
-
-    if (updated.isNotEmpty) return;
-
     if (tenantId == null || tenantId.isEmpty) {
-      throw CustomerRowMissingException(
-        'No existe fila customer para auth_user_id=$authUserId y no hay tenant_id resuelto. '
-        'Se requiere RPC bootstrap_customer_self del backend (ADR-0015).',
+      throw const CustomerRowMissingException(
+        'No hay tenant resuelto para guardar el perfil del cliente.',
       );
     }
-
-    try {
-      await _client.from('customers').upsert(
-        {
-          ...payload,
-          'auth_user_id': authUserId,
-          'is_app_user': true,
-        },
-        onConflict: 'tenant_id,auth_user_id',
-      );
-    } on PostgrestException catch (e) {
-      throw CustomerRowMissingException(
-        'Upsert customer rechazado por RLS (${e.code}): ${e.message}. '
-        'La policy customers_insert_staff exige get_staff_tenant_id() = tenant_id, '
-        'que es NULL para clientes B2C. Se requiere RPC bootstrap_customer_self del backend.',
-      );
-    }
+    final fullName = '${input.firstName} ${input.lastName}'.trim();
+    // Mutacion via RPC SECURITY DEFINER (ADR-0015): no escribimos la tabla directo.
+    await _client.rpc(
+      'bootstrap_customer_self',
+      params: {
+        'p_tenant_id': tenantId,
+        'p_full_name': fullName,
+        'p_whatsapp': input.phone.isEmpty ? null : '+51${input.phone}',
+        'p_birth_date': input.birthDate.isEmpty ? null : input.birthDate,
+      },
+    );
   }
 
   @override
@@ -130,27 +107,14 @@ class ProfileSupabaseRepository implements ProfileRepository {
     required ProfileUpdateInput input,
   }) async {
     final fullName = '${input.firstName} ${input.lastName}'.trim();
-    final payload = <String, dynamic>{
-      'full_name': fullName,
-      'phone': input.phone.isEmpty ? null : input.phone,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-    if (tenantId != null && tenantId.isNotEmpty) {
-      payload['tenant_id'] = tenantId;
-    }
-
-    final updated = await _client
-        .from('profiles')
-        .update(payload)
-        .eq('id', authUserId)
-        .select('id');
-
-    if (updated.isEmpty) {
-      throw StaffRowMissingException(
-        'No existe fila profile para id=$authUserId. '
-        'El trigger handle_new_auth_user no la creo (falta raw_app_meta_data.user_type=staff).',
-      );
-    }
+    // Mutacion via RPC SECURITY DEFINER (ADR-0015).
+    await _client.rpc(
+      'update_staff_self',
+      params: {
+        'p_full_name': fullName,
+        'p_phone': input.phone.isEmpty ? null : input.phone,
+      },
+    );
   }
 
   @override
@@ -184,23 +148,46 @@ class ProfileSupabaseRepository implements ProfileRepository {
     required String customerId,
     int limit = 50,
   }) async {
+    // Leemos desde las reservas propias del cliente (RLS lo permite), no desde
+    // ledger_entries (solo legible por staff). Citas terminadas/canceladas.
     final rows = await _client
-        .from('ledger_entries')
+        .from('reservations')
         .select(
-          'id, occurred_at, amount_value, payment_method, '
-          'service_name_snapshot, discount_applied, coupon_code_snapshot, '
-          'transaction_type, barber_id, reservation_id, '
-          'barber:profiles!barber_id(id, full_name), '
-          'reservation:reservations!reservation_id(id, status, cancellation_reason, branch_id, branch:branches!branch_id(id, name))',
+          'id, status, start_time, price_at_booking, cancellation_reason, '
+          'service:services!service_id(name), '
+          'branch:branches!branch_id(name), '
+          'barber:profiles!barber_id(full_name)',
         )
         .eq('customer_id', customerId)
-        .order('occurred_at', ascending: false)
+        .inFilter('status', ['completed', 'cancelled', 'no_show'])
+        .filter('deleted_at', 'is', null)
+        .order('start_time', ascending: false)
         .limit(limit);
 
     return (rows as List)
         .whereType<Map<String, dynamic>>()
-        .map(PastAppointmentMapper.fromLedgerRow)
+        .map(PastAppointmentMapper.fromReservationRow)
         .whereType<PastAppointment>()
+        .toList();
+  }
+
+  @override
+  Future<List<CustomerCoupon>> loadCustomerCoupons({
+    required String customerId,
+  }) async {
+    final rows = await _client
+        .from('customer_coupons')
+        .select(
+          'id, unique_code, redeemed_at, valid_until, '
+          'promotion:promotions!promotion_id(name, discount_type, discount_value, is_active)',
+        )
+        .eq('customer_id', customerId)
+        .order('created_at', ascending: false);
+
+    return (rows as List)
+        .whereType<Map<String, dynamic>>()
+        .map(CouponMapper.fromRow)
+        .whereType<CustomerCoupon>()
         .toList();
   }
 }

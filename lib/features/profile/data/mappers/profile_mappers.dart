@@ -40,6 +40,10 @@ class CustomerProfileMapper {
       user: user,
       loyaltyPoints: loyaltyCount,
       isRewardAvailable: points >= kLoyaltyRewardThreshold,
+      clientCode: (row['client_code'] as String?)?.trim().isNotEmpty == true
+          ? row['client_code'] as String?
+          : null,
+      lastVisit: _formatLastVisit(row['last_visit_at'] as String?),
     );
   }
 }
@@ -53,11 +57,14 @@ class StaffProfileMapper {
     final fullName = (row['full_name'] as String?) ?? _metaFullName(authUser) ?? 'Barbero';
     final parts = _splitName(fullName);
     final tenantId = (row['tenant_id'] as String?) ?? fallbackTenantId;
+    final branchRow = row['branch'] as Map<String, dynamic>?;
+    final branchName = branchRow?['name'] as String?;
 
     final user = UserProfile(
       tenantId: tenantId,
       id: authUser.id,
       barberId: row['id'] as String?,
+      branchId: row['branch_id'] as String?,
       firstName: parts.$1,
       lastName: parts.$2,
       email: authUser.email ?? '',
@@ -72,6 +79,7 @@ class StaffProfileMapper {
       user: user,
       loyaltyPoints: 0,
       isRewardAvailable: false,
+      branchName: branchName,
     );
   }
 }
@@ -138,31 +146,29 @@ class ReservationMapper {
 }
 
 class PastAppointmentMapper {
-  static PastAppointment? fromLedgerRow(Map<String, dynamic> row) {
-    final reservation = row['reservation'] as Map<String, dynamic>?;
-    final branch = reservation == null ? null : reservation['branch'] as Map<String, dynamic>?;
-    final barber = row['barber'] as Map<String, dynamic>?;
-    final reservationStatus = reservation?['status'] as String?;
-    final occurredRaw = row['occurred_at'] as String?;
-    final occurred = occurredRaw != null ? DateTime.tryParse(occurredRaw)?.toLocal() : null;
-    if (occurred == null) return null;
+  static PastAppointment? fromReservationRow(Map<String, dynamic> row) {
+    final startRaw = row['start_time'] as String?;
+    final start = startRaw != null ? DateTime.tryParse(startRaw)?.toLocal() : null;
+    if (start == null) return null;
 
-    final isCancelled = reservationStatus == 'cancelled' || reservationStatus == 'no_show';
-    final amountRaw = row['amount_value'];
-    final amount = (amountRaw is num) ? amountRaw.toDouble() : null;
-    final discountRaw = row['discount_applied'];
-    final discount = (discountRaw is num) ? discountRaw.toDouble() : 0.0;
+    final status = row['status'] as String?;
+    final isCancelled = status == 'cancelled' || status == 'no_show';
+    final service = row['service'] as Map<String, dynamic>?;
+    final branch = row['branch'] as Map<String, dynamic>?;
+    final barber = row['barber'] as Map<String, dynamic>?;
+    final priceRaw = row['price_at_booking'];
+    final price = (priceRaw is num) ? priceRaw.toDouble() : null;
 
     return PastAppointment(
       centerName: (branch?['name'] as String?) ?? 'Sede Principal',
-      dateStr: _formatDate(occurred),
-      serviceName: (row['service_name_snapshot'] as String?) ?? 'Servicio',
+      dateStr: _formatDate(start),
+      serviceName: (service?['name'] as String?) ?? 'Servicio',
       professionalName: (barber?['full_name'] as String?) ?? 'Barbero',
       status: isCancelled ? 'cancelled' : 'completed',
-      cancellationReason: reservation?['cancellation_reason'] as String?,
+      cancellationReason: row['cancellation_reason'] as String?,
       rating: 0,
-      paidPrice: isCancelled ? null : amount,
-      wasDiscounted: discount > 0,
+      paidPrice: isCancelled ? null : price,
+      wasDiscounted: false,
     );
   }
 }
@@ -232,4 +238,11 @@ String _formatDate(DateTime dt) {
   final dd = dt.day.toString().padLeft(2, '0');
   final mm = dt.month.toString().padLeft(2, '0');
   return '$dd / $mm / ${dt.year}';
+}
+
+String? _formatLastVisit(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  final dt = DateTime.tryParse(raw)?.toLocal();
+  if (dt == null) return null;
+  return _formatDate(dt);
 }

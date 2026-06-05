@@ -1,9 +1,11 @@
 import 'package:trim_flow/features/home/presentation/views/home_view.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_bar_trigger.dart';
+import 'package:trim_flow/core/widgets/premium/premium_bottom_nav_item.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/views/barber_agenda_view.dart';
 import 'package:trim_flow/features/barber/view/barber_profile_view.dart';
 import 'package:trim_flow/features/gallery/presentation/views/gallery_view.dart';
@@ -73,21 +75,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                 hideOnScroll: !isPersistent,
               ),
               theme: BottomBarThemeData(
-                barDecoration: BoxDecoration(
-                  color: const Color(0xFF111111),
-                  borderRadius: BorderRadius.circular(500),
-                  border: Border.all(
-                    color: context.primaryGold.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.primaryGold.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
+                barDecoration: premiumBarDecoration(context),
               ),
               showIcon: false,
               body: ValueListenableBuilder<bool>(
@@ -113,26 +101,18 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
                   );
                 },
               ),
-              child: TabBar(
-                controller: tabController,
-                onTap: (index) {
-                  setState(() => currentPage = index);
-                },
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide(color: context.primaryGold, width: 3),
-                  insets: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                height: 58,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    PremiumBottomNavItem(icon: Icons.home_rounded, label: 'Inicio', active: currentPage == 0, onTap: () => tabController.animateTo(0)),
+                    PremiumBottomNavItem(icon: Icons.grid_view_rounded, label: 'Galería', active: currentPage == 1, onTap: () => tabController.animateTo(1)),
+                    PremiumBottomNavItem(icon: Icons.content_cut_rounded, label: 'Agenda', active: currentPage == 2, onTap: () => tabController.animateTo(2)),
+                    PremiumBottomNavItem(icon: Icons.shopping_bag_rounded, label: 'Tienda', active: currentPage == 3, onTap: () => tabController.animateTo(3)),
+                    PremiumBottomNavItem(icon: Icons.person_rounded, label: 'Perfil', active: currentPage == 4, onTap: () => tabController.animateTo(4)),
+                  ],
                 ),
-                labelPadding: EdgeInsets.zero,
-                dividerColor: Colors.transparent,
-                overlayColor: WidgetStateProperty.all(Colors.transparent),
-                splashFactory: NoSplash.splashFactory,
-                tabs: const [
-                  Tab(icon: Icon(Icons.home_filled, size: 22)),
-                  Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                  Tab(icon: FaIcon(FontAwesomeIcons.scissors, size: 20)),
-                  Tab(icon: Icon(Icons.shopping_bag_rounded, size: 22)),
-                  Tab(icon: Icon(Icons.person_rounded, size: 22)),
-                ],
               ),
             );
               },
@@ -148,43 +128,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
                 opacity: _barVisible ? 0 : 1,
-                child: GestureDetector(
-                  onTap: () => _barController.show(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: context.primaryGold.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.primaryGold.withValues(alpha: 0.15),
-                          blurRadius: 16,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.keyboard_arrow_up_rounded, color: context.primaryGold, size: 18),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Abrir',
-                          style: TextStyle(
-                            color: context.primaryGold,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: PremiumBarTrigger(onTap: () => _barController.show()),
               ),
             ),
           ],

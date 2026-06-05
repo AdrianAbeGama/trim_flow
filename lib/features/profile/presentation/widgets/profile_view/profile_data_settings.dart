@@ -8,10 +8,11 @@ import 'package:trim_flow/features/profile/presentation/widgets/profile_view/pro
 
 class ProfilePersonalDataGrid extends StatelessWidget {
   const ProfilePersonalDataGrid({
-    super.key,required this.user, required this.onTap});
+    super.key, required this.user, required this.onTap, this.lastVisit});
 
   final UserProfile user;
   final VoidCallback onTap;
+  final String? lastVisit;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +52,14 @@ class ProfilePersonalDataGrid extends StatelessWidget {
               isPending: user.birthDate.isEmpty,
               onTap: onTap,
             ),
+            if (lastVisit != null && lastVisit!.isNotEmpty) ...[
+              const _DataDivider(),
+              _DataInfoRow(
+                icon: Icons.history_rounded,
+                label: 'ÚLTIMA VISITA',
+                value: lastVisit!,
+              ),
+            ],
           ],
         )
             .animate()
@@ -207,6 +216,57 @@ class _DataRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Fila informativa de solo lectura (sin tap ni chevron). Para datos que la
+/// BD muestra pero el usuario no edita (ej. ultima visita).
+class _DataInfoRow extends StatelessWidget {
+  const _DataInfoRow({required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 42, height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: gold.withValues(alpha: 0.18)),
+            ),
+            child: Icon(icon, size: 18, color: gold),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 1.6),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.2),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

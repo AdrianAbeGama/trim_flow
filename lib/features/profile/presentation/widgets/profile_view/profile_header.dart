@@ -14,6 +14,7 @@ class ProfileViewHeader extends StatelessWidget {
     required this.onSettingsTap,
     required this.onOrdersTap,
     this.hasActiveOrders = false,
+    this.clientCode,
   });
 
   final UserProfile user;
@@ -21,6 +22,7 @@ class ProfileViewHeader extends StatelessWidget {
   final VoidCallback onSettingsTap;
   final VoidCallback onOrdersTap;
   final bool hasActiveOrders;
+  final String? clientCode;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +136,7 @@ class ProfileViewHeader extends StatelessWidget {
                           curve: Curves.easeOutCubic,
                         ),
                     const SizedBox(height: 4),
-                    _HeaderIdBadge(id: _headerIdFor(user))
+                    _HeaderIdBadge(id: (clientCode != null && clientCode!.isNotEmpty) ? clientCode! : _headerIdFor(user))
                         .animate()
                         .fadeIn(delay: 160.ms, duration: 500.ms),
                   ],
