@@ -82,6 +82,47 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   AppMode _currentMode() => _appModeBloc.state.mode ?? AppMode.client;
   String _currentTenantId() => _tenantThemeBloc.state.tenantId;
 
+  // Historial demo (visible mientras el backend no devuelve histórico real).
+  static final List<PastAppointment> _demoHistory = [
+    const PastAppointment(
+      centerName: 'Cercado - Principal',
+      dateStr: 'Hace 3 días',
+      serviceName: 'Corte Clásico',
+      professionalName: 'Carlos Mendoza',
+      status: 'completed',
+      rating: 5,
+      paidPrice: 35,
+    ),
+    const PastAppointment(
+      centerName: 'Cercado - Principal',
+      dateStr: 'Hace 1 semana',
+      serviceName: 'Corte + Barba',
+      professionalName: 'Miguel Soto',
+      status: 'completed',
+      rating: 5,
+      paidPrice: 30,
+      wasDiscounted: true,
+    ),
+    const PastAppointment(
+      centerName: 'Cercado - Sucursal',
+      dateStr: 'Hace 2 semanas',
+      serviceName: 'Barba Premium',
+      professionalName: 'Carlos Mendoza',
+      status: 'cancelled',
+      cancellationReason: 'Imprevisto del cliente',
+      rating: 0,
+    ),
+    const PastAppointment(
+      centerName: 'Cercado - Principal',
+      dateStr: 'Hace 1 mes',
+      serviceName: 'Corte Degradado',
+      professionalName: 'Luis Gómez',
+      status: 'completed',
+      rating: 4,
+      paidPrice: 40,
+    ),
+  ];
+
   Future<void> _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
     final authUser = _authService.currentUser;
     if (authUser == null) {
@@ -126,7 +167,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           completedCuts: result.loyaltyPoints,
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: appointments,
-          appointmentHistory: history,
+          appointmentHistory: history.isEmpty ? _demoHistory : history,
         ));
       } else {
         emit(state.copyWith(
@@ -307,26 +348,40 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void _onCancelAppointment(CancelAppointment event, Emitter<ProfileState> emit) {
+    if (state.scheduledAppointments.isEmpty) return;
+
     // Cancela recordatorios locales si los hay
     AppointmentReminders.cancel(event.reservationId);
 
-    final reservation = state.scheduledAppointments
-        .where((r) => r.id == event.reservationId)
-        .firstOrNull;
+    Reservation reservation;
+    List<Reservation> updatedScheduled;
 
-    final updatedScheduled = state.scheduledAppointments
-        .where((r) => r.id != event.reservationId)
-        .toList();
+    // Si el id viene vacío (mock data sin id) o no hace match, asumimos
+    // que es la PRIMERA cita programada (la "próxima cita" mostrada en perfil).
+    final matchIndex = state.scheduledAppointments.indexWhere(
+      (r) => r.id == event.reservationId && event.reservationId.isNotEmpty,
+    );
+
+    if (matchIndex >= 0) {
+      reservation = state.scheduledAppointments[matchIndex];
+      updatedScheduled = List<Reservation>.from(state.scheduledAppointments)
+        ..removeAt(matchIndex);
+    } else {
+      reservation = state.scheduledAppointments.first;
+      updatedScheduled = state.scheduledAppointments.sublist(1);
+    }
 
     final cancelledEntry = PastAppointment(
-      centerName: reservation?.center?.name ?? 'Sede Principal',
-      dateStr: reservation?.date != null
-          ? '${reservation!.date!.day.toString().padLeft(2, '0')} / '
+      centerName: reservation.center?.name ?? 'Sede Principal',
+      dateStr: reservation.date != null
+          ? '${reservation.date!.day.toString().padLeft(2, '0')} / '
               '${reservation.date!.month.toString().padLeft(2, '0')} / '
               '${reservation.date!.year}'
           : '—',
-      serviceName: reservation?.services.map((s) => s.name).join(', ') ?? 'Servicio',
-      professionalName: reservation?.professional?.name ?? 'Barbero',
+      serviceName: reservation.services.map((s) => s.name).join(', ').isEmpty
+          ? 'Servicio'
+          : reservation.services.map((s) => s.name).join(', '),
+      professionalName: reservation.professional?.name ?? 'Barbero',
       status: 'cancelled',
       cancellationReason: event.reason,
       rating: 0,
