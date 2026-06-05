@@ -14,33 +14,25 @@ import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 Color premiumOnAccent(Color accent) =>
     accent.computeLuminance() > 0.55 ? Colors.black : Colors.white;
 
-/// Decoracion compartida de la barra inferior flotante: gradiente oscuro teñido
-/// con el acento del tenant (no gris neutro) + hairline y glow del mismo acento,
-/// para que la barra lleve el color de la marca y la pildora activa resalte.
+/// Decoracion compartida de la barra inferior flotante: superficie oscura igual
+/// al fondo de la app (no teñida con el acento). El color del tenant aparece solo
+/// en la pildora del tab activo, no en todo el rectangulo de la barra.
 BoxDecoration premiumBarDecoration(BuildContext context) {
-  final gold = context.primaryGold;
+  final surface = context.tenantColors.surfaceDark;
+  final bg = context.backgroundBlack;
   return BoxDecoration(
     gradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [
-        Color.lerp(gold, Colors.black, 0.55)!,
-        Color.lerp(gold, Colors.black, 0.80)!,
-      ],
+      colors: [surface, bg],
     ),
     borderRadius: BorderRadius.circular(500),
-    border: Border.all(color: gold.withValues(alpha: 0.22), width: 1),
+    border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: 0.55),
         blurRadius: 24,
         offset: const Offset(0, 10),
-      ),
-      BoxShadow(
-        color: gold.withValues(alpha: 0.22),
-        blurRadius: 22,
-        spreadRadius: -6,
-        offset: const Offset(0, 6),
       ),
     ],
   );

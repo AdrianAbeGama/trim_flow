@@ -91,7 +91,13 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i956.ProfileRepository>(
       () => _i915.ProfileSupabaseRepository(gh<_i454.SupabaseClient>()),
     );
-    gh.factory<_i19.HomeBloc>(() => _i19.HomeBloc(gh<_i662.HomeRepository>()));
+    gh.factory<_i19.HomeBloc>(
+      () => _i19.HomeBloc(
+        gh<_i662.HomeRepository>(),
+        gh<_i812.CatalogRepository>(),
+        gh<_i272.TenantThemeBloc>(),
+      ),
+    );
     gh.factory<_i447.ProfileBloc>(
       () => _i447.ProfileBloc(
         gh<_i882.AuthService>(),

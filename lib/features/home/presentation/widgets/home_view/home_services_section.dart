@@ -231,8 +231,29 @@ class _StyleCardState extends State<_StyleCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Imagen de fondo
-                HomeSmartImage(path: widget.item.image),
+                // Imagen de fondo (o fondo premium con tinte del tenant si el
+                // servicio real no trae foto).
+                if (widget.item.image.isEmpty)
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.lerp(gold, Colors.black, 0.45)!,
+                          Color.lerp(gold, Colors.black, 0.80)!,
+                        ],
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.content_cut_rounded,
+                      size: 54,
+                      color: Colors.white.withValues(alpha: 0.10),
+                    ),
+                  )
+                else
+                  HomeSmartImage(path: widget.item.image),
                 // Gradient overlay
                 Container(
                   decoration: BoxDecoration(

@@ -1,5 +1,11 @@
+import 'dart:async';
+
+import 'package:core/core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/features/catalog/domain/repositories/catalog_repository.dart';
+import '../../domain/models/home_content.dart';
 import '../../domain/repositories/home_repository.dart';
 import 'home_event.dart';
 import 'home_state.dart';
@@ -10,8 +16,13 @@ export 'home_state.dart';
 @injectable
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _homeRepository;
+  final CatalogRepository _catalogRepository;
+  final TenantThemeBloc _tenantThemeBloc;
+  StreamSubscription<TenantThemeState>? _tenantSub;
+  String _lastTenantId = '';
 
-  HomeBloc(this._homeRepository) : super(const HomeState()) {
+  HomeBloc(this._homeRepository, this._catalogRepository, this._tenantThemeBloc)
+      : super(const HomeState()) {
     on<LoadHomeEvent>(_onLoad);
     on<ToggleHomeEditMode>(_onToggleEditMode);
     on<UpdateHomeContent>(_onUpdateContent);
@@ -27,17 +38,72 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<AddHomeProduct>(_onAddProduct);
     on<UpdateHomeProduct>(_onUpdateProduct);
     on<RemoveHomeProduct>(_onRemoveProduct);
+
+    _lastTenantId = _tenantThemeBloc.state.tenantId;
+    _tenantSub = _tenantThemeBloc.stream.listen((s) {
+      if (s.tenantId.isNotEmpty && s.tenantId != _lastTenantId) {
+        _lastTenantId = s.tenantId;
+        add(const LoadHomeEvent());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _tenantSub?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoad(LoadHomeEvent event, Emitter<HomeState> emit) async {
     emit(state.copyWith(status: HomeStatus.loading));
     try {
       final content = await _homeRepository.getHomeContent();
-      emit(state.copyWith(status: HomeStatus.loaded, content: content));
+      final merged = await _mergeRealCatalog(content);
+      emit(state.copyWith(status: HomeStatus.loaded, content: merged));
     } catch (e) {
       emit(state.copyWith(status: HomeStatus.error));
     }
   }
+
+  /// Sustituye servicios y sedes del Home por los reales del tenant (tablas
+  /// `services` y `branches`). Hero, productos, looks y "sobre nosotros" siguen
+  /// viniendo del contenido local hasta que el socio entregue esas tablas.
+  Future<HomeContent> _mergeRealCatalog(HomeContent content) async {
+    final tenantId = _tenantThemeBloc.state.tenantId;
+    if (tenantId.isEmpty || tenantId == kDefaultTenantId) return content;
+    try {
+      final catalog = await _catalogRepository.fetchCatalog(tenantId: tenantId);
+      final services = catalog.services.map(_serviceToMap).toList();
+      final locations = catalog.centers.map(_centerToMap).toList();
+      return content.copyWith(
+        services: services.isNotEmpty ? services : content.services,
+        locations: locations.isNotEmpty ? locations : content.locations,
+      );
+    } catch (_) {
+      return content;
+    }
+  }
+
+  Map<String, String> _serviceToMap(Service s) {
+    final p = s.price;
+    final priceStr =
+        p == p.roundToDouble() ? p.toStringAsFixed(0) : p.toStringAsFixed(2);
+    return {
+      'title': s.name,
+      'desc': '',
+      'price': 'S/ $priceStr',
+      'time': '${s.durationInMinutes} min',
+      'img': '',
+      'featured': s.isFeatured ? 'true' : '',
+    };
+  }
+
+  Map<String, String> _centerToMap(BarberCenter c) => {
+        'label': c.name,
+        'address': c.location,
+        'mapUrl': '',
+        'img': '',
+      };
 
   void _onToggleEditMode(ToggleHomeEditMode event, Emitter<HomeState> emit) {
     emit(state.copyWith(isEditing: !state.isEditing));

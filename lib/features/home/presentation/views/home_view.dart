@@ -91,6 +91,7 @@ class _HomeViewState extends State<HomeView> {
         image: s['img'] ?? s['image'] ?? '',
         price: price.isEmpty ? null : price,
         duration: s['time'] ?? s['duration'],
+        featured: (s['featured'] ?? '') == 'true',
       );
     }).toList();
   }
