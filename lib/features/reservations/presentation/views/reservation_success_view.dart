@@ -4,19 +4,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:confetti/confetti.dart';
-import 'package:intl/intl.dart';
-import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/reservations/presentation/widgets/reservation_ticket_card.dart';
 import 'package:core/core.dart';
 
 class ReservationSuccessView extends StatefulWidget {
   final Reservation reservation;
-  final VoidCallback onGoHome;
+  final VoidCallback onGoToProfile;
 
   const ReservationSuccessView({
     super.key,
     required this.reservation,
-    required this.onGoHome,
+    required this.onGoToProfile,
   });
 
   @override
@@ -24,35 +22,22 @@ class ReservationSuccessView extends StatefulWidget {
 }
 
 class _ReservationSuccessViewState extends State<ReservationSuccessView> {
-  late ConfettiController _confettiController;
   final ScreenshotController _screenshotController = ScreenshotController();
 
-  @override
-  void initState() {
-    super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _confettiController.play();
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _shareReservationImage() async {
+  Future<void> _shareReservationImage(BuildContext context) async {
     try {
-      final image = await _screenshotController.capture(
+      // Captura un ticket SIN botones (limpio) para compartir.
+      final image = await _screenshotController.captureFromWidget(
+        ReservationTicketCard(reservation: widget.reservation),
+        context: context,
+        pixelRatio: 3,
         delay: const Duration(milliseconds: 50),
       );
-      if (image != null) {
-        final directory = await getTemporaryDirectory();
-        final imageFile = File('${directory.path}/reserva_trimflow.png');
-        await imageFile.writeAsBytes(image);
-
-        // ignore: deprecated_member_use
-        await Share.shareXFiles([XFile(imageFile.path)]);
-      }
+      final directory = await getTemporaryDirectory();
+      final imageFile = File('${directory.path}/reserva_trimflow.png');
+      await imageFile.writeAsBytes(image);
+      // ignore: deprecated_member_use
+      await Share.shareXFiles([XFile(imageFile.path)]);
     } catch (e) {
       debugPrint('Error sharing image: $e');
     }
@@ -81,10 +66,7 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        blurRadius: 40,
-                      ),
+                      BoxShadow(color: Colors.white.withValues(alpha: 0.1), blurRadius: 40),
                     ],
                   ),
                   child: QrImageView(
@@ -106,328 +88,19 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: RepaintBoundary(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  children: [
-                    const Spacer(),
-                    
-                    // Ticket Capturable
-                    Screenshot(
-                      controller: _screenshotController,
-                      child: Container(
-                        color: Colors.black,
-                        child: _buildJaggedTicket(context),
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    // Botones Lado a Lado
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _shareReservationImage,
-                            icon: const Icon(Icons.ios_share_rounded, size: 18),
-                            label: const Text('COMPARTIR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white10),
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: widget.onGoHome,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: context.primaryGold,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              elevation: 0,
-                            ),
-                            child: const Text('INICIO', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: ReservationTicketCard(
+              reservation: widget.reservation,
+              onTapQr: () => _showZoomedQR(context),
+              onViewAppointment: widget.onGoToProfile,
+              onShare: () => _shareReservationImage(context),
             ),
-          ),
-
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: [context.primaryGold, Colors.white],
-              gravity: 0.1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildJaggedTicket(BuildContext context) {
-    return ClipPath(
-      clipper: TicketClipper(),
-      child: Container(
-        width: double.infinity,
-        color: Colors.white,
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: context.primaryGold,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'RESERVA CONFIRMADA',
-              style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
-            const SizedBox(height: 24),
-            
-            _buildDetailRow('FECHA', DateFormat("dd / MM / yyyy").format(widget.reservation.date!)),
-            const SizedBox(height: 12),
-            _buildDetailRow('HORA', widget.reservation.time ?? '--:--'),
-            const SizedBox(height: 12),
-            _buildDetailRow('BARBERO', widget.reservation.professional?.name ?? 'MÁXIMA DISPONIBILIDAD'),
-            
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('SERVICIOS', style: TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                const SizedBox(height: 6),
-                ...widget.reservation.services.map((s) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(s.name, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold)),
-                      Text('S/ ${s.price.toStringAsFixed(2)}', style: const TextStyle(color: Colors.black54, fontSize: 13)),
-                    ],
-                  ),
-                )),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            _buildDashedLine(),
-            const SizedBox(height: 20),
-
-            Builder(
-              builder: (context) {
-                final basePrice = widget.reservation.services.fold(0.0, (sum, item) => sum + item.price);
-                final isDiscountApplied = widget.reservation.totalPrice < basePrice;
-
-                if (isDiscountApplied) {
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('SUBTOTAL', style: TextStyle(color: Colors.black38, fontSize: 11, fontWeight: FontWeight.bold)),
-                          Text(
-                            'S/ ${basePrice.toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('DESCUENTO FIDELIDAD (50%)', style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold)),
-                          Text(
-                            '- S/ ${(basePrice * 0.5).toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(color: Colors.black12, height: 1),
-                      const SizedBox(height: 12),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              }
-            ),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('TOTAL', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900)),
-                Text(
-                  'S/ ${widget.reservation.totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(color: context.primaryGold, fontSize: 24, fontWeight: FontWeight.w900),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 36),
-
-            // QR Centrado y con Marco Premium
-            _buildQRWithFrame(context),
-            
-            const SizedBox(height: 20),
-            Builder(
-              builder: (context) {
-                final idStr = (widget.reservation.id ?? "").toUpperCase();
-                final displayId = idStr.length > 8 ? idStr.substring(0, 8) : idStr;
-                return Text(
-                  'TF-$displayId',
-                  style: const TextStyle(color: Colors.black26, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2),
-                );
-              }
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQRWithFrame(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showZoomedQR(context),
-      child: Hero(
-        tag: 'qr_zoom',
-        child: SizedBox(
-          width: 150, 
-          height: 150,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // El QR con padding para que no toque las esquinas
-              Container(
-                padding: const EdgeInsets.all(8), // Padding reducido para estar más cerca del marco
-                child: QrImageView(
-                  data: 'TF-${widget.reservation.id}',
-                  version: QrVersions.auto,
-                  size: 100.0,
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              // Marco de esquinas (L) más grande que el QR
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: QRCornersPainter(color: context.primaryGold),
-                ),
-              ),
-            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-        Text(value.toUpperCase(), style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900)),
-      ],
-    );
-  }
-
-  Widget _buildDashedLine() {
-    return Row(
-      children: List.generate(
-        30,
-        (index) => Expanded(
-          child: Container(
-            color: index % 2 == 0 ? Colors.transparent : Colors.black12,
-            height: 1.5,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TicketClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    const double triangleHeight = 6.0;
-    const double triangleWidth = 10.0;
-    const double notchRadius = 12.0;
-    final double dividerPos = size.height * 0.65; 
-
-    path.moveTo(0, 0);
-    path.lineTo(size.width, 0);
-    
-    path.lineTo(size.width, dividerPos - notchRadius);
-    path.arcToPoint(
-      Offset(size.width, dividerPos + notchRadius),
-      radius: const Radius.circular(notchRadius),
-      clockwise: false,
-    );
-    path.lineTo(size.width, size.height - triangleHeight);
-    
-    for (double i = size.width; i > 0; i -= triangleWidth) {
-      path.lineTo(i - triangleWidth / 2, size.height);
-      path.lineTo(i - triangleWidth, size.height - triangleHeight);
-    }
-
-    path.lineTo(0, dividerPos + notchRadius);
-    path.arcToPoint(
-      Offset(0, dividerPos - notchRadius),
-      radius: const Radius.circular(notchRadius),
-      clockwise: false,
-    );
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-class QRCornersPainter extends CustomPainter {
-  final Color color;
-  QRCornersPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 3.0
-      ..style = PaintingStyle.stroke;
-
-    // Ajustado para dejar aire (padding) entre el QR y el marco
-    const double margin = 1.0; 
-    const double len = 24.0; // Esquinas un poco más largas
-    
-    final r = Rect.fromLTWH(margin, margin, size.width - 2 * margin, size.height - 2 * margin);
-
-    canvas.drawPath(Path()..moveTo(r.left, r.top + len)..lineTo(r.left, r.top)..lineTo(r.left + len, r.top), paint);
-    canvas.drawPath(Path()..moveTo(r.right - len, r.top)..lineTo(r.right, r.top)..lineTo(r.right, r.top + len), paint);
-    canvas.drawPath(Path()..moveTo(r.left, r.bottom - len)..lineTo(r.left, r.bottom)..lineTo(r.left + len, r.bottom), paint);
-    canvas.drawPath(Path()..moveTo(r.right - len, r.bottom)..lineTo(r.right, r.bottom)..lineTo(r.right, r.bottom - len), paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

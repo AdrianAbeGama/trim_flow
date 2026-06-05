@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/avatar_premium.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
+import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:core/core.dart';
 
-class Phase3ProfessionalSelector extends StatelessWidget {
+class Phase3ProfessionalSelector extends StatefulWidget {
   final List<Professional> professionals;
   final Professional? selectedProfessional;
   final bool hasSelectedAny;
@@ -19,134 +25,150 @@ class Phase3ProfessionalSelector extends StatelessWidget {
   });
 
   @override
+  State<Phase3ProfessionalSelector> createState() => _Phase3ProfessionalSelectorState();
+}
+
+class _Phase3ProfessionalSelectorState extends State<Phase3ProfessionalSelector> {
+  bool _showUnavailable = false;
+
+  @override
   Widget build(BuildContext context) {
-    if (isCompleted && hasSelectedAny) {
+    if (widget.isCompleted && widget.hasSelectedAny) {
       return _buildCompletedState(context);
     }
+
+    final available = widget.professionals.where((p) => p.isAvailable).toList();
+    final unavailable = widget.professionals.where((p) => !p.isAvailable).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '3. ELIGE A TU BARBERO',
-          style: TextStyle(
-            color: context.primaryGold,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 20),
+        const PremiumSectionLabel('3 · Elige a tu barbero'),
+        const SizedBox(height: 18),
         _buildAnyAvailableOption(context),
-        const SizedBox(height: 14),
-        ...professionals.map((prof) => _buildProfessionalCard(context, prof)),
+        const SizedBox(height: 12),
+        ...available.asMap().entries.map((e) {
+          return _buildProfessionalCard(context, e.value)
+              .animate()
+              .fadeIn(delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms)
+              .slideY(begin: -0.06, end: 0, delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms, curve: Curves.easeOutCubic);
+        }),
+        if (unavailable.isNotEmpty) ...[
+          _buildUnavailableToggle(context, unavailable.length),
+          if (_showUnavailable)
+            ...unavailable.map((p) => _buildUnavailableCard(context, p)),
+        ],
       ],
     );
   }
 
+  Widget _buildUnavailableToggle(BuildContext context, int count) {
+    return PremiumPressable(
+      pressedScale: 0.98,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _showUnavailable = !_showUnavailable);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Text(
+              _showUnavailable ? 'Ocultar los que no atienden hoy' : 'Ver los que no atienden hoy ($count)',
+              style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(width: 4),
+            AnimatedRotation(
+              turns: _showUnavailable ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Colors.white.withValues(alpha: 0.4)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCompletedState(BuildContext context) {
-    final title =
-        selectedProfessional?.name ?? 'Máxima Disponibilidad';
+    final gold = context.primaryGold;
+    final title = widget.selectedProfessional?.name ?? 'Máxima Disponibilidad';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: context.primaryGold.withValues(alpha: 0.08),
+        color: gold.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.primaryGold.withValues(alpha: 0.25)),
+        border: Border.all(color: gold.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              Icon(Icons.person_rounded,
-                  color: context.primaryGold, size: 18),
+              Icon(Icons.person_rounded, color: gold, size: 18),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Barbero Seleccionado',
-                    style: TextStyle(color: Colors.white38, fontSize: 10),
-                  ),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold),
-                  ),
+                  Text('BARBERO SELECCIONADO',
+                      style: GoogleFonts.inter(color: Colors.white38, fontSize: 8.5, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                  const SizedBox(height: 2),
+                  Text(title, style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
                 ],
               ),
             ],
           ),
-          Icon(Icons.check_circle_rounded,
-              color: context.primaryGold, size: 20),
+          Icon(Icons.check_circle_rounded, color: gold, size: 20),
         ],
       ),
     );
   }
 
   Widget _buildAnyAvailableOption(BuildContext context) {
-    final isSelected = hasSelectedAny && selectedProfessional == null;
-    return GestureDetector(
-      onTap: () => onSelect(null),
+    final gold = context.primaryGold;
+    final isSelected = widget.hasSelectedAny && widget.selectedProfessional == null;
+    return PremiumPressable(
+      pressedScale: 0.98,
+      onTap: () => widget.onSelect(null),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected
-              ? context.primaryGold.withValues(alpha: 0.06)
-              : Colors.white.withValues(alpha: 0.02),
+          color: isSelected ? gold.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.025),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? context.primaryGold
-                : Colors.white.withValues(alpha: 0.06),
-            width: isSelected ? 1.5 : 1,
-          ),
+          border: Border.all(color: isSelected ? gold : Colors.white.withValues(alpha: 0.06), width: isSelected ? 1.5 : 1),
         ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: context.primaryGold.withValues(alpha: 0.1),
+                color: gold.withValues(alpha: 0.12),
+                border: Border.all(color: gold.withValues(alpha: 0.4)),
               ),
-              child:
-                  Icon(Icons.person_rounded, color: context.primaryGold, size: 18),
+              child: Icon(Icons.bolt_rounded, color: gold, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Máxima Disponibilidad',
-                    style: TextStyle(
-                      color: context.primaryGold,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Text(
-                    'Primer barbero disponible',
-                    style: TextStyle(
-                        color: Colors.white38, fontSize: 10),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text('Máxima disponibilidad',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(color: gold, fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: -0.2)),
+                  const SizedBox(height: 2),
+                  Text('Primer barbero disponible',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Icon(
-              isSelected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: isSelected ? context.primaryGold : Colors.white24,
+              isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+              color: isSelected ? gold : Colors.white24,
               size: 20,
             ),
           ],
@@ -156,185 +178,117 @@ class Phase3ProfessionalSelector extends StatelessWidget {
   }
 
   Widget _buildProfessionalCard(BuildContext context, Professional professional) {
-    final isSelected = selectedProfessional?.id == professional.id;
-    final isUnavailable = !professional.isAvailable;
+    final gold = context.primaryGold;
+    final isSelected = widget.selectedProfessional?.id == professional.id;
+    final specialties = professional.specialties.join(' · ');
 
-    Widget card = AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? context.primaryGold.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected
-              ? context.primaryGold
-              : Colors.white.withValues(alpha: 0.06),
-          width: isSelected ? 1.5 : 1,
+    return PremiumPressable(
+      pressedScale: 0.98,
+      onTap: () => widget.onSelect(professional),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected ? gold.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.025),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? gold : Colors.white.withValues(alpha: 0.06), width: isSelected ? 1.5 : 1),
+          boxShadow: isSelected ? [BoxShadow(color: gold.withValues(alpha: 0.22), blurRadius: 16, spreadRadius: -3)] : null,
         ),
-      ),
-      child: Row(
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                clipBehavior: Clip.antiAlias,
-                child: professional.imageUrl != null
-                    ? Image.network(
-                        professional.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (ctx, err, stack) => const ColoredBox(
-                          color: Colors.white10,
-                          child: Icon(Icons.person_rounded,
-                              color: Colors.white38),
+        child: Row(
+          children: [
+            AvatarPremium(displayName: professional.name, photoUrl: professional.imageUrl, size: 56),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(professional.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 15.5, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                  const SizedBox(height: 3),
+                  if (specialties.isNotEmpty)
+                    Text(specialties,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.45), fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 7),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('${professional.yearsOfExperience} años de experiencia',
+                          style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontWeight: FontWeight.w500)),
+                      PremiumPressable(
+                        pressedScale: 0.92,
+                        onTap: () => HomePage.requestedTab.value = HomePage.galleryTabIndex,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Ver trabajos', style: GoogleFonts.inter(color: gold, fontSize: 11, fontWeight: FontWeight.w800)),
+                            const SizedBox(width: 3),
+                            Icon(Icons.arrow_forward_rounded, size: 12, color: gold),
+                          ],
                         ),
-                      )
-                    : const ColoredBox(
-                        color: Colors.white10,
-                        child:
-                            Icon(Icons.person_rounded, color: Colors.white38),
                       ),
+                    ],
+                  ),
+                ],
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: isUnavailable
-                        ? const Color(0xFF3A3A3A)
-                        : const Color(0xFF1A2F1A),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: context.backgroundBlack,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      isUnavailable ? '💀' : '✓',
-                      style: TextStyle(
-                        fontSize: isUnavailable ? 9 : 10,
-                        color: isUnavailable
-                            ? Colors.white
-                            : Colors.greenAccent,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  professional.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 3,
-                  children: professional.specialties
-                      .map(
-                        (spec) => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.07),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            spec,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 10),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.workspace_premium_rounded,
-                        size: 12, color: context.primaryGold),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${professional.yearsOfExperience} años de experiencia',
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ),
-          ),
-          Column(
-            children: [
-              if (isUnavailable && professional.statusLabel != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                        color: Colors.red.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(
-                    professional.statusLabel!,
-                    style: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold),
-                  ),
-                )
-              else
-                Icon(
-                  isSelected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
-                  color: isSelected ? context.primaryGold : Colors.white24,
-                  size: 22,
-                ),
-            ],
-          ),
-        ],
+            const SizedBox(width: 10),
+            Icon(
+              isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+              color: isSelected ? gold : Colors.white24,
+              size: 22,
+            ),
+          ],
+        ),
       ),
     );
+  }
 
-    if (isUnavailable) {
-      return IgnorePointer(
-        child: ColorFiltered(
-          colorFilter: const ColorFilter.matrix([
-            0.33, 0.59, 0.11, 0, 0,
-            0.33, 0.59, 0.11, 0, 0,
-            0.33, 0.59, 0.11, 0, 0,
-            0,    0,    0,    1, 0,
-          ]),
-          child: card,
+  Widget _buildUnavailableCard(BuildContext context, Professional professional) {
+    final specialties = professional.specialties.join(' · ');
+    return Opacity(
+      opacity: 0.45,
+      child: IgnorePointer(
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: Row(
+            children: [
+              AvatarPremium(displayName: professional.name, photoUrl: professional.imageUrl, size: 48),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(professional.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                    const SizedBox(height: 3),
+                    if (specialties.isNotEmpty)
+                      Text(specialties,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11.5, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () => onSelect(professional),
-      child: card,
+      ),
     );
   }
 }

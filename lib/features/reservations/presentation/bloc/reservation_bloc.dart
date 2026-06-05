@@ -17,13 +17,9 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
           ));
         },
         toggleService: (e) async {
-          final services = List.of(state.reservation.services);
-          if (services.any((s) => s.id == e.service.id)) {
-            services.removeWhere((s) => s.id == e.service.id);
-          } else {
-            services.add(e.service);
-          }
-          
+          final isSelected = state.reservation.services.any((s) => s.id == e.service.id);
+          final services = isSelected ? <Service>[] : <Service>[e.service];
+
           final basePrice = services.fold(0.0, (sum, item) => sum + item.price);
           final totalPrice = state.isDiscountActive ? basePrice * 0.5 : basePrice;
           final totalDuration = services.fold(0, (sum, item) => sum + item.durationInMinutes);
@@ -56,7 +52,11 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
         confirmReservation: (e) async {
           emit(state.copyWith(status: ReservationStatus.loading));
           await Future.delayed(const Duration(seconds: 2)); // Simulate network request
-          emit(state.copyWith(status: ReservationStatus.success));
+          final current = state.reservation;
+          final withId = (current.id == null || current.id!.isEmpty)
+              ? current.copyWith(id: 'tf_${DateTime.now().millisecondsSinceEpoch}')
+              : current;
+          emit(state.copyWith(status: ReservationStatus.success, reservation: withId));
         },
         activateDiscount: (e) async {
           final basePrice = state.reservation.services.fold(0.0, (sum, item) => sum + item.price);
