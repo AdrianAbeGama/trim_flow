@@ -109,13 +109,17 @@ class _AdminHoursViewState extends State<AdminHoursView> {
     final hours = _hours;
     if (hours == null) return;
     for (final h in hours) {
-      if (!h.isClosed && (h.open ?? '') .compareTo(h.close ?? '') >= 0) {
-        _snack('En ${_kDayNames[h.dayOfWeek]} la hora de cierre debe ser mayor a la de apertura');
+      if (!h.isClosed && (h.open ?? '').compareTo(h.close ?? '') >= 0) {
+        adminSnack(context,
+            'En ${_kDayNames[h.dayOfWeek]} la hora de cierre debe ser mayor a la de apertura');
         return;
       }
     }
     final actorId = Supabase.instance.client.auth.currentUser?.id;
-    if (actorId == null) return;
+    if (actorId == null) {
+      adminSnack(context, 'Tu sesión expiró, vuelve a entrar');
+      return;
+    }
     setState(() => _saving = true);
     HapticFeedback.mediumImpact();
     try {
@@ -125,23 +129,13 @@ class _AdminHoursViewState extends State<AdminHoursView> {
         hours: hours,
       );
       if (!mounted) return;
-      _snack('Horarios guardados');
+      adminSnack(context, 'Horarios guardados');
     } catch (_) {
       if (!mounted) return;
-      _snack('No se pudo guardar. Revisa tu conexión o permisos.');
+      adminSnack(context, 'No se pudo guardar. Revisa tu conexión o permisos.');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-
-  void _snack(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1A1A1A),
-        content: Text(text, style: GoogleFonts.inter(color: Colors.white)),
-      ),
-    );
   }
 
   @override
@@ -164,11 +158,7 @@ class _AdminHoursViewState extends State<AdminHoursView> {
   }
 
   Widget _body() {
-    if (_loading) {
-      return Center(
-        child: CupertinoActivityIndicator(color: context.primaryGold, radius: 14),
-      );
-    }
+    if (_loading) return const AdminLoader();
     if (_error || _hours == null) {
       return AdminErrorView(onRetry: _load);
     }
@@ -288,34 +278,10 @@ class _AdminHoursViewState extends State<AdminHoursView> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       decoration: const BoxDecoration(color: Color(0xFF0A0A0A)),
-      child: PremiumPressable(
-        onTap: _saving ? null : _save,
-        child: Container(
-          height: 52,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: _saving ? const Color(0xFFBDBAB2) : const Color(0xFFF7F3EC),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: _saving
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: Colors.black,
-                  ),
-                )
-              : Text(
-                  'Guardar horarios',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-        ),
+      child: AdminPrimaryButton(
+        label: 'Guardar horarios',
+        loading: _saving,
+        onTap: _save,
       ),
     );
   }

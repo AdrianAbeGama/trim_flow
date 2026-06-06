@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,26 +53,28 @@ class _AdminPromotionsViewState extends State<AdminPromotionsView> {
     }
   }
 
-  Future<void> _persist(AdminPromotion promo) async {
-    try {
-      await _repo.savePromotion(tenantId: widget.tenantId, promo: promo);
-      if (!mounted) return;
-      _snack('Promoción guardada');
+  Future<void> _new() async {
+    final ok = await showPromotionForm(
+      context,
+      onSubmit: (p) => _repo.savePromotion(tenantId: widget.tenantId, promo: p),
+    );
+    if (ok == true && mounted) {
+      adminSnack(context, 'Promoción guardada');
       _load();
-    } catch (_) {
-      if (!mounted) return;
-      _snack('No se pudo guardar. Revisa el código (no repetido) o tus permisos.');
     }
   }
 
-  Future<void> _new() async {
-    final r = await showPromotionForm(context);
-    if (r != null) await _persist(r);
-  }
-
   Future<void> _edit(AdminPromotion p) async {
-    final r = await showPromotionForm(context, promo: p);
-    if (r != null) await _persist(r);
+    final ok = await showPromotionForm(
+      context,
+      promo: p,
+      onSubmit: (np) =>
+          _repo.savePromotion(tenantId: widget.tenantId, promo: np),
+    );
+    if (ok == true && mounted) {
+      adminSnack(context, 'Promoción guardada');
+      _load();
+    }
   }
 
   Future<void> _archive(AdminPromotion p) async {
@@ -86,22 +87,12 @@ class _AdminPromotionsViewState extends State<AdminPromotionsView> {
     try {
       await _repo.archivePromotion(tenantId: widget.tenantId, promotionId: p.id!);
       if (!mounted) return;
-      _snack('Promoción archivada');
+      adminSnack(context, 'Promoción archivada');
       _load();
     } catch (_) {
       if (!mounted) return;
-      _snack('No se pudo archivar');
+      adminSnack(context, 'No se pudo archivar');
     }
-  }
-
-  void _snack(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1A1A1A),
-        content: Text(text, style: GoogleFonts.inter(color: Colors.white)),
-      ),
-    );
   }
 
   @override
@@ -162,24 +153,25 @@ class _AdminPromotionsViewState extends State<AdminPromotionsView> {
   }
 
   Widget _body() {
-    if (_loading) {
-      return Center(
-        child: CupertinoActivityIndicator(color: context.primaryGold, radius: 14),
-      );
-    }
+    if (_loading) return const AdminLoader();
     if (_error) return AdminErrorView(onRetry: _load);
     final items = _items ?? const [];
     if (items.isEmpty) {
       return const Center(child: AdminEmptyHint(text: 'Aún no hay promociones'));
     }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-      physics: const BouncingScrollPhysics(),
-      itemCount: items.length,
-      itemBuilder: (_, i) => _PromoCard(
-        promo: items[i],
-        onTap: () => _edit(items[i]),
-        onArchive: () => _archive(items[i]),
+    return RefreshIndicator(
+      color: context.primaryGold,
+      backgroundColor: const Color(0xFF0E0E0E),
+      onRefresh: _load,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        physics: const BouncingScrollPhysics(),
+        itemCount: items.length,
+        itemBuilder: (_, i) => _PromoCard(
+          promo: items[i],
+          onTap: () => _edit(items[i]),
+          onArchive: () => _archive(items[i]),
+        ),
       ),
     );
   }

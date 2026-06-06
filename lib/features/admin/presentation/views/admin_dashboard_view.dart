@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -82,15 +81,20 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 future: _future,
                 builder: (context, snap) {
                   if (snap.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CupertinoActivityIndicator(
-                          color: context.primaryGold, radius: 14),
-                    );
+                    return const AdminLoader();
                   }
                   if (snap.hasError || !snap.hasData) {
                     return AdminErrorView(onRetry: () => setState(_load));
                   }
-                  return _DashboardBody(data: snap.data!);
+                  return RefreshIndicator(
+                    color: context.primaryGold,
+                    backgroundColor: const Color(0xFF0E0E0E),
+                    onRefresh: () async {
+                      setState(_load);
+                      await _future;
+                    },
+                    child: _DashboardBody(data: snap.data!),
+                  );
                 },
               ),
             ),

@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_cash_view.dart';
+import 'package:trim_flow/features/admin/presentation/views/admin_business_view.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_commissions_view.dart';
+import 'package:trim_flow/features/admin/presentation/views/admin_customers_view.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_dashboard_view.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_hours_view.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_promotions_view.dart';
@@ -95,6 +97,18 @@ class BarberAdminSection extends StatelessWidget {
             subtitle: 'Pago por barbero',
             onTap: () =>
                 _open(context, AdminCommissionsView(tenantId: tenantId)),
+          ),
+          _AdminCard(
+            icon: Icons.people_alt_rounded,
+            title: 'Clientes',
+            subtitle: 'Dar cupones y puntos',
+            onTap: () => _open(context, AdminCustomersView(tenantId: tenantId)),
+          ),
+          _AdminCard(
+            icon: Icons.storefront_rounded,
+            title: 'Mi barbería',
+            subtitle: 'Datos y recordatorios',
+            onTap: () => _open(context, AdminBusinessView(tenantId: tenantId)),
           ),
         ],
       ),

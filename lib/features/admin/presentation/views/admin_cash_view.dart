@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/di/injection.dart';
@@ -6,6 +5,7 @@ import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/admin/domain/models/admin_reports.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_cash_adjust_sheet.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
 
 enum _CashPeriod { today, yesterday, week }
@@ -57,6 +57,24 @@ class _AdminCashViewState extends State<AdminCashView> {
         _load();
       });
 
+  Future<void> _openAdjust() async {
+    final ok = await showCashAdjust(
+      context,
+      onSubmit: (amount, reasonCode, reasonText, idempotencyKey) =>
+          getIt<AdminRepository>().registerCashAdjustment(
+        tenantId: widget.tenantId,
+        amount: amount,
+        reasonCode: reasonCode,
+        reasonText: reasonText,
+        idempotencyKey: idempotencyKey,
+      ),
+    );
+    if (ok == true && mounted) {
+      adminSnack(context, 'Ajuste registrado');
+      setState(_load);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,11 +88,46 @@ class _AdminCashViewState extends State<AdminCashView> {
               subtitle: 'Cierre del día',
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
               child: AdminPeriodChips(
                 labels: const ['Hoy', 'Ayer', 'Semana'],
                 selected: _period.index,
                 onSelected: _select,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: PremiumPressable(
+                onTap: _openAdjust,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF111111),
+                    borderRadius: BorderRadius.circular(14),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_rounded,
+                          color: context.primaryGold, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Registrar ajuste de caja',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded,
+                          color: context.primaryGold, size: 20),
+                    ],
+                  ),
+                ),
               ),
             ),
             Expanded(
@@ -82,15 +135,20 @@ class _AdminCashViewState extends State<AdminCashView> {
                 future: _future,
                 builder: (context, snap) {
                   if (snap.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CupertinoActivityIndicator(
-                          color: context.primaryGold, radius: 14),
-                    );
+                    return const AdminLoader();
                   }
                   if (snap.hasError || !snap.hasData) {
                     return AdminErrorView(onRetry: () => setState(_load));
                   }
-                  return _CashBody(data: snap.data!);
+                  return RefreshIndicator(
+                    color: context.primaryGold,
+                    backgroundColor: const Color(0xFF0E0E0E),
+                    onRefresh: () async {
+                      setState(_load);
+                      await _future;
+                    },
+                    child: _CashBody(data: snap.data!),
+                  );
                 },
               ),
             ),
