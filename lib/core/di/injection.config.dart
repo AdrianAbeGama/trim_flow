@@ -20,6 +20,10 @@ import 'package:trim_flow/core/staff/data/repositories/staff_supabase_repository
 import 'package:trim_flow/core/staff/domain/repositories/staff_repository.dart'
     as _i698;
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart' as _i272;
+import 'package:trim_flow/features/admin/data/repositories/admin_supabase_repository.dart'
+    as _i981;
+import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart'
+    as _i91;
 import 'package:trim_flow/features/barber/agenda/data/repositories/agenda_supabase_repository.dart'
     as _i781;
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart'
@@ -75,6 +79,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i499.GalleryBloc>(
       () => _i499.GalleryBloc(gh<_i585.GalleryRepository>()),
+    );
+    gh.lazySingleton<_i91.AdminRepository>(
+      () => _i981.AdminSupabaseRepository(gh<_i454.SupabaseClient>()),
     );
     gh.lazySingleton<_i434.AgendaRepository>(
       () => _i781.AgendaSupabaseRepository(gh<_i454.SupabaseClient>()),

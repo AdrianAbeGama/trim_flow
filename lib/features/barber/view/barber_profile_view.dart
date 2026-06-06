@@ -11,6 +11,7 @@ import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_header.dart';
@@ -145,6 +146,8 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                   context.read<ProfileBloc>().add(const ProfileEvent.load()),
             );
           }
+          final isAdmin =
+              user.role == 'tenant_admin' || user.role == 'super_admin';
 
           return RefreshIndicator(
             onRefresh: _onRefresh,
@@ -185,6 +188,10 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                     },
                   ),
                 ),
+                if (isAdmin)
+                  SliverToBoxAdapter(
+                    child: BarberAdminSection(tenantId: user.tenantId),
+                  ),
                 BarberProfilePersonalData(
                   user: user,
                   onTap: () => _editProfile(user),

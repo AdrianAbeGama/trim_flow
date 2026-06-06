@@ -65,6 +65,7 @@ class StaffProfileMapper {
       id: authUser.id,
       barberId: row['id'] as String?,
       branchId: row['branch_id'] as String?,
+      role: row['role'] as String?,
       firstName: parts.$1,
       lastName: parts.$2,
       email: authUser.email ?? '',
