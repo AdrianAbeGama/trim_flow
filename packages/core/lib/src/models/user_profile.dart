@@ -27,6 +27,10 @@ abstract class UserProfile with _$UserProfile {
     required String phone,
     required String birthDate,
     required bool notificationsEnabled,
+    String? customerId,
+    String? barberId,
+    String? branchId,
+    String? role,
     @Default(2) int completedCuts,
     @Default([]) List<CuttingRecord> history,
   }) = _UserProfile;

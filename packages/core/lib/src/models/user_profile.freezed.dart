@@ -284,7 +284,7 @@ as String,
 /// @nodoc
 mixin _$UserProfile {
 
- String get tenantId; String get id; String get firstName; String get lastName; String get email; String get photoUrl; String get phone; String get birthDate; bool get notificationsEnabled; int get completedCuts; List<CuttingRecord> get history;
+ String get tenantId; String get id; String get firstName; String get lastName; String get email; String get photoUrl; String get phone; String get birthDate; bool get notificationsEnabled; String? get customerId; String? get barberId; String? get branchId; String? get role; int get completedCuts; List<CuttingRecord> get history;
 /// Create a copy of UserProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,16 +297,16 @@ $UserProfileCopyWith<UserProfile> get copyWith => _$UserProfileCopyWithImpl<User
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserProfile&&(identical(other.tenantId, tenantId) || other.tenantId == tenantId)&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&const DeepCollectionEquality().equals(other.history, history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserProfile&&(identical(other.tenantId, tenantId) || other.tenantId == tenantId)&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.barberId, barberId) || other.barberId == barberId)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.role, role) || other.role == role)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&const DeepCollectionEquality().equals(other.history, history));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,tenantId,id,firstName,lastName,email,photoUrl,phone,birthDate,notificationsEnabled,completedCuts,const DeepCollectionEquality().hash(history));
+int get hashCode => Object.hash(runtimeType,tenantId,id,firstName,lastName,email,photoUrl,phone,birthDate,notificationsEnabled,customerId,barberId,branchId,role,completedCuts,const DeepCollectionEquality().hash(history));
 
 @override
 String toString() {
-  return 'UserProfile(tenantId: $tenantId, id: $id, firstName: $firstName, lastName: $lastName, email: $email, photoUrl: $photoUrl, phone: $phone, birthDate: $birthDate, notificationsEnabled: $notificationsEnabled, completedCuts: $completedCuts, history: $history)';
+  return 'UserProfile(tenantId: $tenantId, id: $id, firstName: $firstName, lastName: $lastName, email: $email, photoUrl: $photoUrl, phone: $phone, birthDate: $birthDate, notificationsEnabled: $notificationsEnabled, customerId: $customerId, barberId: $barberId, branchId: $branchId, role: $role, completedCuts: $completedCuts, history: $history)';
 }
 
 
@@ -317,7 +317,7 @@ abstract mixin class $UserProfileCopyWith<$Res>  {
   factory $UserProfileCopyWith(UserProfile value, $Res Function(UserProfile) _then) = _$UserProfileCopyWithImpl;
 @useResult
 $Res call({
- String tenantId, String id, String firstName, String lastName, String email, String photoUrl, String phone, String birthDate, bool notificationsEnabled, int completedCuts, List<CuttingRecord> history
+ String tenantId, String id, String firstName, String lastName, String email, String photoUrl, String phone, String birthDate, bool notificationsEnabled, String? customerId, String? barberId, String? branchId, String? role, int completedCuts, List<CuttingRecord> history
 });
 
 
@@ -334,7 +334,7 @@ class _$UserProfileCopyWithImpl<$Res>
 
 /// Create a copy of UserProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? tenantId = null,Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? photoUrl = null,Object? phone = null,Object? birthDate = null,Object? notificationsEnabled = null,Object? completedCuts = null,Object? history = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? tenantId = null,Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? photoUrl = null,Object? phone = null,Object? birthDate = null,Object? notificationsEnabled = null,Object? customerId = freezed,Object? barberId = freezed,Object? branchId = freezed,Object? role = freezed,Object? completedCuts = null,Object? history = null,}) {
   return _then(_self.copyWith(
 tenantId: null == tenantId ? _self.tenantId : tenantId // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -345,7 +345,11 @@ as String,photoUrl: null == photoUrl ? _self.photoUrl : photoUrl // ignore: cast
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,birthDate: null == birthDate ? _self.birthDate : birthDate // ignore: cast_nullable_to_non_nullable
 as String,notificationsEnabled: null == notificationsEnabled ? _self.notificationsEnabled : notificationsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
+as bool,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,barberId: freezed == barberId ? _self.barberId : barberId // ignore: cast_nullable_to_non_nullable
+as String?,branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
+as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
 as int,history: null == history ? _self.history : history // ignore: cast_nullable_to_non_nullable
 as List<CuttingRecord>,
   ));
@@ -432,10 +436,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  int completedCuts,  List<CuttingRecord> history)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  String? customerId,  String? barberId,  String? branchId,  String? role,  int completedCuts,  List<CuttingRecord> history)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserProfile() when $default != null:
-return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.completedCuts,_that.history);case _:
+return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.customerId,_that.barberId,_that.branchId,_that.role,_that.completedCuts,_that.history);case _:
   return orElse();
 
 }
@@ -453,10 +457,10 @@ return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.ema
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  int completedCuts,  List<CuttingRecord> history)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  String? customerId,  String? barberId,  String? branchId,  String? role,  int completedCuts,  List<CuttingRecord> history)  $default,) {final _that = this;
 switch (_that) {
 case _UserProfile():
-return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.completedCuts,_that.history);case _:
+return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.customerId,_that.barberId,_that.branchId,_that.role,_that.completedCuts,_that.history);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -473,10 +477,10 @@ return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.ema
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  int completedCuts,  List<CuttingRecord> history)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String tenantId,  String id,  String firstName,  String lastName,  String email,  String photoUrl,  String phone,  String birthDate,  bool notificationsEnabled,  String? customerId,  String? barberId,  String? branchId,  String? role,  int completedCuts,  List<CuttingRecord> history)?  $default,) {final _that = this;
 switch (_that) {
 case _UserProfile() when $default != null:
-return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.completedCuts,_that.history);case _:
+return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.email,_that.photoUrl,_that.phone,_that.birthDate,_that.notificationsEnabled,_that.customerId,_that.barberId,_that.branchId,_that.role,_that.completedCuts,_that.history);case _:
   return null;
 
 }
@@ -488,7 +492,7 @@ return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.ema
 @JsonSerializable()
 
 class _UserProfile implements UserProfile {
-  const _UserProfile({required this.tenantId, required this.id, required this.firstName, required this.lastName, required this.email, required this.photoUrl, required this.phone, required this.birthDate, required this.notificationsEnabled, this.completedCuts = 2, final  List<CuttingRecord> history = const []}): _history = history;
+  const _UserProfile({required this.tenantId, required this.id, required this.firstName, required this.lastName, required this.email, required this.photoUrl, required this.phone, required this.birthDate, required this.notificationsEnabled, this.customerId, this.barberId, this.branchId, this.role, this.completedCuts = 2, final  List<CuttingRecord> history = const []}): _history = history;
   factory _UserProfile.fromJson(Map<String, dynamic> json) => _$UserProfileFromJson(json);
 
 @override final  String tenantId;
@@ -500,6 +504,10 @@ class _UserProfile implements UserProfile {
 @override final  String phone;
 @override final  String birthDate;
 @override final  bool notificationsEnabled;
+@override final  String? customerId;
+@override final  String? barberId;
+@override final  String? branchId;
+@override final  String? role;
 @override@JsonKey() final  int completedCuts;
  final  List<CuttingRecord> _history;
 @override@JsonKey() List<CuttingRecord> get history {
@@ -522,16 +530,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserProfile&&(identical(other.tenantId, tenantId) || other.tenantId == tenantId)&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&const DeepCollectionEquality().equals(other._history, _history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserProfile&&(identical(other.tenantId, tenantId) || other.tenantId == tenantId)&&(identical(other.id, id) || other.id == id)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.birthDate, birthDate) || other.birthDate == birthDate)&&(identical(other.notificationsEnabled, notificationsEnabled) || other.notificationsEnabled == notificationsEnabled)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.barberId, barberId) || other.barberId == barberId)&&(identical(other.branchId, branchId) || other.branchId == branchId)&&(identical(other.role, role) || other.role == role)&&(identical(other.completedCuts, completedCuts) || other.completedCuts == completedCuts)&&const DeepCollectionEquality().equals(other._history, _history));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,tenantId,id,firstName,lastName,email,photoUrl,phone,birthDate,notificationsEnabled,completedCuts,const DeepCollectionEquality().hash(_history));
+int get hashCode => Object.hash(runtimeType,tenantId,id,firstName,lastName,email,photoUrl,phone,birthDate,notificationsEnabled,customerId,barberId,branchId,role,completedCuts,const DeepCollectionEquality().hash(_history));
 
 @override
 String toString() {
-  return 'UserProfile(tenantId: $tenantId, id: $id, firstName: $firstName, lastName: $lastName, email: $email, photoUrl: $photoUrl, phone: $phone, birthDate: $birthDate, notificationsEnabled: $notificationsEnabled, completedCuts: $completedCuts, history: $history)';
+  return 'UserProfile(tenantId: $tenantId, id: $id, firstName: $firstName, lastName: $lastName, email: $email, photoUrl: $photoUrl, phone: $phone, birthDate: $birthDate, notificationsEnabled: $notificationsEnabled, customerId: $customerId, barberId: $barberId, branchId: $branchId, role: $role, completedCuts: $completedCuts, history: $history)';
 }
 
 
@@ -542,7 +550,7 @@ abstract mixin class _$UserProfileCopyWith<$Res> implements $UserProfileCopyWith
   factory _$UserProfileCopyWith(_UserProfile value, $Res Function(_UserProfile) _then) = __$UserProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String tenantId, String id, String firstName, String lastName, String email, String photoUrl, String phone, String birthDate, bool notificationsEnabled, int completedCuts, List<CuttingRecord> history
+ String tenantId, String id, String firstName, String lastName, String email, String photoUrl, String phone, String birthDate, bool notificationsEnabled, String? customerId, String? barberId, String? branchId, String? role, int completedCuts, List<CuttingRecord> history
 });
 
 
@@ -559,7 +567,7 @@ class __$UserProfileCopyWithImpl<$Res>
 
 /// Create a copy of UserProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? tenantId = null,Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? photoUrl = null,Object? phone = null,Object? birthDate = null,Object? notificationsEnabled = null,Object? completedCuts = null,Object? history = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? tenantId = null,Object? id = null,Object? firstName = null,Object? lastName = null,Object? email = null,Object? photoUrl = null,Object? phone = null,Object? birthDate = null,Object? notificationsEnabled = null,Object? customerId = freezed,Object? barberId = freezed,Object? branchId = freezed,Object? role = freezed,Object? completedCuts = null,Object? history = null,}) {
   return _then(_UserProfile(
 tenantId: null == tenantId ? _self.tenantId : tenantId // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
@@ -570,7 +578,11 @@ as String,photoUrl: null == photoUrl ? _self.photoUrl : photoUrl // ignore: cast
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
 as String,birthDate: null == birthDate ? _self.birthDate : birthDate // ignore: cast_nullable_to_non_nullable
 as String,notificationsEnabled: null == notificationsEnabled ? _self.notificationsEnabled : notificationsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
+as bool,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,barberId: freezed == barberId ? _self.barberId : barberId // ignore: cast_nullable_to_non_nullable
+as String?,branchId: freezed == branchId ? _self.branchId : branchId // ignore: cast_nullable_to_non_nullable
+as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String?,completedCuts: null == completedCuts ? _self.completedCuts : completedCuts // ignore: cast_nullable_to_non_nullable
 as int,history: null == history ? _self._history : history // ignore: cast_nullable_to_non_nullable
 as List<CuttingRecord>,
   ));

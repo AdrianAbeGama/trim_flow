@@ -2,6 +2,7 @@
 
 
 // Models
+export 'src/models/app_mode.dart';
 export 'src/models/user_profile.dart';
 export 'src/models/reservation/center.dart';
 export 'src/models/reservation/professional.dart';
