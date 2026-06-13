@@ -10,6 +10,7 @@ import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
+import 'package:trim_flow/features/barber/orders/barber_orders_view.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
@@ -70,6 +71,14 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => BarberProfileEditSheet(user: user),
+    );
+  }
+
+  void _openOrders() {
+    HapticFeedback.lightImpact();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BarberOrdersView()),
     );
   }
 
@@ -188,6 +197,9 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                     },
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: _OrdersEntryCard(onTap: _openOrders),
+                ),
                 if (isAdmin)
                   SliverToBoxAdapter(
                     child: BarberAdminSection(tenantId: user.tenantId),
@@ -208,6 +220,76 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Acceso a la lista de pedidos de clientes desde el perfil del barbero.
+class _OrdersEntryCard extends StatelessWidget {
+  const _OrdersEntryCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: gold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: gold.withValues(alpha: 0.18)),
+                ),
+                child: Icon(Icons.receipt_long_rounded, color: gold, size: 18),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Pedidos de clientes',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Productos comprados y su estado',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  size: 20, color: Colors.white.withValues(alpha: 0.25)),
+            ],
+          ),
+        ),
       ),
     );
   }

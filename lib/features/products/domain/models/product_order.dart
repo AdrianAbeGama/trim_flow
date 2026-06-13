@@ -19,6 +19,8 @@ abstract class ProductOrder with _$ProductOrder {
     required DateTime createdAt,
     @Default(OrderStatus.pendingPayment) OrderStatus status,
     @Default('') String pickupLocation,
+    @Default('') String customerName,
+    @Default('') String customerPhone,
     String? cancellationReason,
     DateTime? paidAt,
     DateTime? completedAt,
