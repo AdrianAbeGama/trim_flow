@@ -132,32 +132,24 @@ class _SectionViewState extends State<_SectionView>
   }
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage> {
+  static const int _tabCount = 5;
+
   late int currentPage;
-  late TabController tabController;
+  late PageController pageController;
   final BottomBarController _barController = BottomBarController();
   bool _barVisible = true;
 
   @override
   void initState() {
     currentPage = 0;
-    tabController = TabController(length: 5, vsync: this);
     // Si se pidió un tab inicial antes de construir (ej. tras reservar), arranca ahí.
     final pendingTab = HomePage.requestedTab.value;
-    if (pendingTab != null && pendingTab >= 0 && pendingTab < tabController.length) {
-      tabController.index = pendingTab;
+    if (pendingTab != null && pendingTab >= 0 && pendingTab < _tabCount) {
       currentPage = pendingTab;
       HomePage.requestedTab.value = null;
     }
-    tabController.animation!.addListener(() {
-      final value = tabController.animation!.value.round();
-      if (value != currentPage && mounted) {
-        setState(() {
-          currentPage = value;
-        });
-      }
-    });
+    pageController = PageController(initialPage: currentPage);
     _barController.addListener(() {
       if (mounted) {
         setState(() {
@@ -169,26 +161,36 @@ class _HomePageState extends State<HomePage>
     super.initState();
   }
 
+  /// Cambia de tab con salto directo (sin deslizar por los tabs intermedios).
+  void _goToTab(int index) {
+    if (index < 0 || index >= _tabCount) return;
+    if (pageController.hasClients) {
+      pageController.jumpToPage(index);
+    } else if (mounted) {
+      setState(() => currentPage = index);
+    }
+  }
+
   void _onRequestedTab() {
     final requested = HomePage.requestedTab.value;
     if (!mounted || requested == null) return;
-    if (requested < 0 || requested >= tabController.length) {
+    if (requested < 0 || requested >= _tabCount) {
       HomePage.requestedTab.value = null;
       return;
     }
-    tabController.animateTo(requested);
+    _goToTab(requested);
     HomePage.requestedTab.value = null;
   }
 
   void goToHome() {
-    tabController.animateTo(0);
+    _goToTab(0);
   }
 
 
   @override
   void dispose() {
     HomePage.requestedTab.removeListener(_onRequestedTab);
-    tabController.dispose();
+    pageController.dispose();
     _barController.dispose();
     super.dispose();
   }
@@ -202,7 +204,7 @@ class _HomePageState extends State<HomePage>
           listener: (context, state) {
             if (state.isBenefitActive) {
               // 1. Redirigir a pestaña de reservas (index 2)
-              tabController.animateTo(2);
+              _goToTab(2);
               // 2. Activar descuento en el ReservationBloc
               context.read<ReservationBloc>().add(const ReservationEvent.activateDiscount());
             }
@@ -216,7 +218,7 @@ class _HomePageState extends State<HomePage>
                     controller: _barController,
                     layout: BottomBarLayout(
                       width: MediaQuery.of(context).size.width * 0.9,
-                      borderRadius: BorderRadius.circular(500),
+                      borderRadius: BorderRadius.circular(18),
                       offset: 20,
                       alignment: Alignment.bottomCenter,
                     ),
@@ -233,18 +235,21 @@ class _HomePageState extends State<HomePage>
                     return ValueListenableBuilder<bool>(
                       valueListenable: HomePage.enableSwipe,
                       builder: (context, swipeEnabled, child) {
-                        return TabBarView(
-                          controller: tabController,
+                        return PageView(
+                          controller: pageController,
                           dragStartBehavior: DragStartBehavior.down,
+                          onPageChanged: (i) {
+                            if (mounted) setState(() => currentPage = i);
+                          },
                           physics: swipeEnabled
                               ? const BouncingScrollPhysics()
                               : const NeverScrollableScrollPhysics(),
                           children: [
                             KeepAliveWrapper(
                               child: HomeView(
-                                onNavigateToServices: () => tabController.animateTo(2), // Reservas index
-                                onNavigateToProducts: () => tabController.animateTo(3),
-                                onNavigateToAppointments: () => tabController.animateTo(2), // For clients, maybe same as reservations?
+                                onNavigateToServices: () => _goToTab(2), // Reservas index
+                                onNavigateToProducts: () => _goToTab(3),
+                                onNavigateToAppointments: () => _goToTab(2), // For clients, maybe same as reservations?
                               ),
                             ),
                             const KeepAliveWrapper(
@@ -296,11 +301,11 @@ class _HomePageState extends State<HomePage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          PremiumBottomNavItem(icon: Icons.home_rounded, label: 'Inicio', active: currentPage == 0, onTap: () => tabController.animateTo(0)),
-          PremiumBottomNavItem(icon: Icons.grid_view_rounded, label: 'Galería', active: currentPage == 1, onTap: () => tabController.animateTo(1)),
-          PremiumBottomNavItem(imageAsset: 'images/mustache.png', label: 'Reservar', active: currentPage == 2, onTap: () => tabController.animateTo(2)),
-          PremiumBottomNavItem(icon: Icons.shopping_bag_rounded, label: 'Tienda', active: currentPage == 3, onTap: () => tabController.animateTo(3)),
-          PremiumBottomNavItem(icon: Icons.person_rounded, label: 'Perfil', active: currentPage == 4, badge: state.hasPendingBadge, onTap: () => tabController.animateTo(4)),
+          PremiumBottomNavItem(icon: Icons.home_rounded, label: 'Inicio', active: currentPage == 0, onTap: () => _goToTab(0)),
+          PremiumBottomNavItem(icon: Icons.grid_view_rounded, label: 'Galería', active: currentPage == 1, onTap: () => _goToTab(1)),
+          PremiumBottomNavItem(imageAsset: 'images/mustache.png', label: 'Reservar', active: currentPage == 2, onTap: () => _goToTab(2)),
+          PremiumBottomNavItem(icon: Icons.shopping_bag_rounded, label: 'Tienda', active: currentPage == 3, onTap: () => _goToTab(3)),
+          PremiumBottomNavItem(icon: Icons.person_rounded, label: 'Perfil', active: currentPage == 4, badge: state.hasPendingBadge, onTap: () => _goToTab(4)),
         ],
       ),
     );

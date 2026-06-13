@@ -7,6 +7,7 @@ import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/default_tenant_colors.dart';
 import 'package:trim_flow/core/theme/tenant_branding_colors.dart';
+import 'package:trim_flow/core/theme/tenant_info.dart';
 
 const String kDefaultTenantId = 'default';
 
@@ -17,6 +18,11 @@ class TenantThemeState {
   final bool isResolving;
   final bool isResolved;
   final String? resolvedForUserId;
+  final List<TenantInfo> availableTenants;
+
+  // true cuando el usuario cambia de negocio desde el switcher (no en el login
+  // inicial). Permite mostrar el nombre del negocio en el loader en vez de TRIMFLOW.
+  final bool isSwitching;
 
   TenantThemeState({
     required this.tenantId,
@@ -25,6 +31,8 @@ class TenantThemeState {
     this.isResolving = false,
     this.isResolved = false,
     this.resolvedForUserId,
+    this.availableTenants = const [],
+    this.isSwitching = false,
   });
 
   factory TenantThemeState.initial() {
@@ -35,8 +43,11 @@ class TenantThemeState {
       themeData: _buildTheme(colors),
       isResolving: false,
       isResolved: false,
+      availableTenants: const [],
     );
   }
+
+  bool get isMultiTenant => availableTenants.length > 1;
 
   static ThemeData _buildTheme(AppColorsInterface colors) {
     return ThemeData(
@@ -69,6 +80,8 @@ class TenantThemeState {
     bool? isResolved,
     String? resolvedForUserId,
     bool clearResolvedForUserId = false,
+    List<TenantInfo>? availableTenants,
+    bool? isSwitching,
   }) {
     final newColors = colors ?? this.colors;
     return TenantThemeState(
@@ -80,6 +93,8 @@ class TenantThemeState {
       resolvedForUserId: clearResolvedForUserId
           ? null
           : (resolvedForUserId ?? this.resolvedForUserId),
+      availableTenants: availableTenants ?? this.availableTenants,
+      isSwitching: isSwitching ?? this.isSwitching,
     );
   }
 }
@@ -100,6 +115,22 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     await _resolveTenantFromAuth();
   }
 
+  /// Cambia al tenant indicado usando los datos ya cargados en availableTenants.
+  /// No hace llamadas de red adicionales — los colores están en memoria.
+  Future<void> switchTenant(String tenantId) async {
+    if (tenantId == state.tenantId) return;
+    final tenant = state.availableTenants
+        .where((t) => t.id == tenantId)
+        .firstOrNull;
+    if (tenant == null) return;
+    emit(state.copyWith(
+      tenantId: tenantId,
+      colors: tenant.colors,
+      isResolved: true,
+      isSwitching: true,
+    ));
+  }
+
   Future<void> _resolveTenantFromAuth() async {
     if (_resolving) return;
 
@@ -107,9 +138,6 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     final user = client.auth.currentUser;
     final currentUserId = user?.id;
 
-    // Guarda: si ya está resuelto para este mismo usuario, no re-fetch.
-    // Evita el loader transitorio cuando Supabase re-emite signedIn al
-    // arrancar (sesión restaurada).
     if (state.isResolved && state.resolvedForUserId == currentUserId) {
       return;
     }
@@ -125,29 +153,31 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
         return;
       }
 
-      final resolvedTenantId = await _lookupTenantId(client, user.id);
+      final tenants = await _lookupAllTenants(client, user.id);
 
-      if (resolvedTenantId != null) {
-        final colors = await _fetchTenantColors(client, resolvedTenantId);
-        if (colors != null) {
-          emit(state.copyWith(
-            tenantId: resolvedTenantId,
-            colors: colors,
-            isResolving: false,
-            isResolved: true,
-            resolvedForUserId: user.id,
-          ));
-        } else {
-          // Fallo transitorio al leer el branding: no degradar a titanio si ya
-          // teníamos un tenant real resuelto; conservar sus colores.
-          _emitPreservingColors(user.id);
-        }
-      } else {
+      if (tenants.isEmpty) {
         emit(TenantThemeState.initial().copyWith(
           isResolved: true,
           resolvedForUserId: user.id,
         ));
+        return;
       }
+
+      // Si ya había un tenant activo válido en la lista, conservarlo.
+      final keepActive = tenants.any((t) => t.id == state.tenantId);
+      final active = keepActive
+          ? tenants.firstWhere((t) => t.id == state.tenantId)
+          : tenants.first;
+
+      emit(state.copyWith(
+        tenantId: active.id,
+        colors: active.colors,
+        isResolving: false,
+        isResolved: true,
+        resolvedForUserId: user.id,
+        availableTenants: tenants,
+        isSwitching: false,
+      ));
     } catch (e) {
       debugPrint('TenantThemeBloc: tenant resolution failed -> $e');
       _emitPreservingColors(user?.id);
@@ -156,8 +186,6 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     }
   }
 
-  /// Marca el tema como resuelto conservando los colores del tenant ya
-  /// resuelto (si lo había). Solo cae a titanio si nunca hubo tenant real.
   void _emitPreservingColors(String? userId) {
     if (state.tenantId != kDefaultTenantId) {
       emit(state.copyWith(
@@ -173,7 +201,12 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     }
   }
 
-  Future<String?> _lookupTenantId(SupabaseClient client, String userId) async {
+  /// Devuelve TODOS los tenants a los que pertenece el usuario.
+  /// Staff → siempre uno solo (desde profiles).
+  /// Cliente → uno o más (desde customers).
+  Future<List<TenantInfo>> _lookupAllTenants(
+      SupabaseClient client, String userId) async {
+    // 1. Staff: tiene una sola fila en profiles con un tenant_id
     final profileRow = await client
         .from('profiles')
         .select('tenant_id')
@@ -182,44 +215,61 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
 
     final profileTenantId = profileRow?['tenant_id'] as String?;
     if (profileTenantId != null && profileTenantId.isNotEmpty) {
-      return profileTenantId;
+      final info = await _fetchTenantInfo(client, profileTenantId);
+      return info != null ? [info] : [];
     }
 
-    final customerRow = await client
+    // 2. Cliente: puede tener N filas en customers con distintos tenant_id
+    final customerRows = await client
         .from('customers')
         .select('tenant_id')
         .eq('auth_user_id', userId)
-        .maybeSingle();
+        .filter('deleted_at', 'is', null);
 
-    final customerTenantId = customerRow?['tenant_id'] as String?;
-    if (customerTenantId != null && customerTenantId.isNotEmpty) {
-      return customerTenantId;
-    }
+    final tenantIds = (customerRows as List)
+        .whereType<Map<String, dynamic>>()
+        .map((r) => r['tenant_id'] as String?)
+        .whereType<String>()
+        .toSet()
+        .toList();
 
-    return null;
+    if (tenantIds.isEmpty) return [];
+
+    final infos = await Future.wait(
+      tenantIds.map((id) => _fetchTenantInfo(client, id)),
+    );
+    return infos.whereType<TenantInfo>().toList();
   }
 
-  /// Devuelve los colores del tenant. `null` señala un fallo de red tras
-  /// reintentar (para que el caller conserve los colores ya resueltos).
-  /// Si la consulta funciona pero no hay branding válido, devuelve el default.
-  Future<AppColorsInterface?> _fetchTenantColors(
+  Future<TenantInfo?> _fetchTenantInfo(
       SupabaseClient client, String tenantId) async {
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
         final row = await client
             .from('tenants')
-            .select('branding')
+            .select('id, name, slug, branding')
             .eq('id', tenantId)
+            .filter('deleted_at', 'is', null)
             .maybeSingle();
-        final raw = row?['branding'];
-        if (raw is Map<String, dynamic>) {
-          return TenantBrandingColors.tryParse(raw) ?? DefaultTenantColors();
-        }
-        return DefaultTenantColors();
+
+        if (row == null) return null;
+
+        final branding = row['branding'] as Map<String, dynamic>?;
+        final colors =
+            TenantBrandingColors.tryParse(branding) ?? DefaultTenantColors();
+
+        return TenantInfo(
+          id: row['id'] as String,
+          name: (row['name'] as String?) ?? 'Negocio',
+          slug: (row['slug'] as String?) ?? '',
+          colors: colors,
+        );
       } catch (e) {
-        debugPrint('TenantThemeBloc: branding fetch attempt ${attempt + 1} failed -> $e');
+        debugPrint(
+            'TenantThemeBloc: tenant fetch attempt ${attempt + 1} failed -> $e');
         if (attempt < 2) {
-          await Future<void>.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+          await Future<void>.delayed(
+              Duration(milliseconds: 300 * (attempt + 1)));
         }
       }
     }
@@ -229,17 +279,14 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
   void _ensureAuthSubscription() {
     if (_authSub != null) return;
     try {
-      _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      _authSub =
+          Supabase.instance.client.auth.onAuthStateChange.listen((data) {
         final event = data.event;
         if (event == AuthChangeEvent.signedIn) {
           final newUserId = data.session?.user.id;
-          // Skip si ya resolvimos para este mismo usuario (Supabase puede
-          // re-emitir signedIn al arrancar con sesión restaurada).
           if (state.isResolved && state.resolvedForUserId == newUserId) {
             return;
           }
-          // Marca el tema como "no resuelto" inmediatamente para que App muestre
-          // el loader neutro mientras se resuelve el tenant del nuevo usuario.
           if (!isClosed && !_resolving) {
             emit(state.copyWith(isResolved: false, isResolving: true));
           }

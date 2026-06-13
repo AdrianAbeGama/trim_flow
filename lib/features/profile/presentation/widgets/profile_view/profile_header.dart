@@ -15,6 +15,8 @@ class ProfileViewHeader extends StatelessWidget {
     required this.onOrdersTap,
     this.hasActiveOrders = false,
     this.clientCode,
+    this.currentTenantName,
+    this.onTenantSwitch,
   });
 
   final UserProfile user;
@@ -23,6 +25,8 @@ class ProfileViewHeader extends StatelessWidget {
   final VoidCallback onOrdersTap;
   final bool hasActiveOrders;
   final String? clientCode;
+  final String? currentTenantName;
+  final VoidCallback? onTenantSwitch;
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +52,11 @@ class ProfileViewHeader extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                children: [
               // Avatar tappable → editar
               ProfilePressableScale(
                 onTap: onAvatarTap,
@@ -187,6 +194,24 @@ class ProfileViewHeader extends StatelessWidget {
                     duration: 500.ms,
                     curve: Curves.easeOutCubic,
                   ),
+                ],
+              ),
+              if (onTenantSwitch != null && currentTenantName != null) ...[
+                const SizedBox(height: 14),
+                _TenantSwitcherBar(
+                  name: currentTenantName!,
+                  onTap: onTenantSwitch!,
+                )
+                    .animate()
+                    .fadeIn(delay: 200.ms, duration: 400.ms)
+                    .slideY(
+                      begin: 0.15,
+                      end: 0,
+                      delay: 200.ms,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
+              ],
             ],
           ),
         ),
@@ -299,6 +324,75 @@ class _HeaderIdBadge extends StatelessWidget {
           fontWeight: FontWeight.w800,
           color: gold,
           letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+}
+
+/// Barra de ancho completo para cambiar de negocio: a la izquierda la accion
+/// de cambio, a la derecha la barberia activa. Reemplaza la pildora pequena.
+class _TenantSwitcherBar extends StatelessWidget {
+  const _TenantSwitcherBar({required this.name, required this.onTap});
+
+  final String name;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return ProfilePressableScale(
+      onTap: onTap,
+      pressedScale: 0.98,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: gold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(Icons.swap_horiz_rounded, size: 17, color: gold),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Cambiar de negocio',
+              style: GoogleFonts.inter(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.85),
+                letterSpacing: -0.2,
+              ),
+            ),
+            const Spacer(),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: gold,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 7),
+            Icon(Icons.unfold_more_rounded,
+                size: 15, color: gold.withValues(alpha: 0.7)),
+          ],
         ),
       ),
     );

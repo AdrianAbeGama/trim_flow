@@ -67,7 +67,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
               controller: _barController,
               layout: BottomBarLayout(
                 width: MediaQuery.of(context).size.width * 0.9,
-                borderRadius: BorderRadius.circular(500),
+                borderRadius: BorderRadius.circular(18),
                 offset: 20,
                 alignment: Alignment.bottomCenter,
               ),

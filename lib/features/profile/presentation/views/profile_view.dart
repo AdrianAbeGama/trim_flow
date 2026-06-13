@@ -23,6 +23,9 @@ import 'package:trim_flow/features/profile/presentation/widgets/profile_view/pro
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_history.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
 
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/features/profile/presentation/widgets/profile_view/tenant_switcher_sheet.dart';
+
 import '../widgets/profile_edit_sheet.dart';
 import '../widgets/profile_ticket_modal.dart';
 
@@ -78,6 +81,10 @@ class _ProfileBodyState extends State<_ProfileBody> {
         profileBloc: context.read<ProfileBloc>(),
       ),
     );
+  }
+
+  void _showTenantSwitcher() {
+    TenantSwitcherSheet.show(context);
   }
 
   void _openSettings(UserProfile user) {
@@ -186,13 +193,27 @@ class _ProfileBodyState extends State<_ProfileBody> {
               ),
               slivers: [
                 // 1. HEADER
-                ProfileViewHeader(
-                  user: user,
-                  onAvatarTap: () => _editProfile(user),
-                  onSettingsTap: () => _openSettings(user),
-                  onOrdersTap: _openOrders,
-                  hasActiveOrders: hasActiveOrders,
-                  clientCode: state.clientCode,
+                Builder(
+                  builder: (ctx) {
+                    final themeState = ctx.watch<TenantThemeBloc>().state;
+                    final isMulti = themeState.isMultiTenant;
+                    final activeName = isMulti
+                        ? themeState.availableTenants
+                            .where((t) => t.id == themeState.tenantId)
+                            .map((t) => t.name)
+                            .firstOrNull
+                        : null;
+                    return ProfileViewHeader(
+                      user: user,
+                      onAvatarTap: () => _editProfile(user),
+                      onSettingsTap: () => _openSettings(user),
+                      onOrdersTap: _openOrders,
+                      hasActiveOrders: hasActiveOrders,
+                      clientCode: state.clientCode,
+                      currentTenantName: activeName,
+                      onTenantSwitch: isMulti ? _showTenantSwitcher : null,
+                    );
+                  },
                 ),
 
                 // 2. FIDELITY RING (hero element animado)

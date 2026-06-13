@@ -6,10 +6,12 @@ import 'package:trim_flow/features/profile/presentation/views/complete_profile_v
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
@@ -68,35 +70,110 @@ class _DeferredWidgetState extends State<DeferredWidget> {
 /// NO usa colores del tema (sería el flash dorado que el usuario reportó).
 /// Branding negro/blanco universal — coherente con el splash de LoadingApp.
 class _PostLoginTransition extends StatelessWidget {
-  const _PostLoginTransition();
+  const _PostLoginTransition({this.label});
+
+  /// Nombre del negocio a mostrar (al cambiar de barberia). Si es null muestra
+  /// "TRIMFLOW" (login inicial).
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF070707),
+    // Login inicial: pantalla neutra TRIMFLOW (sin color de tenant aun).
+    if (label == null) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF070707),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'TRIMFLOW',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 6,
+                  fontFamily: 'Inter',
+                ),
+              ),
+              SizedBox(height: 28),
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  color: Colors.white54,
+                  strokeWidth: 1.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Cambio de negocio: loader premium con color e inicial del tenant. El
+    // recuadro es un mockup del logo (hasta que exista el logo real).
+    final accent = context.primaryGold;
+    final name = label!;
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return Scaffold(
+      backgroundColor: const Color(0xFF080808),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'TRIMFLOW',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 6,
-                fontFamily: 'Inter',
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: accent.withValues(alpha: 0.45),
+                  width: 1.5,
+                ),
               ),
-            ),
-            SizedBox(height: 28),
+              alignment: Alignment.center,
+              child: Text(
+                initial,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            )
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scaleXY(
+                  begin: 0.94,
+                  end: 1.06,
+                  duration: 900.ms,
+                  curve: Curves.easeInOut,
+                ),
+            const SizedBox(height: 26),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.4,
+                  fontFamily: 'Inter',
+                ),
+              ),
+            ).animate().fadeIn(duration: 350.ms),
+            const SizedBox(height: 24),
             SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                color: Colors.white54,
-                strokeWidth: 1.8,
-              ),
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: accent),
             ),
           ],
         ),
@@ -112,12 +189,22 @@ class _ClientGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeState = context.watch<TenantThemeBloc>().state;
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
         final user = state.user;
         if (user == null) {
           if (state.status == ProfileStatus.error) return const HomePage();
-          return const _PostLoginTransition();
+          String? switchingName;
+          if (themeState.isSwitching) {
+            for (final t in themeState.availableTenants) {
+              if (t.id == themeState.tenantId) {
+                switchingName = t.name;
+                break;
+              }
+            }
+          }
+          return _PostLoginTransition(label: switchingName);
         }
         final complete =
             user.birthDate.trim().isNotEmpty && user.phone.trim().isNotEmpty;
@@ -193,6 +280,16 @@ class _AppState extends State<App> {
                     current.isLoggedIn && current.isInitialized && current.mode != forcedMode,
                 listener: (context, state) {
                   context.read<AppModeBloc>().add(AppModeEvent.changeMode(forcedMode));
+                },
+              ),
+              BlocListener<TenantThemeBloc, TenantThemeState>(
+                listenWhen: (previous, current) =>
+                    previous.tenantId != current.tenantId &&
+                    previous.isResolved &&
+                    current.isResolved,
+                listener: (context, state) {
+                  context.read<ProfileBloc>().add(const ProfileEvent.load());
+                  context.read<HomeBloc>().add(const HomeEvent.load());
                 },
               ),
             ],
