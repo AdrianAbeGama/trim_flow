@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/domain/models/home_content.dart';
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
@@ -20,11 +19,6 @@ class HomeBrandHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
-    final themeState = context.watch<TenantThemeBloc>().state;
-    final activeTenants = themeState.availableTenants
-        .where((t) => t.id == themeState.tenantId)
-        .toList();
-    final tenantName = activeTenants.isEmpty ? null : activeTenants.first.name;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -82,28 +76,6 @@ class HomeBrandHero extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      if (tenantName != null) ...[
-                        Row(
-                          children: [
-                            Icon(Icons.storefront_rounded, size: 13, color: gold),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                tenantName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: gold,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
                       Text(
                         content.heroTitle,
                         maxLines: 2,

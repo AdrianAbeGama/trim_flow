@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
@@ -17,6 +18,13 @@ class HomeTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
+    final themeState = context.watch<TenantThemeBloc>().state;
+    final activeTenants = themeState.availableTenants
+        .where((t) => t.id == themeState.tenantId)
+        .toList();
+    final tenantLabel = activeTenants.isEmpty
+        ? 'TRIMFLOW PREMIUM'
+        : activeTenants.first.name.toUpperCase();
     return SliverToBoxAdapter(
       child: SafeArea(
         bottom: false,
@@ -36,20 +44,26 @@ class HomeTopBar extends StatelessWidget {
                         }
                         return Align(
                           alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: gold.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: gold.withValues(alpha: 0.25)),
-                            ),
-                            child: Text(
-                              'TRIMFLOW PREMIUM',
-                              style: GoogleFonts.inter(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: gold,
-                                letterSpacing: 1.6,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 240),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: gold.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: gold.withValues(alpha: 0.25)),
+                              ),
+                              child: Text(
+                                tenantLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: gold,
+                                  letterSpacing: 1.6,
+                                ),
                               ),
                             ),
                           ),

@@ -94,15 +94,9 @@ dev_dependencies:
   json_serializable: ^6.13.2
   flutter_launcher_icons: ^0.14.1
 
-# Icono de la app (TrimFlow y TrimFlow Business comparten el mark de marca).
+# Iconos de la app por flavor (gris=cliente como la web, dorado=business).
+# Config en flutter_launcher_icons-client.yaml y flutter_launcher_icons-business.yaml.
 # Regenerar con: dart run flutter_launcher_icons
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "tool/launcher_icon/icon_full.png"
-  min_sdk_android: 21
-  adaptive_icon_background: "#0B0B0B"
-  adaptive_icon_foreground: "tool/launcher_icon/icon_fg.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
