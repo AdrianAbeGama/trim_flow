@@ -48,16 +48,30 @@ class ReservationSupabaseRepository implements ReservationRepository {
     required String customerPhone,
     required String idempotencyKey,
   }) async {
-    final res = await _client.rpc('create_anonymous_booking', params: {
-      'p_tenant_id': tenantId,
-      'p_branch_id': branchId,
-      'p_barber_id': barberId,
-      'p_service_id': serviceId,
-      'p_start_time': startUtc.toUtc().toIso8601String(),
-      'p_customer_name': customerName,
-      'p_customer_phone': customerPhone,
-      'p_idempotency_key': idempotencyKey,
-    });
+    final startIso = startUtc.toUtc().toIso8601String();
+    final isLoggedIn = _client.auth.currentUser != null;
+
+    // Cliente autenticado -> create_app_booking (vincula identidad y GANA puntos).
+    // Anonimo (sin sesion) -> create_anonymous_booking (walk-in por nombre+telefono).
+    final res = isLoggedIn
+        ? await _client.rpc('create_app_booking', params: {
+            'p_tenant_id': tenantId,
+            'p_branch_id': branchId,
+            'p_barber_id': barberId,
+            'p_service_id': serviceId,
+            'p_start_time': startIso,
+            'p_idempotency_key': idempotencyKey,
+          })
+        : await _client.rpc('create_anonymous_booking', params: {
+            'p_tenant_id': tenantId,
+            'p_branch_id': branchId,
+            'p_barber_id': barberId,
+            'p_service_id': serviceId,
+            'p_start_time': startIso,
+            'p_customer_name': customerName,
+            'p_customer_phone': customerPhone,
+            'p_idempotency_key': idempotencyKey,
+          });
 
     final map = (res is Map) ? res.cast<String, dynamic>() : const <String, dynamic>{};
     return BookingResult(
