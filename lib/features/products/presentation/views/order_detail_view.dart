@@ -239,7 +239,7 @@ class _ProgressSteps extends StatelessWidget {
       children: List.generate(_labels.length, (i) {
         final isDone = i < done;
         final isActive = i == done;
-        final color = isDone ? const Color(0xFF6FAE8A) : (isActive ? gold : Colors.white.withValues(alpha: 0.18));
+        final color = isDone ? gold : (isActive ? gold : Colors.white.withValues(alpha: 0.18));
         return Expanded(
           child: Column(
             children: [
@@ -248,18 +248,18 @@ class _ProgressSteps extends StatelessWidget {
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: i == 0 ? Colors.transparent : (i <= done ? const Color(0xFF6FAE8A) : Colors.white.withValues(alpha: 0.08)),
+                      color: i == 0 ? Colors.transparent : (i <= done ? gold : Colors.white.withValues(alpha: 0.08)),
                     ),
                   ),
                   Container(
                     width: 26, height: 26,
                     decoration: BoxDecoration(
-                      color: isDone ? const Color(0xFF6FAE8A) : Colors.transparent,
+                      color: isDone ? gold : Colors.transparent,
                       shape: BoxShape.circle,
                       border: Border.all(color: color, width: 2),
                     ),
                     child: isDone
-                        ? const Icon(Icons.check_rounded, color: Colors.black, size: 15)
+                        ? Icon(Icons.check_rounded, color: premiumOnAccent(gold), size: 15)
                         : (isActive
                             ? Center(child: Container(width: 7, height: 7, decoration: BoxDecoration(color: gold, shape: BoxShape.circle)))
                             : null),
@@ -267,7 +267,7 @@ class _ProgressSteps extends StatelessWidget {
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: i == _labels.length - 1 ? Colors.transparent : (i < done ? const Color(0xFF6FAE8A) : Colors.white.withValues(alpha: 0.08)),
+                      color: i == _labels.length - 1 ? Colors.transparent : (i < done ? gold : Colors.white.withValues(alpha: 0.08)),
                     ),
                   ),
                 ],

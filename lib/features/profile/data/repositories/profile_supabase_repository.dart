@@ -41,6 +41,7 @@ class ProfileSupabaseRepository implements ProfileRepository {
         .from('customers')
         .select('id, tenant_id, full_name, whatsapp, email, birth_date, points, client_code, is_app_user, last_visit_at')
         .eq('auth_user_id', authUserId)
+        .eq('tenant_id', fallbackTenantId)
         .maybeSingle();
 
     if (row == null) return null;
@@ -97,6 +98,37 @@ class ProfileSupabaseRepository implements ProfileRepository {
         'p_whatsapp': input.phone.isEmpty ? null : '+51${input.phone}',
         'p_birth_date': input.birthDate.isEmpty ? null : input.birthDate,
       },
+    );
+  }
+
+  @override
+  Future<ProfileUpdateInput?> loadKnownCustomerInfo({
+    required String authUserId,
+  }) async {
+    final rows = await _client
+        .from('customers')
+        .select('full_name, whatsapp, birth_date')
+        .eq('auth_user_id', authUserId)
+        .not('birth_date', 'is', null)
+        .not('whatsapp', 'is', null)
+        .limit(1);
+    final list = rows as List;
+    if (list.isEmpty) return null;
+    final row = list.first as Map<String, dynamic>;
+    final whatsapp = (row['whatsapp'] as String?) ?? '';
+    final phone = whatsapp.startsWith('+51') ? whatsapp.substring(3) : whatsapp;
+    final birthDate = (row['birth_date'] as String?) ?? '';
+    if (phone.isEmpty || birthDate.isEmpty) return null;
+    final fullName = ((row['full_name'] as String?) ?? '').trim();
+    final spaceIdx = fullName.indexOf(' ');
+    final firstName =
+        spaceIdx == -1 ? fullName : fullName.substring(0, spaceIdx);
+    final lastName = spaceIdx == -1 ? '' : fullName.substring(spaceIdx + 1).trim();
+    return ProfileUpdateInput(
+      firstName: firstName.isEmpty ? 'Cliente' : firstName,
+      lastName: lastName,
+      phone: phone,
+      birthDate: birthDate,
     );
   }
 

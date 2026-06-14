@@ -217,7 +217,7 @@ class _HistoryExampleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent =
-        item.isCompleted ? const Color(0xFF6FAE8A) : const Color(0xFFCF6679);
+        item.isCompleted ? context.primaryGold : const Color(0xFFCF6679);
 
     final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -275,7 +275,7 @@ class ProfileHistoryRowItem extends StatelessWidget {
     final gold = context.primaryGold;
     final isCompleted = item.status == 'completed';
     final accent =
-        isCompleted ? const Color(0xFF6FAE8A) : const Color(0xFFCF6679);
+        isCompleted ? context.primaryGold : const Color(0xFFCF6679);
 
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -328,7 +328,8 @@ class ProfileHistoryRowItem extends StatelessWidget {
   }
 }
 
-/// Círculo de estado del historial (check/cancel) — compartido.
+/// Indicador de estado del historial — línea vertical fina con el color del
+/// tenant (completado) o rojo (cancelado). Reemplaza el círculo grande.
 class HistoryStatusCircle extends StatelessWidget {
   const HistoryStatusCircle({super.key, required this.accent, required this.isCompleted});
 
@@ -338,14 +339,12 @@ class HistoryStatusCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 44, height: 44,
-      alignment: Alignment.center,
+      width: 3,
+      height: 34,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        shape: BoxShape.circle,
-        border: Border.all(color: accent.withValues(alpha: 0.3)),
+        color: accent.withValues(alpha: isCompleted ? 0.9 : 0.85),
+        borderRadius: BorderRadius.circular(99),
       ),
-      child: Icon(isCompleted ? Icons.check_rounded : Icons.close_rounded, color: accent, size: 20),
     );
   }
 }
@@ -389,7 +388,7 @@ class HistoryRowDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 74),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       height: 1,
       color: Colors.white.withValues(alpha: 0.05),
     );

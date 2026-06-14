@@ -111,7 +111,7 @@ class _Phase4DateTimeSelectorState extends State<Phase4DateTimeSelector> {
       return _message('No se pudieron cargar los horarios. Intenta de nuevo.');
     }
     if (widget.availableSlots.isEmpty) {
-      return _message('No hay horarios disponibles ese día. Prueba con otra fecha.');
+      return _emptyDay(context);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,6 +120,42 @@ class _Phase4DateTimeSelectorState extends State<Phase4DateTimeSelector> {
         _buildPeriodSection(context, 'TARDE', Icons.wb_twilight_rounded, afternoon),
         _buildPeriodSection(context, 'NOCHE', Icons.nightlight_round, evening),
       ],
+    );
+  }
+
+  Widget _emptyDay(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 12),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.event_busy_rounded,
+                color: gold.withValues(alpha: 0.6), size: 30),
+            const SizedBox(height: 12),
+            Text(
+              'Sin horarios este día',
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'La barbería no atiende o ya no quedan cupos.\nElige otra fecha en el calendario.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.4),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -63,22 +63,22 @@ class PremiumBottomNavItem extends StatelessWidget {
         onTap();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
         padding: active
-            ? const EdgeInsets.symmetric(horizontal: 13, vertical: 9)
+            ? const EdgeInsets.symmetric(horizontal: 14, vertical: 9)
             : const EdgeInsets.all(9),
         decoration: BoxDecoration(
           gradient: active
               ? LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [gold, Color.lerp(gold, Colors.black, 0.18)!],
+                  colors: [gold, Color.lerp(gold, Colors.black, 0.22)!],
                 )
               : null,
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: active
-              ? [BoxShadow(color: gold.withValues(alpha: 0.5), blurRadius: 14, spreadRadius: -2)]
+              ? [BoxShadow(color: gold.withValues(alpha: 0.32), blurRadius: 12, spreadRadius: -4)]
               : null,
         ),
         child: Row(

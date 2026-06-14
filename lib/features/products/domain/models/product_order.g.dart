@@ -20,6 +20,8 @@ _ProductOrder _$ProductOrderFromJson(Map<String, dynamic> json) =>
           $enumDecodeNullable(_$OrderStatusEnumMap, json['status']) ??
           OrderStatus.pendingPayment,
       pickupLocation: json['pickupLocation'] as String? ?? '',
+      customerName: json['customerName'] as String? ?? '',
+      customerPhone: json['customerPhone'] as String? ?? '',
       cancellationReason: json['cancellationReason'] as String?,
       paidAt: json['paidAt'] == null
           ? null
@@ -39,6 +41,8 @@ Map<String, dynamic> _$ProductOrderToJson(_ProductOrder instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'status': _$OrderStatusEnumMap[instance.status]!,
       'pickupLocation': instance.pickupLocation,
+      'customerName': instance.customerName,
+      'customerPhone': instance.customerPhone,
       'cancellationReason': instance.cancellationReason,
       'paidAt': instance.paidAt?.toIso8601String(),
       'completedAt': instance.completedAt?.toIso8601String(),

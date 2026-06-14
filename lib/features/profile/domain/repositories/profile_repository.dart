@@ -51,6 +51,13 @@ abstract class ProfileRepository {
     required ProfileUpdateInput input,
   });
 
+  /// Datos personales (nombre, WhatsApp, cumpleanos) ya completados por el
+  /// usuario en CUALQUIER barberia. Sirve para reutilizarlos al entrar a una
+  /// nueva barberia sin volver a pedir el onboarding. null si no hay ninguno.
+  Future<ProfileUpdateInput?> loadKnownCustomerInfo({
+    required String authUserId,
+  });
+
   Future<void> updateStaffProfile({
     required String authUserId,
     required String? tenantId,
