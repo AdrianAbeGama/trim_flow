@@ -115,6 +115,14 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
     await _resolveTenantFromAuth();
   }
 
+  /// Fuerza re-resolver las barberias del usuario (ej. tras vincular una nueva
+  /// por codigo de acceso). Ignora la cache de "ya resuelto".
+  Future<void> refreshFromAuth() async {
+    if (isClosed) return;
+    emit(state.copyWith(isResolved: false));
+    await _resolveTenantFromAuth();
+  }
+
   /// Cambia al tenant indicado usando los datos ya cargados en availableTenants.
   /// No hace llamadas de red adicionales — los colores están en memoria.
   Future<void> switchTenant(String tenantId) async {

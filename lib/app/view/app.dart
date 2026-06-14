@@ -19,6 +19,7 @@ import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred as barber;
 import 'package:trim_flow/features/auth/presentation/views/access_code_view.dart';
+import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
@@ -190,6 +191,10 @@ class _ClientGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<TenantThemeBloc>().state;
+    // Cold start: cliente logueado sin barberias vinculadas → pegar codigo.
+    if (themeState.isResolved && themeState.availableTenants.isEmpty) {
+      return const ClaimProfileView();
+    }
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
         final user = state.user;

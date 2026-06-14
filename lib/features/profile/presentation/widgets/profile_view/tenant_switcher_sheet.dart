@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_info.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
 
 /// Bottom sheet premium para cambiar de tenant activo.
 /// Animación de entrada escalonada por tarjeta, haptics al seleccionar.
@@ -122,6 +123,20 @@ class _TenantSwitcherSheetState extends State<TenantSwitcherSheet> {
                       ),
                 );
               }),
+              const SizedBox(height: 2),
+              _AddCodeTile(
+                gold: gold,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  final nav = Navigator.of(context, rootNavigator: true);
+                  Navigator.pop(context);
+                  nav.push(
+                    MaterialPageRoute(
+                      builder: (_) => const ClaimProfileView(),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -274,6 +289,44 @@ class _TenantCardState extends State<_TenantCard>
                     .fadeIn(duration: 150.ms),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tile "+ ¿Tienes otro código?" para vincular otra barberia desde el switcher.
+class _AddCodeTile extends StatelessWidget {
+  const _AddCodeTile({required this.gold, required this.onTap});
+
+  final Color gold;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: gold.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.add_rounded, size: 18, color: gold),
+            const SizedBox(width: 10),
+            Text(
+              '¿Tienes otro código?',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: gold,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
         ),
       ),
     );

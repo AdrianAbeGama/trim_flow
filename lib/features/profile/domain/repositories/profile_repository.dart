@@ -70,6 +70,11 @@ abstract class ProfileRepository {
     required ProfileUpdateInput input,
   });
 
+  /// Vincula el perfil del cliente con un codigo de acceso (TRF-XXXX) de una
+  /// reserva web (RPC claim_profile_by_ticket). Devuelve cuantas barberias se
+  /// vincularon. Idempotente: re-pegar el propio codigo no falla.
+  Future<int> claimProfileByTicket({required String accessCode});
+
   /// Citas del cliente (proximas + historial) via RPC get_my_reservations.
   Future<MyReservationsResult> loadMyReservations({
     required String tenantId,

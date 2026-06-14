@@ -120,6 +120,21 @@ class ProfileSupabaseRepository implements ProfileRepository {
   }
 
   @override
+  Future<int> claimProfileByTicket({required String accessCode}) async {
+    final res = await _client.rpc(
+      'claim_profile_by_ticket',
+      params: {'p_access_code': accessCode},
+    );
+    if (res is Map) {
+      final count = res['count'];
+      if (count is int) return count;
+      final ids = res['linkedTenantIds'];
+      if (ids is List) return ids.length;
+    }
+    return 0;
+  }
+
+  @override
   Future<MyReservationsResult> loadMyReservations({
     required String tenantId,
   }) async {
