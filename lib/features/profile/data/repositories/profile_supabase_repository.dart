@@ -135,6 +135,39 @@ class ProfileSupabaseRepository implements ProfileRepository {
   }
 
   @override
+  Future<ReferralStats> getReferralStats({required String tenantId}) async {
+    final res = await _client
+        .rpc('get_my_referral_stats', params: {'p_tenant_id': tenantId});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return ReferralStats(
+      code: m['code'] as String?,
+      usesCount: (m['usesCount'] as num?)?.toInt() ?? 0,
+      maxUses: (m['maxUses'] as num?)?.toInt() ?? 0,
+      referredCount: (m['referredCount'] as num?)?.toInt() ?? 0,
+      totalEarned: (m['totalEarned'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  @override
+  Future<String> generateReferralCode({required String tenantId}) async {
+    final res = await _client
+        .rpc('generate_referral_code', params: {'p_tenant_id': tenantId});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return (m['code'] as String?) ?? '';
+  }
+
+  @override
+  Future<String> applyReferralCode({
+    required String tenantId,
+    required String code,
+  }) async {
+    final res = await _client.rpc('apply_referral_code',
+        params: {'p_tenant_id': tenantId, 'p_code': code});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return (m['message'] as String?) ?? 'Código aplicado.';
+  }
+
+  @override
   Future<MyReservationsResult> loadMyReservations({
     required String tenantId,
   }) async {

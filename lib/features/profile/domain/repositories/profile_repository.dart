@@ -34,6 +34,23 @@ class ProfileUpdateInput {
   });
 }
 
+/// Estadisticas de referidos del cliente (RPC get_my_referral_stats).
+class ReferralStats {
+  final String? code;
+  final int usesCount;
+  final int maxUses;
+  final int referredCount;
+  final int totalEarned;
+
+  const ReferralStats({
+    this.code,
+    this.usesCount = 0,
+    this.maxUses = 0,
+    this.referredCount = 0,
+    this.totalEarned = 0,
+  });
+}
+
 /// Resultado de `get_my_reservations`: proximas + historial en una sola llamada.
 class MyReservationsResult {
   final List<Reservation> upcoming;
@@ -74,6 +91,16 @@ abstract class ProfileRepository {
   /// reserva web (RPC claim_profile_by_ticket). Devuelve cuantas barberias se
   /// vincularon. Idempotente: re-pegar el propio codigo no falla.
   Future<int> claimProfileByTicket({required String accessCode});
+
+  /// Referidos (por barberia). El codigo se crea la 1a vez si no existe.
+  Future<ReferralStats> getReferralStats({required String tenantId});
+  Future<String> generateReferralCode({required String tenantId});
+
+  /// Aplica el codigo de un amigo. Devuelve el mensaje del backend.
+  Future<String> applyReferralCode({
+    required String tenantId,
+    required String code,
+  });
 
   /// Citas del cliente (proximas + historial) via RPC get_my_reservations.
   Future<MyReservationsResult> loadMyReservations({
