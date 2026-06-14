@@ -219,26 +219,31 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
       return info != null ? [info] : [];
     }
 
-    // 2. Cliente: puede tener N filas en customers con distintos tenant_id
-    final customerRows = await client
-        .from('customers')
-        .select('tenant_id')
-        .eq('auth_user_id', userId)
-        .filter('deleted_at', 'is', null);
-
-    final tenantIds = (customerRows as List)
+    // 2. Cliente: Hub de barberias via RPC del backend (get_my_barbershops).
+    //    Reemplaza la lectura directa de customers, que rompia con multi-tenant
+    //    (varias fichas bajo el mismo auth_user_id).
+    final hub = await client.rpc('get_my_barbershops');
+    final rows = (hub as List?) ?? const [];
+    return rows
         .whereType<Map<String, dynamic>>()
-        .map((r) => r['tenant_id'] as String?)
-        .whereType<String>()
-        .toSet()
+        .map(_tenantInfoFromHub)
         .toList();
+  }
 
-    if (tenantIds.isEmpty) return [];
-
-    final infos = await Future.wait(
-      tenantIds.map((id) => _fetchTenantInfo(client, id)),
+  TenantInfo _tenantInfoFromHub(Map<String, dynamic> row) {
+    final branding = <String, dynamic>{
+      'primary_color': row['primaryColor'],
+      'secondary_color': row['secondaryColor'],
+      'accent_color': row['accentColor'],
+    };
+    final colors =
+        TenantBrandingColors.tryParse(branding) ?? DefaultTenantColors();
+    return TenantInfo(
+      id: row['tenantId'] as String,
+      name: (row['name'] as String?) ?? 'Negocio',
+      slug: (row['slug'] as String?) ?? '',
+      colors: colors,
     );
-    return infos.whereType<TenantInfo>().toList();
   }
 
   Future<TenantInfo?> _fetchTenantInfo(

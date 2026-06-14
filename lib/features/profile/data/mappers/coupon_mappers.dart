@@ -22,4 +22,26 @@ class CouponMapper {
       promoActive: (promo?['is_active'] as bool?) ?? true,
     );
   }
+
+  /// Mapea un item de la RPC get_my_coupons (backend) a CustomerCoupon.
+  static CustomerCoupon? fromMyCoupon(Map<String, dynamic> json) {
+    final validRaw = json['validUntil'] as String?;
+    final validUntil =
+        validRaw != null ? DateTime.tryParse(validRaw)?.toLocal() : null;
+    if (validUntil == null) return null;
+    final redeemedRaw = json['redeemedAt'] as String?;
+    final code = (json['code'] as String?) ?? '';
+
+    return CustomerCoupon(
+      id: code,
+      code: code,
+      name: (json['description'] as String?) ?? 'Promoción',
+      discountType: (json['discountType'] as String?) ?? 'percentage',
+      discountValue: (json['discountValue'] as num?)?.toDouble() ?? 0,
+      validUntil: validUntil,
+      redeemedAt:
+          redeemedRaw != null ? DateTime.tryParse(redeemedRaw)?.toLocal() : null,
+      promoActive: true,
+    );
+  }
 }

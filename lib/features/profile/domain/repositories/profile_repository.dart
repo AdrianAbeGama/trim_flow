@@ -34,6 +34,19 @@ class ProfileUpdateInput {
   });
 }
 
+/// Resultado de `get_my_reservations`: proximas + historial en una sola llamada.
+class MyReservationsResult {
+  final List<Reservation> upcoming;
+  final List<PastAppointment> recent;
+  final bool recentHasMore;
+
+  const MyReservationsResult({
+    this.upcoming = const [],
+    this.recent = const [],
+    this.recentHasMore = false,
+  });
+}
+
 abstract class ProfileRepository {
   Future<ProfileLoadResult?> loadCustomerProfile({
     required String authUserId,
@@ -51,29 +64,18 @@ abstract class ProfileRepository {
     required ProfileUpdateInput input,
   });
 
-  /// Datos personales (nombre, WhatsApp, cumpleanos) ya completados por el
-  /// usuario en CUALQUIER barberia. Sirve para reutilizarlos al entrar a una
-  /// nueva barberia sin volver a pedir el onboarding. null si no hay ninguno.
-  Future<ProfileUpdateInput?> loadKnownCustomerInfo({
-    required String authUserId,
-  });
-
   Future<void> updateStaffProfile({
     required String authUserId,
     required String? tenantId,
     required ProfileUpdateInput input,
   });
 
-  Future<List<Reservation>> loadActiveReservations({
-    required String customerId,
-  });
-
-  Future<List<PastAppointment>> loadAppointmentHistory({
-    required String customerId,
-    int limit = 50,
+  /// Citas del cliente (proximas + historial) via RPC get_my_reservations.
+  Future<MyReservationsResult> loadMyReservations({
+    required String tenantId,
   });
 
   Future<List<CustomerCoupon>> loadCustomerCoupons({
-    required String customerId,
+    required String tenantId,
   });
 }
