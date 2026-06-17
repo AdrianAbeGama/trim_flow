@@ -150,8 +150,8 @@ class HomeServicesGrid extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             image: s['img']!.isNotEmpty ? DecorationImage(
               image: s['img']!.startsWith('http')
-                  ? CachedNetworkImageProvider(s['img']!)
-                  : (s['img']!.startsWith('assets/') 
+                  ? ResizeImage(CachedNetworkImageProvider(s['img']!), width: 480)
+                  : (s['img']!.startsWith('assets/')
                       ? AssetImage(s['img']!) as ImageProvider
                       : FileImage(File(s['img']!))),
               fit: BoxFit.cover,

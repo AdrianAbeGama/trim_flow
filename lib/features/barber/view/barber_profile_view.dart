@@ -22,7 +22,9 @@ import 'package:trim_flow/features/barber/orders/barber_orders_view.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_avatar_sheet.dart';
-import 'package:trim_flow/features/barber/view/widgets/barber_roles_section.dart';
+// OCULTO por ahora (a pedido del socio): seccion "Roles y permisos". El archivo
+// se conserva; reactivar descomentando este import y el sliver de mas abajo.
+// import 'package:trim_flow/features/barber/view/widgets/barber_roles_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_header.dart';
@@ -367,10 +369,16 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                   SliverToBoxAdapter(
                     child: BarberAdminSection(tenantId: user.tenantId),
                   ),
-                if (isAdmin)
-                  SliverToBoxAdapter(
-                    child: BarberRolesSection(tenantId: user.tenantId),
-                  ),
+                // OCULTO (a pedido del socio, por ahora): la gestion "Roles y
+                // permisos" no se muestra. No se elimina: el codigo queda en
+                // barber_roles_section.dart / roles_permissions_view.dart /
+                // permissions_store.dart. Con la seccion oculta, preview queda
+                // null y PermissionsStore.can() devuelve true (admin ve todo),
+                // asi que nada mas se rompe. Para reactivarla, descomentar:
+                // if (isAdmin)
+                //   SliverToBoxAdapter(
+                //     child: BarberRolesSection(tenantId: user.tenantId),
+                //   ),
                 BarberProfilePersonalData(
                   user: user,
                   onTap: () => _editProfile(user),

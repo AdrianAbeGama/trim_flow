@@ -1004,14 +1004,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
-  logger:
-    dependency: "direct main"
-    description:
-      name: logger
-      sha256: "25aee487596a6257655a1e091ec2ae66bc30e7af663592cc3a27e6591e05035c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.7.0"
   logging:
     dependency: transitive
     description:
@@ -1084,14 +1076,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.6"
-  navigator_resizable:
-    dependency: transitive
-    description:
-      name: navigator_resizable
-      sha256: d1f58a264b9995234561043904ec59623d4b69446a41548c311b03f1ed800dd5
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.2"
   nested:
     dependency: transitive
     description:
@@ -1356,14 +1340,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
-  reorderable_grid_view:
-    dependency: "direct main"
-    description:
-      name: reorderable_grid_view
-      sha256: e36c6229a97105a10c79e15ab4b9b14ee9f6c488574ff2be9e858c82af47cda6
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.8"
   retry:
     dependency: transitive
     description:
@@ -1489,14 +1465,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  smooth_sheets:
-    dependency: "direct main"
-    description:
-      name: smooth_sheets
-      sha256: "7c9ad593964802f59a2d5b0ca5e3bc03fa8d429b2d76c82bb3cce90f0a2e0079"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   source_gen:
     dependency: transitive
     description:
@@ -1649,14 +1617,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
-  ticket_widget:
-    dependency: "direct main"
-    description:
-      name: ticket_widget
-      sha256: "82cfcd2296ea83b47ec474a2e55c64ac8cdfc3058ec08f079b2d05e598bdf137"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.2"
   timezone:
     dependency: "direct main"
     description:

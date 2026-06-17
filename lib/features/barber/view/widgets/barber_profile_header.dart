@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/image_cache_size.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_primitives.dart';
 
@@ -216,6 +217,7 @@ class _AvatarRingState extends State<_AvatarRing> {
                 : CachedNetworkImage(
                     imageUrl: widget.photoUrl,
                     fit: BoxFit.cover,
+                    memCacheWidth: targetCacheWidth(context, 48),
                     errorWidget: (_, _, _) => _fallback(),
                     placeholder: (_, _) => _fallback(),
                   ),

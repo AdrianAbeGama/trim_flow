@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,7 +20,7 @@ const Color _kBackground = Color(0xFF070707);
 // Marca TrimFlow universal: gris titanio premium (no dorado).
 // Si el tenant tiene branding propio, animamos hacia su accent al resolverse.
 const Color _kBrandAccent = Color(0xFFB8BCBF);
-const int _kMinimumSplashMs = 1800;
+const int _kMinimumSplashMs = 800;
 const Duration _kAccentTransitionDuration = Duration(milliseconds: 700);
 
 class LoadingApp extends StatefulWidget {
@@ -108,23 +110,9 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
         ).timeout(const Duration(seconds: 4), onTimeout: () => profileBloc.state);
       }
 
-      // Notificaciones y timezones son opcionales: si fallan (icono ausente,
-      // permisos, plataforma), no deben tumbar el arranque de la app.
-      try {
-        const initializationSettingsAndroid =
-            AndroidInitializationSettings('@drawable/ic_stat_trimflow');
-        const initializationSettingsIOS = DarwinInitializationSettings();
-        const initializationSettings = InitializationSettings(
-          android: initializationSettingsAndroid,
-          iOS: initializationSettingsIOS,
-        );
-        await flutterLocalNotificationsPlugin.initialize(
-          settings: initializationSettings,
-        );
-        tz.initializeTimeZones();
-      } catch (e) {
-        debugPrint('Notifications init skipped: $e');
-      }
+      // Notificaciones y timezones no se necesitan en el primer frame; se
+      // inicializan en segundo plano para que el home aparezca antes.
+      unawaited(_initNotificationsAndTz());
 
       final elapsed = DateTime.now().difference(startTime).inMilliseconds;
       final remaining = _kMinimumSplashMs - elapsed;
@@ -149,6 +137,26 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
         _hasError = true;
         _errorMessage = _humanizeError(e);
       });
+    }
+  }
+
+  /// Inicializa notificaciones y zonas horarias fuera del camino critico del
+  /// primer frame. Opcional: si falla no debe afectar el arranque.
+  Future<void> _initNotificationsAndTz() async {
+    try {
+      const initializationSettingsAndroid =
+          AndroidInitializationSettings('@drawable/ic_stat_trimflow');
+      const initializationSettingsIOS = DarwinInitializationSettings();
+      const initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
+      await flutterLocalNotificationsPlugin.initialize(
+        settings: initializationSettings,
+      );
+      tz.initializeTimeZones();
+    } catch (e) {
+      debugPrint('Notifications init skipped: $e');
     }
   }
 

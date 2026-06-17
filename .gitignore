@@ -46,3 +46,6 @@ app.*.map.json
 
 # Flavor configuration (Supabase keys & flavor flags)
 env/
+
+# Reportes de bug locales
+bugreport-*.zip

@@ -105,6 +105,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
         loadCoupons: (e) async {
           final center = state.reservation.center;
           if (center == null) return;
+          // Ya cargados: no re-pedir (evita una RPC duplicada al entrar a fase 5).
+          if (state.availableCoupons.isNotEmpty) return;
           try {
             final coupons =
                 await _repository.fetchUsableCoupons(tenantId: center.tenantId);

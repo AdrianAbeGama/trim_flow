@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/image_cache_size.dart';
 
 /// Primitivos premium compartidos por todas las features (galería, productos).
 /// Centralizado para evitar copiar Pressable, SmartImage, Pill, etc.
@@ -106,31 +107,41 @@ class PremiumSmartImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (path.isEmpty) return _fallback();
-    if (isLocalAsset && path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder: (_, _, _) => _fallback(),
-      );
-    }
-    if (path.startsWith('http')) {
-      return CachedNetworkImage(
-        imageUrl: path,
-        fit: fit,
-        width: width,
-        height: height,
-        errorWidget: (_, _, _) => _fallback(),
-        placeholder: (_, _) => _fallback(),
-      );
-    }
-    return Image.file(
-      File(path),
-      fit: fit,
-      width: width,
-      height: height,
-      errorBuilder: (_, _, _) => _fallback(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final logicalW =
+            width ?? (constraints.maxWidth.isFinite ? constraints.maxWidth : null);
+        final cacheW = targetCacheWidth(context, logicalW);
+        if (isLocalAsset && path.startsWith('assets/')) {
+          return Image.asset(
+            path,
+            fit: fit,
+            width: width,
+            height: height,
+            cacheWidth: cacheW,
+            errorBuilder: (_, _, _) => _fallback(),
+          );
+        }
+        if (path.startsWith('http')) {
+          return CachedNetworkImage(
+            imageUrl: path,
+            fit: fit,
+            width: width,
+            height: height,
+            memCacheWidth: cacheW,
+            errorWidget: (_, _, _) => _fallback(),
+            placeholder: (_, _) => _fallback(),
+          );
+        }
+        return Image.file(
+          File(path),
+          fit: fit,
+          width: width,
+          height: height,
+          cacheWidth: cacheW,
+          errorBuilder: (_, _, _) => _fallback(),
+        );
+      },
     );
   }
 }
