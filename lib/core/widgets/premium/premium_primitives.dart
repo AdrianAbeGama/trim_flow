@@ -185,6 +185,8 @@ class PremiumConfirmDelete {
     BuildContext context, {
     required String title,
     required String message,
+    String confirmLabel = 'ELIMINAR',
+    IconData icon = Icons.warning_amber_rounded,
   }) async {
     const danger = Color(0xFFFF8A95);
     final res = await showModalBottomSheet<bool>(
@@ -210,8 +212,8 @@ class PremiumConfirmDelete {
                     color: danger.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.warning_amber_rounded,
+                  child: Icon(
+                    icon,
                     color: danger,
                     size: 20,
                   ),
@@ -278,7 +280,7 @@ class PremiumConfirmDelete {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        'ELIMINAR',
+                        confirmLabel,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,

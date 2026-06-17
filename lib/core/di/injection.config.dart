@@ -34,8 +34,8 @@ import 'package:trim_flow/features/catalog/domain/repositories/catalog_repositor
     as _i812;
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart'
     as _i206;
-import 'package:trim_flow/features/gallery/data/repositories/gallery_hive_repository.dart'
-    as _i599;
+import 'package:trim_flow/features/gallery/data/repositories/gallery_supabase_repository.dart'
+    as _i1053;
 import 'package:trim_flow/features/gallery/domain/repositories/gallery_repository.dart'
     as _i585;
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart'
@@ -70,15 +70,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i454.SupabaseClient>(() => supabaseModule.supabaseClient);
     gh.lazySingleton<_i882.AuthService>(() => _i882.AuthService());
     gh.lazySingleton<_i272.TenantThemeBloc>(() => _i272.TenantThemeBloc());
-    gh.lazySingleton<_i585.GalleryRepository>(
-      () => _i599.GalleryHiveRepository(),
-    );
     gh.lazySingleton<_i662.HomeRepository>(() => _i979.HomeRepositoryImpl());
     gh.lazySingleton<_i480.AppModeBloc>(
       () => _i480.AppModeBloc(gh<_i882.AuthService>()),
-    );
-    gh.factory<_i499.GalleryBloc>(
-      () => _i499.GalleryBloc(gh<_i585.GalleryRepository>()),
     );
     gh.lazySingleton<_i91.AdminRepository>(
       () => _i981.AdminSupabaseRepository(gh<_i454.SupabaseClient>()),
@@ -112,6 +106,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i480.AppModeBloc>(),
         gh<_i272.TenantThemeBloc>(),
       ),
+    );
+    gh.lazySingleton<_i585.GalleryRepository>(
+      () => _i1053.GallerySupabaseRepository(
+        gh<_i454.SupabaseClient>(),
+        gh<_i272.TenantThemeBloc>(),
+        gh<_i812.CatalogRepository>(),
+      ),
+    );
+    gh.factory<_i499.GalleryBloc>(
+      () => _i499.GalleryBloc(gh<_i585.GalleryRepository>()),
     );
     gh.factory<_i316.ReservationBloc>(
       () => _i316.ReservationBloc(gh<_i224.ReservationRepository>()),

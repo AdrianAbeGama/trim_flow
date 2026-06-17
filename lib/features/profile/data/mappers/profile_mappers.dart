@@ -193,10 +193,30 @@ class ReservationMapper {
     final serviceName = (json['serviceName'] as String?) ?? 'Servicio';
     final barberName = (json['barberName'] as String?) ?? 'Barbero';
 
+    // Sede: el RPC puede no enviarla todavia. Si llega (branchName), poblamos
+    // el center para que la pantalla de cita muestre la sede y el mapa.
+    final branchName = json['branchName'] as String?;
+    var center = (branchName == null || branchName.trim().isEmpty)
+        ? null
+        : BarberCenter(
+            tenantId: tenantId,
+            id: (json['branchId'] as String?) ?? '',
+            name: branchName,
+            location: (json['branchAddress'] as String?) ?? '',
+          );
+    // TEMP DEMO: sede de ejemplo para previsualizar el mapa mientras el RPC
+    // get_my_reservations aun no envia la sede. QUITAR antes de produccion.
+    center ??= const BarberCenter(
+      tenantId: '',
+      id: 'demo',
+      name: 'Sede Centro',
+      location: 'Av. Larco 123, Miraflores, Lima',
+    );
+
     return Reservation(
       tenantId: tenantId,
       id: json['reservationId'] as String?,
-      center: null,
+      center: center,
       services: [
         Service(
           tenantId: tenantId,

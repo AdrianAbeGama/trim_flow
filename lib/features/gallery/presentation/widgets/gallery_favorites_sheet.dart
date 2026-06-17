@@ -220,7 +220,7 @@ class _CompactList extends StatelessWidget {
                 IconButton(
                   padding: EdgeInsets.zero,
                   visualDensity: VisualDensity.compact,
-                  icon: Icon(Icons.star_rounded, color: context.primaryGold, size: 22),
+                  icon: const Icon(Icons.star_rounded, color: Color(0xFFFFC93C), size: 22),
                   onPressed: () {
                     if (itemId != null) {
                       HapticFeedback.lightImpact();
@@ -460,7 +460,7 @@ class GalleryFavoritesActionIcon extends StatelessWidget {
             child: Icon(
               Icons.star_rounded,
               size: 17,
-              color: count > 0 ? context.primaryGold : Colors.white.withValues(alpha: 0.5),
+              color: count > 0 ? const Color(0xFFFFC93C) : Colors.white.withValues(alpha: 0.5),
             ),
           ),
         ),

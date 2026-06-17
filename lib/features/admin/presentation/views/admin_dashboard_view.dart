@@ -5,6 +5,7 @@ import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/admin/domain/models/admin_reports.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_visuals.dart';
 
 enum _DashPeriod { today, week, month }
 
@@ -112,69 +113,62 @@ class _DashboardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxComm = data.byBarber
+        .fold<double>(0, (m, b) => b.commission > m ? b.commission : m);
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: AdminStatTile(
-                label: 'Ingresos',
-                value: adminMoney(data.revenueTotal),
-                highlight: true,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AdminStatTile(
-                label: 'Cortes',
-                value: '${data.serviceCount}',
-              ),
-            ),
+        AdminHeroMetric(
+          label: 'Ingresos',
+          value: adminMoney(data.revenueTotal),
+          caption:
+              '${data.serviceCount} ${data.serviceCount == 1 ? 'corte' : 'cortes'} en el periodo',
+        ),
+        const SizedBox(height: 22),
+        AdminStatStrip(
+          stats: [
+            AdminStat(
+                label: 'Comisiones', value: adminMoney(data.commissionTotal)),
+            AdminStat(
+                label: 'Descuentos', value: adminMoney(data.discountTotal)),
+            AdminStat(label: 'Cortes', value: '${data.serviceCount}'),
           ],
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: AdminStatTile(
-                label: 'Comisiones',
-                value: adminMoney(data.commissionTotal),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AdminStatTile(
-                label: 'Descuentos',
-                value: adminMoney(data.discountTotal),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 22),
+        const AdminHairline(),
+        const SizedBox(height: 20),
         const PremiumSectionLabel('Por método de pago'),
-        const SizedBox(height: 12),
-        if (data.byPayment.isEmpty)
-          const AdminEmptyHint(text: 'Sin movimientos en este periodo')
-        else
-          for (final m in data.byPayment)
-            AdminBreakdownRow(
-              title: m.label,
-              amount: adminMoney(m.total),
-              note: '${m.count} ${m.count == 1 ? 'cobro' : 'cobros'}',
-            ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+        AdminSeriesChart(
+          segments: [
+            for (final m in data.byPayment)
+              ChartSeg(
+                label: m.label,
+                value: m.total,
+                color: adminPaymentColor(m.method),
+                note: '${m.count}',
+              ),
+          ],
+          formatValue: adminMoney,
+          centerTop: 'COBROS',
+        ),
+        const SizedBox(height: 20),
+        const AdminHairline(),
+        const SizedBox(height: 20),
         const PremiumSectionLabel('Por barbero'),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         if (data.byBarber.isEmpty)
           const AdminEmptyHint(text: 'Sin cortes en este periodo')
         else
           for (final b in data.byBarber)
-            AdminBreakdownRow(
+            AdminBarRow(
+              leading: AdminInitialAvatar(name: b.barberName),
               title: b.barberName,
               amount: adminMoney(b.commission),
-              note: '${b.serviceCount} ${b.serviceCount == 1 ? 'corte' : 'cortes'}',
+              fraction: maxComm <= 0 ? 0 : b.commission / maxComm,
+              note:
+                  '${b.serviceCount} ${b.serviceCount == 1 ? 'corte' : 'cortes'}',
             ),
       ],
     );

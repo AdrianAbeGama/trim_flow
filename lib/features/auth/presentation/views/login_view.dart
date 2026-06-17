@@ -15,7 +15,7 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.backgroundBlack,
+      backgroundColor: const Color(0xFF050505),
       body: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -23,19 +23,11 @@ class LoginView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(flex: 3),
-            
-            // Logo de marca TrimFlow
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: context.primaryGold.withValues(alpha: 0.2)),
-              ),
-              child: TrimflowLogo(size: 64, color: context.primaryGold),
-            )
-                .animate()
-                .fadeIn(duration: 500.ms)
-                .scale(begin: const Offset(0.85, 0.85), end: const Offset(1, 1), duration: 550.ms, curve: Curves.easeOutBack),
+
+            TrimflowLogo(size: 104, color: context.primaryGold)
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scaleXY(begin: 0.95, end: 1.05, duration: 1600.ms, curve: Curves.easeInOut)
+                .shimmer(delay: 400.ms, duration: 1900.ms, color: context.primaryGold.withValues(alpha: 0.6)),
 
             const SizedBox(height: 40),
 

@@ -42,6 +42,27 @@ class BarberOrdersStore {
     );
   }
 
+  /// Retrocede el estado un paso (por si el encargado se equivoca). Desde
+  /// cancelado, reactiva a pendiente de pago.
+  void revert(String id) {
+    final i = _orders.indexWhere((o) => o.id == id);
+    if (i == -1) return;
+    final o = _orders[i];
+    final prev = switch (o.status) {
+      OrderStatus.completed => OrderStatus.ready,
+      OrderStatus.ready => OrderStatus.paid,
+      OrderStatus.paid => OrderStatus.pendingPayment,
+      OrderStatus.cancelled => OrderStatus.pendingPayment,
+      _ => o.status,
+    };
+    _orders[i] = o.copyWith(
+      status: prev,
+      completedAt: prev == OrderStatus.completed ? o.completedAt : null,
+      paidAt: prev == OrderStatus.pendingPayment ? null : o.paidAt,
+      cancellationReason: null,
+    );
+  }
+
   void cancel(String id, String reason) {
     final i = _orders.indexWhere((o) => o.id == id);
     if (i == -1) return;

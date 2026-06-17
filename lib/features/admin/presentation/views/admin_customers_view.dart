@@ -9,6 +9,7 @@ import 'package:trim_flow/features/admin/domain/models/admin_customer.dart';
 import 'package:trim_flow/features/admin/domain/models/admin_promotion.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_visuals.dart';
 
 class AdminCustomersView extends StatefulWidget {
   const AdminCustomersView({super.key, required this.tenantId});
@@ -162,74 +163,253 @@ class _AdminCustomersViewState extends State<AdminCustomersView> {
     );
   }
 
+  String? _tagFor(AdminCustomer c) {
+    if (c.points >= 100) return 'VIP';
+    if (c.lastVisit == null) return 'NUEVO';
+    if (DateTime.now().difference(c.lastVisit!).inDays >= 30) return 'INACTIVO';
+    return null;
+  }
+
+  String _lastVisitLabel(AdminCustomer c) {
+    final lv = c.lastVisit;
+    if (lv == null) return 'Sin visitas aún';
+    final d = DateTime.now().difference(lv).inDays;
+    if (d <= 0) return 'Visitó hoy';
+    if (d == 1) return 'Visitó ayer';
+    if (d < 30) return 'Visitó hace $d días';
+    final months = (d / 30).floor();
+    return 'Visitó hace $months ${months == 1 ? 'mes' : 'meses'}';
+  }
+
+  Widget _tagChip(String tag) {
+    final c = tag == 'VIP'
+        ? context.primaryGold
+        : tag == 'INACTIVO'
+            ? const Color(0xFFCF6679)
+            : Colors.white.withValues(alpha: 0.55);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: c.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        tag,
+        style: GoogleFonts.inter(
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.8,
+          color: c,
+        ),
+      ),
+    );
+  }
+
   Widget _customerCard(AdminCustomer c) {
     final gold = context.primaryGold;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Row(
+    final tag = _tagFor(c);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  c.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.2,
+          PremiumPressable(
+            onTap: () => _openActions(c),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  AdminInitialAvatar(name: c.name, size: 42),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                c.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ),
+                            if (tag != null) ...[
+                              const SizedBox(width: 8),
+                              _tagChip(tag),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Icon(Icons.stars_rounded, size: 13, color: gold),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${c.points} pts',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: gold,
+                              ),
+                            ),
+                            Text(
+                              '  ·  ',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                _lastVisitLabel(c),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${c.points} ${c.points == 1 ? 'punto' : 'puntos'}'
-                  '${c.whatsapp.isNotEmpty ? '  ·  ${c.whatsapp}' : ''}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: gold,
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white.withValues(alpha: 0.25),
+                    size: 20,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          _iconBtn(Icons.card_giftcard_rounded, () => _giveCoupon(c)),
-          const SizedBox(width: 6),
-          _iconBtn(Icons.stars_rounded, () => _adjustPoints(c)),
+          const AdminHairline(),
         ],
       ),
     );
   }
 
-  Widget _iconBtn(IconData icon, VoidCallback onTap) {
+  void _openActions(AdminCustomer c) {
+    HapticFeedback.lightImpact();
+    showAdminSheet<void>(
+      context,
+      AdminSheetScaffold(
+        title: c.name,
+        scrollable: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${c.points} ${c.points == 1 ? 'punto' : 'puntos'}  ·  ${_lastVisitLabel(c)}',
+              style: GoogleFonts.inter(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.45),
+              ),
+            ),
+            const SizedBox(height: 10),
+            _ActionTile(
+              icon: Icons.card_giftcard_rounded,
+              title: 'Dar cupón',
+              subtitle: 'Enviar una promoción como cupón',
+              onTap: () {
+                Navigator.pop(context);
+                _giveCoupon(c);
+              },
+            ),
+            const AdminHairline(),
+            _ActionTile(
+              icon: Icons.stars_rounded,
+              title: 'Ajustar puntos',
+              subtitle: 'Sumar o quitar puntos de fidelidad',
+              onTap: () {
+                Navigator.pop(context);
+                _adjustPoints(c);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     final gold = context.primaryGold;
     return PremiumPressable(
-      pressedScale: 0.85,
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Container(
-        width: 38,
-        height: 38,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: gold.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(11),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: gold.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: gold, size: 19),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.45),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white.withValues(alpha: 0.25),
+              size: 20,
+            ),
+          ],
         ),
-        child: Icon(icon, color: gold, size: 18),
       ),
     );
   }

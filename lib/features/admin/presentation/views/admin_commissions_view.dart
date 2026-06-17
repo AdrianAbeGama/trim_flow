@@ -8,6 +8,7 @@ import 'package:trim_flow/features/admin/domain/models/admin_reports.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
 import 'package:trim_flow/features/admin/presentation/views/admin_commission_config_view.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_visuals.dart';
 
 enum _Period { today, week, month }
 
@@ -90,38 +91,36 @@ class _AdminCommissionsViewState extends State<AdminCommissionsView> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: PremiumPressable(
-                onTap: _openConfig,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF111111),
-                    borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.tune_rounded,
-                          color: context.primaryGold, size: 18),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Configurar pago por barbero',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Column(
+                children: [
+                  const AdminHairline(),
+                  PremiumPressable(
+                    onTap: _openConfig,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      child: Row(
+                        children: [
+                          Icon(Icons.tune_rounded,
+                              color: context.primaryGold, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Configurar pago por barbero',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          Icon(Icons.chevron_right_rounded,
+                              color: context.primaryGold, size: 20),
+                        ],
                       ),
-                      Icon(Icons.chevron_right_rounded,
-                          color: context.primaryGold, size: 20),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             Expanded(
@@ -161,57 +160,53 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: AdminStatTile(
-                label: 'Comisiones',
-                value: adminMoney(data.commissionTotal),
-                highlight: true,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AdminStatTile(
-                label: 'Cortes',
-                value: '${data.serviceCount}',
-              ),
-            ),
-          ],
+        AdminHeroMetric(
+          label: 'Comisiones del periodo',
+          value: adminMoney(data.commissionTotal),
+          caption:
+              '${data.serviceCount} ${data.serviceCount == 1 ? 'corte' : 'cortes'} · ${adminMoney(data.revenueTotal)} en ventas',
         ),
-        const SizedBox(height: 12),
-        AdminStatTile(
-          label: 'Ingresos del periodo',
-          value: adminMoney(data.revenueTotal),
-        ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 22),
+        const AdminHairline(),
+        const SizedBox(height: 20),
         const PremiumSectionLabel('Por barbero'),
-        const SizedBox(height: 12),
-        if (data.byBarber.isEmpty)
-          const AdminEmptyHint(text: 'Sin comisiones en este periodo')
-        else
-          for (final b in data.byBarber)
-            AdminBreakdownRow(
-              title: b.barberName,
-              amount: adminMoney(b.commission),
-              note:
-                  '${b.serviceCount} ${b.serviceCount == 1 ? 'corte' : 'cortes'} · ${adminMoney(b.revenue)}',
-            ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
+        AdminSeriesChart(
+          segments: [
+            for (var i = 0; i < data.byBarber.length; i++)
+              ChartSeg(
+                label: data.byBarber[i].barberName,
+                value: data.byBarber[i].commission,
+                color: adminPalette[i % adminPalette.length],
+                note:
+                    '${data.byBarber[i].serviceCount} ${data.byBarber[i].serviceCount == 1 ? 'corte' : 'cortes'}',
+              ),
+          ],
+          formatValue: adminMoney,
+          centerTop: 'COMISIÓN',
+        ),
+        const SizedBox(height: 20),
+        const AdminHairline(),
+        const SizedBox(height: 20),
         const PremiumSectionLabel('Por servicio'),
-        const SizedBox(height: 12),
-        if (data.byService.isEmpty)
-          const AdminEmptyHint(text: 'Sin servicios en este periodo')
-        else
-          for (final s in data.byService)
-            AdminBreakdownRow(
-              title: s.serviceName,
-              amount: adminMoney(s.commission),
-              note: '${s.serviceCount} ${s.serviceCount == 1 ? 'corte' : 'cortes'}',
-            ),
+        const SizedBox(height: 14),
+        AdminSeriesChart(
+          segments: [
+            for (var i = 0; i < data.byService.length; i++)
+              ChartSeg(
+                label: data.byService[i].serviceName,
+                value: data.byService[i].commission,
+                color: adminPalette[(i + 3) % adminPalette.length],
+                note:
+                    '${data.byService[i].serviceCount} ${data.byService[i].serviceCount == 1 ? 'corte' : 'cortes'}',
+              ),
+          ],
+          formatValue: adminMoney,
+          centerTop: 'COMISIÓN',
+        ),
       ],
     );
   }

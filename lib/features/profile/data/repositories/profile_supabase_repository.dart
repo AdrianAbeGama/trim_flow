@@ -90,16 +90,27 @@ class ProfileSupabaseRepository implements ProfileRepository {
       );
     }
     final fullName = '${input.firstName} ${input.lastName}'.trim();
-    // Mutacion via RPC SECURITY DEFINER (ADR-0015): no escribimos la tabla directo.
-    await _client.rpc(
-      'bootstrap_customer_self',
-      params: {
+    final whatsapp = input.phone.isEmpty ? null : '+51${input.phone}';
+    final birth = input.birthDate.isEmpty ? null : input.birthDate;
+    // Editar via update_customer_profile (contrato B2C: protege campos sensibles
+    // y hace inmutable la fecha de nacimiento). Si aun no hay ficha en este
+    // tenant, la crea con bootstrap_customer_self (tenant-scoped). ADR-0015.
+    try {
+      await _client.rpc('update_customer_profile', params: {
+        'p_full_name': fullName,
+        'p_whatsapp': whatsapp,
+        'p_email': null,
+        'p_birth_date': birth,
+      });
+    } on PostgrestException catch (e) {
+      if (!e.message.contains('customer_not_found')) rethrow;
+      await _client.rpc('bootstrap_customer_self', params: {
         'p_tenant_id': tenantId,
         'p_full_name': fullName,
-        'p_whatsapp': input.phone.isEmpty ? null : '+51${input.phone}',
-        'p_birth_date': input.birthDate.isEmpty ? null : input.birthDate,
-      },
-    );
+        'p_whatsapp': whatsapp,
+        'p_birth_date': birth,
+      });
+    }
   }
 
   @override

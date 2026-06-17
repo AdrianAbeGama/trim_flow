@@ -10,10 +10,6 @@ class CatalogMappers {
     required List<dynamic> serviceRows,
     required List<dynamic> barberRows,
   }) {
-    final centers = branchRows
-        .whereType<Map<String, dynamic>>()
-        .map((r) => _center(r, tenantId))
-        .toList();
     final services = serviceRows
         .whereType<Map<String, dynamic>>()
         .map((r) => _service(r, tenantId))
@@ -21,6 +17,15 @@ class CatalogMappers {
     final team = barberRows
         .whereType<Map<String, dynamic>>()
         .map((r) => _teamMember(r, tenantId))
+        .toList();
+    // Solo sedes con al menos un barbero: una sede sin barberos no es reservable
+    // (si no, el paso de barbero/hora se queda sin opciones y nunca carga).
+    final branchesWithBarbers =
+        team.map((m) => m.branchId).whereType<String>().toSet();
+    final centers = branchRows
+        .whereType<Map<String, dynamic>>()
+        .map((r) => _center(r, tenantId))
+        .where((c) => branchesWithBarbers.contains(c.id))
         .toList();
     return TenantCatalog(centers: centers, services: services, team: team);
   }

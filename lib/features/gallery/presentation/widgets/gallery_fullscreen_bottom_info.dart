@@ -9,21 +9,17 @@ import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart';
 
-/// Info card del visor a pantalla completa — diseño magazine.
-/// Tag categoría grande en top, nombre BIG con animación de entrada,
-/// chips inline de stats (barbero · destacado), descripción y CTAs flotantes.
+/// Info inferior del visor — limpia y premium. Etiqueta de servicio que resalta,
+/// nombre del barbero grande, especialidad fina, y un botón Reservar a ancho
+/// completo (color del tenant). El destacado vive en la esquina superior.
 class GalleryFullscreenBottomInfo extends StatelessWidget {
   const GalleryFullscreenBottomInfo({
     super.key,
     required this.item,
-    required this.isBarberMode,
-    required this.onToggleFav,
     required this.onReserve,
   });
 
   final GalleryItem item;
-  final bool isBarberMode;
-  final VoidCallback onToggleFav;
   final VoidCallback onReserve;
 
   @override
@@ -36,246 +32,131 @@ class GalleryFullscreenBottomInfo extends StatelessWidget {
           (it) => it.id == item.id,
           orElse: () => item,
         );
-        return _MagazineLayout(
-          item: fresh,
-          gold: gold,
-          isBarberMode: isBarberMode,
-          starYellow: gold,
-          onToggleFav: onToggleFav,
-          onReserve: onReserve,
-        );
+        return _Layout(item: fresh, gold: gold, onReserve: onReserve);
       },
     );
   }
 }
 
-class _MagazineLayout extends StatelessWidget {
-  const _MagazineLayout({
+class _Layout extends StatelessWidget {
+  const _Layout({
     required this.item,
     required this.gold,
-    required this.isBarberMode,
-    required this.starYellow,
-    required this.onToggleFav,
     required this.onReserve,
   });
 
   final GalleryItem item;
   final Color gold;
-  final bool isBarberMode;
-  final Color starYellow;
-  final VoidCallback onToggleFav;
   final VoidCallback onReserve;
 
   @override
   Widget build(BuildContext context) {
-    final specialty = (item.barberSpecialty ?? 'Estilista profesional').toUpperCase();
+    final onAccent = premiumOnAccent(gold);
+    final specialty = (item.barberSpecialty ?? '').trim();
+    final name = item.barberFullName ?? 'Estilista';
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Eyebrow (especialidad) + estrella fav.
         Row(
           children: [
-            Expanded(
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+              decoration: BoxDecoration(
+                color: gold,
+                borderRadius: BorderRadius.circular(999),
+              ),
               child: Text(
-                specialty,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                item.categoryLabel.toUpperCase(),
                 style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: gold,
-                  letterSpacing: 2.4,
-                  shadows: const [Shadow(blurRadius: 4, color: Color(0xAA000000))],
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  color: onAccent,
+                  letterSpacing: 1.3,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            _CircleAction(
-              icon: item.isFeatured ? Icons.star_rounded : Icons.star_outline_rounded,
-              color: item.isFeatured ? Colors.black : starYellow,
-              bg: item.isFeatured ? starYellow : starYellow.withValues(alpha: 0.10),
-              border: starYellow,
-              onTap: onToggleFav,
-            ),
-          ],
-        ).animate().fadeIn(delay: 60.ms, duration: 350.ms),
-        const SizedBox(height: 10),
-
-        // Nombre del estilista BIG.
-        _BigName(name: item.barberFullName ?? 'Estilista'),
-        const SizedBox(height: 12),
-
-        // Línea de acento + destacado discreto.
-        Row(
-          children: [
-            Container(width: 28, height: 2, color: gold),
-            if (item.isFeatured) ...[
+            if (item.price != null) ...[
               const SizedBox(width: 10),
-              Icon(Icons.star_rounded, color: gold, size: 13),
-              const SizedBox(width: 5),
               Text(
-                'DESTACADO',
+                'S/ ${item.price! % 1 == 0 ? item.price!.toStringAsFixed(0) : item.price!.toStringAsFixed(2)}',
                 style: GoogleFonts.inter(
-                  fontSize: 9,
+                  fontSize: 15,
                   fontWeight: FontWeight.w900,
-                  color: gold,
-                  letterSpacing: 1.8,
-                  shadows: const [Shadow(blurRadius: 4, color: Color(0xAA000000))],
+                  color: Colors.white,
+                  shadows: const [Shadow(blurRadius: 6, color: Color(0xCC000000))],
                 ),
               ),
             ],
           ],
-        ).animate().fadeIn(delay: 220.ms, duration: 400.ms),
-        const SizedBox(height: 20),
-
-        // Reservar minimalista (color del tenant).
-        _ReserveMinimal(onTap: onReserve, accent: gold),
+        ).animate(key: ValueKey('tag-${item.imageUrl}')).fadeIn(duration: 320.ms),
+        const SizedBox(height: 14),
+        Text(
+          name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 30,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: -1.0,
+            height: 1.02,
+            shadows: const [Shadow(blurRadius: 8, color: Color(0xDD000000))],
+          ),
+        )
+            .animate(key: ValueKey('name-${item.imageUrl}'))
+            .fadeIn(delay: 80.ms, duration: 380.ms)
+            .slideY(begin: 0.3, end: 0, duration: 420.ms, curve: Curves.easeOutCubic),
+        if (specialty.isNotEmpty) ...[
+          const SizedBox(height: 7),
+          Text(
+            specialty,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withValues(alpha: 0.6),
+              shadows: const [Shadow(blurRadius: 4, color: Color(0xAA000000))],
+            ),
+          ).animate(key: ValueKey('spec-${item.imageUrl}')).fadeIn(
+              delay: 160.ms, duration: 380.ms),
+        ],
+        const SizedBox(height: 22),
+        _ReserveButton(gold: gold, onTap: onReserve),
       ],
     );
   }
 }
 
-/// Nombre BIG con animación letra por letra estilo magazine cover.
-class _BigName extends StatelessWidget {
-  const _BigName({required this.name});
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      name,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.inter(
-        fontSize: 30,
-        fontWeight: FontWeight.w900,
-        color: Colors.white,
-        letterSpacing: -1.0,
-        height: 1.0,
-        shadows: const [
-          Shadow(blurRadius: 8, color: Color(0xDD000000)),
-        ],
-      ),
-    )
-        .animate(key: ValueKey(name))
-        .fadeIn(delay: 140.ms, duration: 450.ms)
-        .slideY(
-          begin: 0.4,
-          end: 0,
-          delay: 140.ms,
-          duration: 500.ms,
-          curve: Curves.easeOutCubic,
-        );
-  }
-}
-
-/// Botón circular pequeño (fav, share).
-class _CircleAction extends StatefulWidget {
-  const _CircleAction({
-    required this.icon,
-    required this.color,
-    required this.bg,
-    required this.border,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final Color color;
-  final Color bg;
-  final Color border;
+class _ReserveButton extends StatelessWidget {
+  const _ReserveButton({required this.gold, required this.onTap});
+  final Color gold;
   final VoidCallback onTap;
 
   @override
-  State<_CircleAction> createState() => _CircleActionState();
-}
-
-class _CircleActionState extends State<_CircleAction> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: () {
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        scale: _pressed ? 0.85 : 1,
-        duration: const Duration(milliseconds: 140),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          width: 38, height: 38,
-          decoration: BoxDecoration(
-            color: widget.bg,
-            shape: BoxShape.circle,
-            border: Border.all(color: widget.border, width: 1.2),
-          ),
-          child: Icon(widget.icon, color: widget.color, size: 18),
-        ),
-      ),
-    );
-  }
-}
-
-/// Reservar minimalista — pill con el color del tenant (sin glow ni ruido).
-class _ReserveMinimal extends StatefulWidget {
-  const _ReserveMinimal({required this.onTap, required this.accent});
-  final VoidCallback onTap;
-  final Color accent;
-
-  @override
-  State<_ReserveMinimal> createState() => _ReserveMinimalState();
-}
-
-class _ReserveMinimalState extends State<_ReserveMinimal> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final fg = premiumOnAccent(widget.accent);
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
+    return PremiumPressable(
       onTap: () {
         HapticFeedback.mediumImpact();
-        widget.onTap();
+        onTap();
       },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1,
-        duration: const Duration(milliseconds: 140),
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: widget.accent,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(color: widget.accent.withValues(alpha: 0.3), blurRadius: 14, spreadRadius: 0.5),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.event_available_rounded, size: 17, color: fg),
-              const SizedBox(width: 8),
-              Text(
-                'RESERVAR CITA',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: fg,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
+      child: Container(
+        width: double.infinity,
+        height: 54,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: gold,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          'Reservar corte',
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: premiumOnAccent(gold),
+            letterSpacing: -0.2,
           ),
         ),
       ),

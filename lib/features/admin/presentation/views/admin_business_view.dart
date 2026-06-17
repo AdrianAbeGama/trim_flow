@@ -160,36 +160,29 @@ class _AdminBusinessViewState extends State<AdminBusinessView> {
               const SizedBox(height: 26),
               const PremiumSectionLabel('Recordatorio automático'),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 6, 10, 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF141414),
-                  borderRadius: BorderRadius.circular(14),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Avisar a clientes que no vienen hace tiempo',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Avisar a clientes que no vienen hace tiempo',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.3,
                       ),
                     ),
-                    Switch.adaptive(
-                      value: _reminder,
-                      activeThumbColor: gold,
-                      onChanged: (v) {
-                        HapticFeedback.lightImpact();
-                        setState(() => _reminder = v);
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 12),
+                  Switch.adaptive(
+                    value: _reminder,
+                    activeThumbColor: gold,
+                    onChanged: (v) {
+                      HapticFeedback.lightImpact();
+                      setState(() => _reminder = v);
+                    },
+                  ),
+                ],
               ),
               if (_reminder) ...[
                 const SizedBox(height: 12),

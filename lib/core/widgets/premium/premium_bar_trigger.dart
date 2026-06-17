@@ -29,7 +29,7 @@ class PremiumBarTrigger extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [gold, Color.lerp(gold, Colors.black, 0.2)!],
           ),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
           boxShadow: [
             BoxShadow(

@@ -126,7 +126,7 @@ class _Header extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star_rounded, color: context.primaryGold, size: 13),
+                        const Icon(Icons.star_rounded, color: Color(0xFFFFC93C), size: 13),
                         const SizedBox(width: 5),
                         Text(
                           '$count ${count == 1 ? "DESTACADO" : "DESTACADOS"}',
@@ -386,7 +386,7 @@ class _RemoveFavButtonState extends State<_RemoveFavButton> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white.withValues(alpha: 0.45), width: 1.2),
           ),
-          child: Icon(Icons.star_rounded, size: 17, color: context.primaryGold),
+          child: const Icon(Icons.star_rounded, size: 17, color: Color(0xFFFFC93C)),
         ),
       ),
     );

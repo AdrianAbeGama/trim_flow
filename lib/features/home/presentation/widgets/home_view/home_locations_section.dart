@@ -16,7 +16,7 @@ class HomeLocationsSection extends StatelessWidget {
   const HomeLocationsSection({
     super.key,required this.content, required this.onReserve});
   final HomeContent content;
-  final VoidCallback? onReserve;
+  final void Function(String branch)? onReserve;
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +185,7 @@ class _LocationEditSheets {
 class _LocationCard extends StatefulWidget {
   const _LocationCard({required this.location, this.onReserve});
   final Map<String, String> location;
-  final VoidCallback? onReserve;
+  final void Function(String branch)? onReserve;
 
   @override
   State<_LocationCard> createState() => _LocationCardState();
@@ -328,7 +328,7 @@ class _LocationCardState extends State<_LocationCard> {
                           isPrimary: true,
                           onTap: () {
                             HapticFeedback.lightImpact();
-                            widget.onReserve?.call();
+                            widget.onReserve?.call(widget.location['label'] ?? '');
                           },
                         ),
                       ),

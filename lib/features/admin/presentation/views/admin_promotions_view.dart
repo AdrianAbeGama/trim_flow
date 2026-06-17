@@ -188,109 +188,273 @@ class _PromoCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onArchive;
 
+  ({String label, Color color}) _status(BuildContext context) {
+    final now = DateTime.now();
+    if (!promo.isActive) {
+      return (label: 'INACTIVA', color: Colors.white.withValues(alpha: 0.45));
+    }
+    if (promo.validUntil != null && promo.validUntil!.isBefore(now)) {
+      return (label: 'VENCIDA', color: const Color(0xFFCF6679));
+    }
+    if (promo.validFrom.isAfter(now)) {
+      return (label: 'PROGRAMADA', color: Colors.white.withValues(alpha: 0.6));
+    }
+    return (label: 'ACTIVA', color: context.primaryGold);
+  }
+
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
-    final onAccent = premiumOnAccent(gold);
     final until = promo.validUntil;
+    final status = _status(context);
+    final venceStr =
+        until == null ? null : DateFormat('dd/MM/yyyy').format(until.toLocal());
     return Opacity(
       opacity: promo.isActive ? 1 : 0.55,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: 12),
         child: PremiumPressable(
           onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF111111),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: gold,
-                    borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF17120C), Color(0xFF111111)],
                   ),
-                  child: Text(
-                    promo.discountLabel,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: onAccent,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: gold.withValues(alpha: 0.3)),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: SizedBox(
+                  height: 112,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        promo.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.2,
+                      SizedBox(
+                        width: 92,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              promo.discountLabel,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                color: gold,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'DESCUENTO',
+                              style: GoogleFonts.inter(
+                                color: gold.withValues(alpha: 0.6),
+                                fontSize: 7.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        '${promo.code}  ·  ${promo.triggerLabel}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: gold,
-                        ),
-                      ),
-                      if (until != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          'Vence ${DateFormat('dd/MM/yyyy').format(until.toLocal())}',
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withValues(alpha: 0.4),
+                      _PromoDashed(color: gold.withValues(alpha: 0.32)),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      promo.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _StatusPill(
+                                      label: status.label, color: status.color),
+                                  const SizedBox(width: 2),
+                                  PremiumPressable(
+                                    pressedScale: 0.85,
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      onArchive();
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.archive_outlined,
+                                        size: 16,
+                                        color:
+                                            Colors.white.withValues(alpha: 0.4),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Icon(Icons.bolt_rounded, size: 12, color: gold),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      promo.triggerLabel,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        color: gold,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  if (venceStr != null) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(Icons.schedule_rounded,
+                                        size: 11,
+                                        color: Colors.white
+                                            .withValues(alpha: 0.4)),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      venceStr,
+                                      style: GoogleFonts.inter(
+                                        color:
+                                            Colors.white.withValues(alpha: 0.45),
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: gold.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(9),
+                                  border: Border.all(
+                                      color: gold.withValues(alpha: 0.2)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.qr_code_2_rounded,
+                                        size: 14, color: gold),
+                                    const SizedBox(width: 7),
+                                    Expanded(
+                                      child: Text(
+                                        promo.code,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.robotoMono(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.85),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 6),
-                PremiumPressable(
-                  pressedScale: 0.85,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    onArchive();
-                  },
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.archive_outlined,
-                      size: 17,
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const Positioned(left: 85, top: -7, child: _PromoNotch()),
+              const Positioned(left: 85, bottom: -7, child: _PromoNotch()),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.8,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _PromoNotch extends StatelessWidget {
+  const _PromoNotch();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 14,
+        height: 14,
+        decoration: const BoxDecoration(
+          color: Color(0xFF0A0A0A),
+          shape: BoxShape.circle,
+        ),
+      );
+}
+
+class _PromoDashed extends StatelessWidget {
+  const _PromoDashed({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: SizedBox(
+        width: 1,
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final count = (c.maxHeight / 7).floor().clamp(1, 40);
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(
+                count,
+                (_) => Container(width: 1, height: 4, color: color),
+              ),
+            );
+          },
         ),
       ),
     );

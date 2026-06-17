@@ -108,15 +108,23 @@ class _LoadingAppState extends State<LoadingApp> with SingleTickerProviderStateM
         ).timeout(const Duration(seconds: 4), onTimeout: () => profileBloc.state);
       }
 
-      const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const initializationSettingsIOS = DarwinInitializationSettings();
-      const initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsIOS,
-      );
-      await flutterLocalNotificationsPlugin.initialize(settings: initializationSettings);
-
-      tz.initializeTimeZones();
+      // Notificaciones y timezones son opcionales: si fallan (icono ausente,
+      // permisos, plataforma), no deben tumbar el arranque de la app.
+      try {
+        const initializationSettingsAndroid =
+            AndroidInitializationSettings('@drawable/ic_stat_trimflow');
+        const initializationSettingsIOS = DarwinInitializationSettings();
+        const initializationSettings = InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
+        await flutterLocalNotificationsPlugin.initialize(
+          settings: initializationSettings,
+        );
+        tz.initializeTimeZones();
+      } catch (e) {
+        debugPrint('Notifications init skipped: $e');
+      }
 
       final elapsed = DateTime.now().difference(startTime).inMilliseconds;
       final remaining = _kMinimumSplashMs - elapsed;

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:trim_flow/core/settings/ticket_style.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:core/core.dart';
 
-/// Ticket de reserva (recibo blanco con borde dentado + QR). Compartido entre
-/// la vista previa del paso 5 (`isPreview: true`, sin QR/sello) y la pantalla
-/// de exito (`isPreview: false`, con sello, QR y folio).
+/// Ticket de reserva. Estilo blanco (recibo de papel) por defecto o negro
+/// (dark premium), segun la preferencia guardada en `TicketStyle`. Compartido
+/// entre la vista previa del paso 5 (`isPreview: true`), la pantalla de exito y
+/// el modal de "Ver ticket". Los botones solo se muestran si se pasan callbacks.
 class ReservationTicketCard extends StatelessWidget {
   const ReservationTicketCard({
     super.key,
@@ -16,6 +18,10 @@ class ReservationTicketCard extends StatelessWidget {
     this.onTapQr,
     this.onViewAppointment,
     this.onShare,
+    this.onDownload,
+    this.couponName,
+    this.couponDiscount,
+    this.finalPrice,
   });
 
   final Reservation reservation;
@@ -23,213 +29,286 @@ class ReservationTicketCard extends StatelessWidget {
   final VoidCallback? onTapQr;
   final VoidCallback? onViewAppointment;
   final VoidCallback? onShare;
+  final VoidCallback? onDownload;
+
+  /// Datos del cupón aplicado (si hubo). Si [couponName] es null no hay cupón.
+  final String? couponName;
+  final double? couponDiscount;
+  final double? finalPrice;
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: TicketStyle.dark,
+      builder: (context, dark, _) => _ticket(context, dark),
+    );
+  }
+
+  Widget _ticket(BuildContext context, bool dark) {
     final gold = context.primaryGold;
+    final textPrimary = dark ? Colors.white : Colors.black;
+    final textMuted = dark ? Colors.white.withValues(alpha: 0.55) : Colors.black54;
+    final labelColor = dark ? Colors.white.withValues(alpha: 0.4) : Colors.black38;
+    final dividerColor = dark ? Colors.white.withValues(alpha: 0.12) : Colors.black12;
+    final folioColor = dark ? Colors.white.withValues(alpha: 0.3) : Colors.black26;
     final dateStr = reservation.date != null
         ? DateFormat('dd / MM / yyyy').format(reservation.date!)
         : '--/--/----';
+    final center = reservation.center;
+    final hasButtons = onViewAppointment != null || onShare != null || onDownload != null;
 
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!isPreview) ...[
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: dark ? gold.withValues(alpha: 0.14) : gold,
+              shape: BoxShape.circle,
+              border: Border.all(color: dark ? gold.withValues(alpha: 0.45) : Colors.white, width: dark ? 1.5 : 2),
+            ),
+            child: Icon(Icons.check_rounded, color: dark ? gold : Colors.white, size: 24),
+          ),
+          const SizedBox(height: 12),
+        ],
+        Text(
+          isPreview ? 'RESUMEN DE TU RESERVA' : 'RESERVA CONFIRMADA',
+          style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
+        ),
+        if (center != null && center.name.trim().isNotEmpty) ...[
+          const SizedBox(height: 5),
+          Text(
+            center.name.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: labelColor, fontSize: 9.5, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          ),
+        ],
+        const SizedBox(height: 24),
+        _detailRow('FECHA', dateStr, labelColor, textPrimary),
+        const SizedBox(height: 12),
+        _detailRow('HORA', reservation.time ?? '--:--', labelColor, textPrimary),
+        const SizedBox(height: 12),
+        _detailRow('BARBERO', reservation.professional?.name ?? 'MÁXIMA DISPONIBILIDAD', labelColor, textPrimary),
+        const SizedBox(height: 16),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('SERVICIO', style: TextStyle(color: labelColor, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              const SizedBox(height: 6),
+              ...reservation.services.map((s) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(s.name, style: TextStyle(color: textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
+                        ),
+                        Text('S/ ${s.price.toStringAsFixed(2)}', style: TextStyle(color: textMuted, fontSize: 13)),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        _perforation(dividerColor),
+        const SizedBox(height: 20),
+        _totals(context, textPrimary, dividerColor),
+        if (!isPreview) ...[
+          const SizedBox(height: 32),
+          _qr(context, dark),
+          const SizedBox(height: 18),
+          Builder(
+            builder: (context) {
+              final idStr = (reservation.id ?? '').toUpperCase();
+              final displayId = idStr.length > 8 ? idStr.substring(0, 8) : idStr;
+              return Text(
+                'TF-$displayId',
+                style: TextStyle(color: folioColor, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2),
+              );
+            },
+          ),
+          if (hasButtons) ...[
+            const SizedBox(height: 22),
+            _buttons(gold, dark),
+          ],
+        ],
+      ],
+    );
+
+    // Misma forma para blanco y oscuro (ticket roto + muescas), solo cambia el
+    // color de fondo.
     return ClipPath(
       clipper: TicketClipper(),
       child: Container(
         width: double.infinity,
-        color: Colors.white,
+        color: dark ? const Color(0xFF1A1A1A) : Colors.white,
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (!isPreview) ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: gold,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
-              ),
-              const SizedBox(height: 12),
-            ],
-            Text(
-              isPreview ? 'RESUMEN DE TU RESERVA' : 'RESERVA CONFIRMADA',
-              style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
-            const SizedBox(height: 24),
-            _detailRow('FECHA', dateStr),
-            const SizedBox(height: 12),
-            _detailRow('HORA', reservation.time ?? '--:--'),
-            const SizedBox(height: 12),
-            _detailRow('BARBERO', reservation.professional?.name ?? 'MÁXIMA DISPONIBILIDAD'),
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('SERVICIO', style: TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                const SizedBox(height: 6),
-                ...reservation.services.map((s) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(s.name, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold)),
-                          ),
-                          Text('S/ ${s.price.toStringAsFixed(2)}', style: const TextStyle(color: Colors.black54, fontSize: 13)),
-                        ],
-                      ),
-                    )),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _dashedLine(),
-            const SizedBox(height: 20),
-            _totals(context),
-            if (!isPreview) ...[
-              const SizedBox(height: 36),
-              _qrWithFrame(context),
-              const SizedBox(height: 20),
-              Builder(
-                builder: (context) {
-                  final idStr = (reservation.id ?? '').toUpperCase();
-                  final displayId = idStr.length > 8 ? idStr.substring(0, 8) : idStr;
-                  return Text(
-                    'TF-$displayId',
-                    style: const TextStyle(color: Colors.black26, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2),
-                  );
-                },
-              ),
-              if (onViewAppointment != null || onShare != null) ...[
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    if (onViewAppointment != null)
-                      Expanded(
-                        child: _TicketButton(
-                          label: 'VER MI CITA',
-                          icon: Icons.person_rounded,
-                          filled: true,
-                          accent: gold,
-                          onTap: onViewAppointment!,
-                        ),
-                      ),
-                    if (onViewAppointment != null && onShare != null) const SizedBox(width: 10),
-                    if (onShare != null)
-                      Expanded(
-                        child: _TicketButton(
-                          label: 'COMPARTIR',
-                          icon: Icons.ios_share_rounded,
-                          filled: false,
-                          accent: gold,
-                          onTap: onShare!,
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ],
-        ),
+        child: content,
       ),
     );
   }
 
-  Widget _totals(BuildContext context) {
+  Widget _buttons(Color gold, bool dark) {
+    return Row(
+      children: [
+        if (onViewAppointment != null)
+          Expanded(
+            child: _TicketButton(
+              label: 'VER MI CITA',
+              icon: Icons.person_rounded,
+              filled: true,
+              accent: gold,
+              dark: dark,
+              onTap: onViewAppointment!,
+            ),
+          ),
+        if (onShare != null) ...[
+          if (onViewAppointment != null) const SizedBox(width: 10),
+          Expanded(
+            child: _TicketButton(
+              label: 'COMPARTIR',
+              icon: Icons.ios_share_rounded,
+              filled: onViewAppointment == null && onDownload == null,
+              accent: gold,
+              dark: dark,
+              onTap: onShare!,
+            ),
+          ),
+        ],
+        if (onDownload != null) ...[
+          if (onViewAppointment != null || onShare != null) const SizedBox(width: 10),
+          Expanded(
+            child: _TicketButton(
+              label: 'DESCARGAR',
+              icon: Icons.file_download_rounded,
+              filled: false,
+              accent: gold,
+              dark: dark,
+              onTap: onDownload!,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _totals(BuildContext context, Color textPrimary, Color dividerColor) {
     final gold = context.primaryGold;
-    final basePrice = reservation.services.fold(0.0, (sum, item) => sum + item.price);
-    final isDiscountApplied = reservation.totalPrice < basePrice;
+    final basePrice =
+        reservation.services.fold(0.0, (sum, item) => sum + item.price);
+    final total = finalPrice ?? reservation.totalPrice;
+    final discount = couponDiscount ?? (basePrice - total);
+    final hasDiscount = basePrice > 0 && discount > 0.009;
+    const green = Color(0xFF3FA45F);
+    final pct = basePrice > 0 ? (discount / basePrice * 100).round() : 0;
+    final label = couponName != null
+        ? 'CUPÓN · ${couponName!.toUpperCase()}'
+        : 'DESCUENTO';
 
     return Column(
       children: [
-        if (isDiscountApplied) ...[
+        if (hasDiscount) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('SUBTOTAL', style: TextStyle(color: Colors.black38, fontSize: 11, fontWeight: FontWeight.bold)),
-              Text('S/ ${basePrice.toStringAsFixed(2)}', style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('SUBTOTAL', style: TextStyle(color: textPrimary.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.bold)),
+              Text('S/ ${basePrice.toStringAsFixed(2)}', style: TextStyle(color: textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('DESCUENTO FIDELIDAD (50%)', style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold)),
-              Text('- S/ ${(basePrice * 0.5).toStringAsFixed(2)}', style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Text(
+                  '$label${pct > 0 ? ' ($pct%)' : ''}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: green, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('- S/ ${discount.toStringAsFixed(2)}', style: const TextStyle(color: green, fontSize: 13, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),
-          const Divider(color: Colors.black12, height: 1),
+          Divider(color: dividerColor, height: 1),
           const SizedBox(height: 12),
         ],
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('TOTAL', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900)),
-            Text('S/ ${reservation.totalPrice.toStringAsFixed(2)}', style: TextStyle(color: gold, fontSize: 24, fontWeight: FontWeight.w900)),
+            Text('TOTAL', style: TextStyle(color: textPrimary, fontSize: 11, fontWeight: FontWeight.w900)),
+            Text('S/ ${total.toStringAsFixed(2)}', style: TextStyle(color: gold, fontSize: 24, fontWeight: FontWeight.w900)),
           ],
         ),
       ],
     );
   }
 
-  Widget _qrWithFrame(BuildContext context) {
+  Widget _qr(BuildContext context, bool dark) {
+    final gold = context.primaryGold;
+    final qr = SizedBox(
+      width: 150,
+      height: 150,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(dark ? 12 : 8),
+            decoration: dark ? BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)) : null,
+            child: QrImageView(
+              data: 'TF-${reservation.id}',
+              version: QrVersions.auto,
+              size: dark ? 104 : 100,
+              padding: EdgeInsets.zero,
+            ),
+          ),
+          SizedBox(
+            width: dark ? 150 : 116,
+            height: dark ? 150 : 116,
+            child: CustomPaint(painter: QRCornersPainter(color: gold)),
+          ),
+        ],
+      ),
+    );
+
+    if (onTapQr == null) return qr;
     return GestureDetector(
       onTap: onTapQr,
-      child: Hero(
-        tag: 'qr_zoom',
-        child: SizedBox(
-          width: 150,
-          height: 150,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                child: QrImageView(
-                  data: 'TF-${reservation.id}',
-                  version: QrVersions.auto,
-                  size: 100.0,
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              SizedBox(
-                width: 116,
-                height: 116,
-                child: CustomPaint(painter: QRCornersPainter(color: context.primaryGold)),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: Hero(tag: 'qr_zoom', child: qr),
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(String label, String value, Color labelColor, Color valueColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        Text(label, style: TextStyle(color: labelColor, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        const SizedBox(width: 12),
         Flexible(
           child: Text(
             value.toUpperCase(),
             textAlign: TextAlign.right,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
+            style: TextStyle(color: valueColor, fontSize: 13, fontWeight: FontWeight.w900),
           ),
         ),
       ],
     );
   }
 
-  Widget _dashedLine() {
+  Widget _perforation(Color color) {
     return Row(
       children: List.generate(
         30,
         (index) => Expanded(
           child: Container(
-            color: index % 2 == 0 ? Colors.transparent : Colors.black12,
+            color: index.isEven ? Colors.transparent : color,
             height: 1.5,
           ),
         ),
@@ -244,6 +323,7 @@ class _TicketButton extends StatelessWidget {
     required this.icon,
     required this.filled,
     required this.accent,
+    required this.dark,
     required this.onTap,
   });
 
@@ -251,21 +331,23 @@ class _TicketButton extends StatelessWidget {
   final IconData icon;
   final bool filled;
   final Color accent;
+  final bool dark;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final fg = filled ? premiumOnAccent(accent) : Colors.black;
+    final outlineFg = dark ? Colors.white : Colors.black;
+    final fg = filled ? premiumOnAccent(accent) : outlineFg;
     return PremiumPressable(
       pressedScale: 0.96,
       onTap: onTap,
       child: Container(
-        height: 46,
+        height: 47,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: filled ? accent : Colors.transparent,
+          color: filled ? accent : (dark ? Colors.white.withValues(alpha: 0.05) : Colors.transparent),
           borderRadius: BorderRadius.circular(13),
-          border: filled ? null : Border.all(color: Colors.black.withValues(alpha: 0.18)),
+          border: filled ? null : Border.all(color: outlineFg.withValues(alpha: dark ? 0.16 : 0.18)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

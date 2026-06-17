@@ -1,14 +1,13 @@
 
 import 'package:core/core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/domain/models/product_order.dart';
 import 'package:trim_flow/features/products/presentation/bloc/orders_bloc.dart';
 import 'package:trim_flow/features/products/presentation/views/orders_view.dart';
@@ -16,7 +15,7 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_settings_view.dart';
-import 'package:trim_flow/features/profile/presentation/views/referral_view.dart';
+import 'package:trim_flow/features/profile/presentation/widgets/profile_view/referral_section.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_header.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_fidelity.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_next_appointment.dart';
@@ -123,35 +122,16 @@ class _ProfileBodyState extends State<_ProfileBody> {
     );
   }
 
-  void _openReferrals() {
-    HapticFeedback.lightImpact();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ReferralView()),
-    );
-  }
-
   Future<void> _confirmLogout() async {
     HapticFeedback.mediumImpact();
-    final ok = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Seguro que quieres salir de tu cuenta?'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
-      ),
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Cerrar sesión',
+      message: '¿Seguro que quieres salir de tu cuenta? Tendrás que volver a iniciar sesión.',
+      confirmLabel: 'CERRAR SESIÓN',
+      icon: Icons.logout_rounded,
     );
-    if (ok == true && mounted) {
+    if (ok && mounted) {
       context.read<AppModeBloc>().add(const AppModeEvent.requestLogout());
     }
   }
@@ -247,9 +227,14 @@ class _ProfileBodyState extends State<_ProfileBody> {
                 // 5. HISTORIAL TIMELINE — siempre visible (con empty state)
                 ProfileHistoryTimeline(history: state.appointmentHistory),
 
-                // 6. INVITA A UN AMIGO
-                SliverToBoxAdapter(
-                  child: _ReferralEntry(onTap: _openReferrals),
+                // 6. INVITA A UN AMIGO + referidos/puntos
+                Builder(
+                  builder: (ctx) {
+                    final tid = ctx.watch<TenantThemeBloc>().state.tenantId;
+                    return SliverToBoxAdapter(
+                      child: ReferralSection(key: ValueKey('ref_$tid')),
+                    );
+                  },
                 ),
 
                 // 7. DATOS PERSONALES
@@ -272,75 +257,6 @@ class _ProfileBodyState extends State<_ProfileBody> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-/// Entrada "Invita a un amigo" en el perfil del cliente.
-class _ReferralEntry extends StatelessWidget {
-  const _ReferralEntry({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = context.primaryGold;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-      child: ProfilePressableScale(
-        onTap: onTap,
-        pressedScale: 0.99,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: gold.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: gold.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: Icon(Icons.card_giftcard_rounded, color: gold, size: 19),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Invita a un amigo',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Comparte tu código y ganen los dos',
-                      style: GoogleFonts.inter(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded,
-                  size: 20, color: gold.withValues(alpha: 0.6)),
-            ],
-          ),
-        ),
       ),
     );
   }

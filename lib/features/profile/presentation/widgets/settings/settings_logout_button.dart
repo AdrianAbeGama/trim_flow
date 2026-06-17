@@ -27,12 +27,12 @@ class _SettingsLogoutButtonState extends State<SettingsLogoutButton> {
         curve: Curves.easeOutCubic,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 15),
           decoration: BoxDecoration(
-            color: const Color(0xFF141414),
+            color: const Color(0xFFFF6B6B).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+              color: const Color(0xFFFF6B6B).withValues(alpha: 0.22),
             ),
           ),
           child: Center(
@@ -41,17 +41,17 @@ class _SettingsLogoutButtonState extends State<SettingsLogoutButton> {
               children: [
                 const Icon(
                   Icons.logout_rounded,
-                  size: 16,
+                  size: 17,
                   color: Color(0xFFFF6B6B),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 9),
                 Text(
-                  'CERRAR SESIÓN',
+                  'Cerrar sesión',
                   style: GoogleFonts.inter(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFFFF6B6B),
-                    letterSpacing: 1.8,
+                    letterSpacing: -0.2,
                   ),
                 ),
               ],

@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
@@ -73,13 +74,7 @@ class _ProductFormViewState extends State<ProductFormView> {
     );
     if (scannedCode != null && mounted) {
       setState(() => _idController.text = scannedCode);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Código escaneado: $scannedCode', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          backgroundColor: context.primaryGold,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      AppToast.success(context, 'Código escaneado', message: scannedCode);
     }
   }
 

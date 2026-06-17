@@ -13,5 +13,6 @@ abstract class CatalogState with _$CatalogState {
     @Default(<BarberCenter>[]) List<BarberCenter> centers,
     @Default(<Service>[]) List<Service> services,
     @Default(<TeamMember>[]) List<TeamMember> team,
+    String? loadedTenantId,
   }) = _CatalogState;
 }

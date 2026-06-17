@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
@@ -148,18 +149,17 @@ class AppointmentActionSheet extends StatelessWidget {
 
   void _handleConfirm(BuildContext context) {
     HapticFeedback.mediumImpact();
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     context.read<AgendaBloc>().add(AgendaEvent.statusChanged(appointment.id, AgendaStatus.confirmed));
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(backgroundColor: Color(0xFF1A1A1A), content: Text('Cita confirmada.')),
-    );
+    AppToast.success(rootContext, 'Cita confirmada');
   }
 
   Future<void> _handleComplete(BuildContext context) async {
     HapticFeedback.mediumImpact();
     final bloc = context.read<AgendaBloc>();
     final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
 
     final result = await showModalBottomSheet<CompleteResult>(
       context: context,
@@ -175,25 +175,18 @@ class AppointmentActionSheet extends StatelessWidget {
       couponCode: result.couponCode,
     ));
     navigator.pop();
-    messenger.showSnackBar(
-      const SnackBar(
-        backgroundColor: Color(0xFF1A1A1A),
-        content: Text('Corte completado.'),
-      ),
-    );
+    AppToast.showOn(overlay,
+        type: AppToastType.success, title: 'Corte completado');
   }
 
   void _handleNoShow(BuildContext context) {
     HapticFeedback.mediumImpact();
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
     context.read<AgendaBloc>().add(AgendaEvent.statusChanged(appointment.id, AgendaStatus.noShow));
     AppointmentReminders.cancel(appointment.id);
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Color(0xFF1A1A1A),
-        content: Text('Marcada como no asistió.'),
-      ),
-    );
+    AppToast.warning(rootContext, 'No asistió',
+        message: 'La cita se marcó como no asistida.');
   }
 
 }
@@ -204,7 +197,7 @@ class _ClientStrip extends StatelessWidget {
   final AgendaAppointment appointment;
 
   Future<void> _contactClient(BuildContext context, String raw) async {
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
     final uri = Uri.parse('https://wa.me/$digits');
     try {
@@ -212,9 +205,10 @@ class _ClientStrip extends StatelessWidget {
       if (ok) return;
     } catch (_) {}
     await Clipboard.setData(ClipboardData(text: raw));
-    messenger.showSnackBar(
-      const SnackBar(backgroundColor: Color(0xFF1A1A1A), content: Text('Número copiado al portapapeles.')),
-    );
+    AppToast.showOn(overlay,
+        type: AppToastType.success,
+        title: 'Número copiado',
+        message: 'Pégalo en WhatsApp para contactar.');
   }
 
   @override

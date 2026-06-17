@@ -1,3 +1,4 @@
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/reservations/domain/models/booking_result.dart';
 
 abstract class ReservationRepository {
@@ -20,5 +21,9 @@ abstract class ReservationRepository {
     required String customerName,
     required String customerPhone,
     required String idempotencyKey,
+    String? couponCode,
   });
+
+  /// Cupones del cliente usables en este tenant (via RPC get_my_coupons).
+  Future<List<CustomerCoupon>> fetchUsableCoupons({required String tenantId});
 }

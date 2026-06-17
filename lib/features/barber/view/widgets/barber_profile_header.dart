@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_primitives.dart';
 
 /// Header del perfil del barbero: avatar con anillo + greeting + nombre +
@@ -14,11 +15,13 @@ class BarberProfileHeader extends StatelessWidget {
     required this.user,
     required this.onAvatarTap,
     required this.onSettingsTap,
+    required this.onOrdersTap,
   });
 
   final UserProfile user;
   final VoidCallback onAvatarTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback onOrdersTap;
 
   String _idShort(UserProfile u) {
     final raw = u.barberId ?? u.id;
@@ -120,16 +123,43 @@ class BarberProfileHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              ValueListenableBuilder<PreviewRole?>(
+                valueListenable: PermissionsStore.instance.preview,
+                builder: (context, _, _) {
+                  if (!PermissionsStore.instance.can('orders_manage')) {
+                    return const SizedBox.shrink();
+                  }
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      BarberIconButton(
+                        icon: Icons.shopping_bag_outlined,
+                        onTap: onOrdersTap,
+                      )
+                          .animate()
+                          .fadeIn(delay: 170.ms, duration: 500.ms)
+                          .scale(
+                            begin: const Offset(0.85, 0.85),
+                            end: const Offset(1, 1),
+                            delay: 170.ms,
+                            duration: 500.ms,
+                            curve: Curves.easeOutCubic,
+                          ),
+                      const SizedBox(width: 10),
+                    ],
+                  );
+                },
+              ),
               BarberIconButton(
                 icon: Icons.settings_outlined,
                 onTap: onSettingsTap,
               )
                   .animate()
-                  .fadeIn(delay: 180.ms, duration: 500.ms)
+                  .fadeIn(delay: 200.ms, duration: 500.ms)
                   .scale(
                     begin: const Offset(0.85, 0.85),
                     end: const Offset(1, 1),
-                    delay: 180.ms,
+                    delay: 200.ms,
                     duration: 500.ms,
                     curve: Curves.easeOutCubic,
                   ),

@@ -89,6 +89,41 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
         },
         goToPhase: (e) async {
           emit(state.copyWith(currentPhase: e.phase));
+          if (e.phase >= 5 && state.availableCoupons.isEmpty) {
+            final center = state.reservation.center;
+            if (center != null) {
+              try {
+                final coupons = await _repository.fetchUsableCoupons(
+                    tenantId: center.tenantId);
+                if (coupons.isNotEmpty) {
+                  emit(state.copyWith(availableCoupons: coupons));
+                }
+              } catch (_) {}
+            }
+          }
+        },
+        loadCoupons: (e) async {
+          final center = state.reservation.center;
+          if (center == null) return;
+          try {
+            final coupons =
+                await _repository.fetchUsableCoupons(tenantId: center.tenantId);
+            emit(state.copyWith(availableCoupons: coupons));
+          } catch (_) {}
+        },
+        selectCoupon: (e) async {
+          final coupon = e.coupon;
+          if (coupon == null) {
+            emit(state.copyWith(selectedCoupon: null, couponDiscount: 0));
+            return;
+          }
+          final base = state.reservation.services
+              .fold(0.0, (s, it) => s + it.price);
+          final est = coupon.discountType == 'percentage'
+              ? base * (coupon.discountValue / 100.0)
+              : coupon.discountValue;
+          final discount = est.clamp(0.0, base).toDouble();
+          emit(state.copyWith(selectedCoupon: coupon, couponDiscount: discount));
         },
         confirmReservation: (e) async {
           final center = state.reservation.center;
@@ -130,10 +165,13 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
               customerName: e.customerName,
               customerPhone: e.customerPhone,
               idempotencyKey: key,
+              couponCode: state.selectedCoupon?.code,
             );
             emit(state.copyWith(
               status: ReservationStatus.success,
               reservation: state.reservation.copyWith(id: result.reservationId),
+              finalPrice: result.finalPrice > 0 ? result.finalPrice : null,
+              couponDiscount: result.discount,
             ));
           } catch (err) {
             emit(state.copyWith(
@@ -183,6 +221,21 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     final s = err.toString().toLowerCase();
     if (s.contains('slot_taken')) {
       return 'Ese horario se acaba de ocupar. Elige otro, por favor.';
+    }
+    if (s.contains('coupon_not_found')) {
+      return 'Ese cupón no es válido para tu cuenta.';
+    }
+    if (s.contains('coupon_already_redeemed')) {
+      return 'Ese cupón ya fue canjeado.';
+    }
+    if (s.contains('coupon_expired')) {
+      return 'Tu cupón está vencido.';
+    }
+    if (s.contains('coupon_not_yet_valid')) {
+      return 'Tu cupón aún no está disponible.';
+    }
+    if (s.contains('promotion_archived')) {
+      return 'Esa promoción ya no está activa.';
     }
     if (s.contains('invalid_customer_input')) {
       return 'Faltan tus datos de contacto.';

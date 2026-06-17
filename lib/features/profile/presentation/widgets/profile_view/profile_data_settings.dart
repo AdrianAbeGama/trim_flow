@@ -1,7 +1,7 @@
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
@@ -26,36 +26,38 @@ class ProfilePersonalDataGrid extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section title + edit button pequeño
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: ProfileSectionTitle(text: 'Datos personales'),
-                ),
-                _MiniEditButton(onTap: onTap),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _DataRow(
-              icon: Icons.chat_rounded,
-              label: 'WHATSAPP',
-              value: phoneVal,
-              isPending: user.phone.isEmpty,
-              onTap: onTap,
-            ),
-            _DataDivider(),
-            _DataRow(
-              icon: Icons.cake_rounded,
-              label: 'CUMPLEAÑOS',
-              value: birthVal,
-              isPending: user.birthDate.isEmpty,
-              onTap: onTap,
+            ProfileSectionTitle(text: 'Datos personales'),
+            const SizedBox(height: 12),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _DataCard(
+                      icon: FontAwesomeIcons.whatsapp,
+                      label: 'WHATSAPP',
+                      value: phoneVal,
+                      isPending: user.phone.isEmpty,
+                      onTap: onTap,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _DataCard(
+                      icon: FontAwesomeIcons.cakeCandles,
+                      label: 'CUMPLEAÑOS',
+                      value: birthVal,
+                      isPending: user.birthDate.isEmpty,
+                      onTap: onTap,
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (lastVisit != null && lastVisit!.isNotEmpty) ...[
-              const _DataDivider(),
-              _DataInfoRow(
-                icon: Icons.history_rounded,
+              const SizedBox(height: 12),
+              _DataCardWide(
+                icon: FontAwesomeIcons.clockRotateLeft,
                 label: 'ÚLTIMA VISITA',
                 value: lastVisit!,
               ),
@@ -82,71 +84,9 @@ class ProfilePersonalDataGrid extends StatelessWidget {
   }
 }
 
-/// Botón mini "Editar" — pill outline pequeño con icono lápiz.
-class _MiniEditButton extends StatefulWidget {
-  const _MiniEditButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_MiniEditButton> createState() => _MiniEditButtonState();
-}
-
-class _MiniEditButtonState extends State<_MiniEditButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = context.primaryGold;
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: () {
-        HapticFeedback.lightImpact();
-        widget.onTap();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        scale: _pressed ? 0.92 : 1.0,
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOutCubic,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: gold.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: gold.withValues(alpha: 0.2)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.edit_rounded,
-                size: 11,
-                color: gold,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                'EDITAR',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  color: gold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Fila de dato personal — sin recuadro, ícono + label + valor + acción.
-class _DataRow extends StatelessWidget {
-  const _DataRow({
+/// Tarjeta premium de dato personal (estilo Wallet). Editable al tocar.
+class _DataCard extends StatelessWidget {
+  const _DataCard({
     required this.icon,
     required this.label,
     required this.value,
@@ -154,7 +94,7 @@ class _DataRow extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData icon;
+  final dynamic icon;
   final String label;
   final String value;
   final bool isPending;
@@ -163,56 +103,46 @@ class _DataRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
+    const red = Color(0xFFFF8A95);
     return ProfilePressableScale(
       onTap: onTap,
-      pressedScale: 0.99,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
+      pressedScale: 0.97,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isPending
+                ? red.withValues(alpha: 0.28)
+                : Colors.white.withValues(alpha: 0.05),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 42, height: 42,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: gold.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: gold.withValues(alpha: 0.18)),
-              ),
-              child: Icon(icon, size: 18, color: gold),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white.withValues(alpha: 0.4),
-                      letterSpacing: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isPending ? const Color(0xFFFF8A95) : Colors.white,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ],
+            FaIcon(icon, size: 19, color: isPending ? red : gold),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+                color: Colors.white.withValues(alpha: 0.4),
+                letterSpacing: 1.4,
               ),
             ),
-            Icon(
-              isPending ? Icons.add_circle_outline_rounded : Icons.chevron_right_rounded,
-              size: isPending ? 18 : 20,
-              color: isPending ? const Color(0xFFFF8A95) : Colors.white.withValues(alpha: 0.25),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 16.5,
+                fontWeight: FontWeight.w800,
+                color: isPending ? red : Colors.white,
+                letterSpacing: -0.3,
+              ),
             ),
           ],
         ),
@@ -221,32 +151,31 @@ class _DataRow extends StatelessWidget {
   }
 }
 
-/// Fila informativa de solo lectura (sin tap ni chevron). Para datos que la
-/// BD muestra pero el usuario no edita (ej. ultima visita).
-class _DataInfoRow extends StatelessWidget {
-  const _DataInfoRow({required this.icon, required this.label, required this.value});
+/// Tarjeta premium de solo lectura (ancho completo). Ej: ultima visita.
+class _DataCardWide extends StatelessWidget {
+  const _DataCardWide({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
-  final IconData icon;
+  final dynamic icon;
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
       child: Row(
         children: [
-          Container(
-            width: 42, height: 42,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: gold.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: gold.withValues(alpha: 0.18)),
-            ),
-            child: Icon(icon, size: 18, color: gold),
-          ),
+          FaIcon(icon, size: 18, color: gold),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -254,34 +183,30 @@ class _DataInfoRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 1.6),
+                  style: GoogleFonts.inter(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    letterSpacing: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.2),
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Separador fino entre filas de datos.
-class _DataDivider extends StatelessWidget {
-  const _DataDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 56),
-      height: 1,
-      color: Colors.white.withValues(alpha: 0.05),
     );
   }
 }
@@ -438,12 +363,12 @@ class ProfileLogoutButton extends StatelessWidget {
       pressedScale: 0.97,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          color: const Color(0xFF141414),
+          color: const Color(0xFFFF6B6B).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+            color: const Color(0xFFFF6B6B).withValues(alpha: 0.22),
           ),
         ),
         child: Center(
@@ -452,17 +377,17 @@ class ProfileLogoutButton extends StatelessWidget {
             children: [
               const Icon(
                 Icons.logout_rounded,
-                size: 16,
+                size: 17,
                 color: Color(0xFFFF6B6B),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 9),
               Text(
-                'CERRAR SESIÓN',
+                'Cerrar sesión',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: const Color(0xFFFF6B6B),
-                  letterSpacing: 1.8,
+                  letterSpacing: -0.2,
                 ),
               ),
             ],

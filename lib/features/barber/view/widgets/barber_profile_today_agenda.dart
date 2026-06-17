@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
@@ -285,14 +286,17 @@ class _ClientPeekSheet extends StatelessWidget {
   final AgendaAppointment appointment;
 
   Future<void> _contact(BuildContext context, String raw) async {
-    final messenger = ScaffoldMessenger.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
     final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
     try {
       final ok = await launchUrl(Uri.parse('https://wa.me/$digits'), mode: LaunchMode.externalApplication);
       if (ok) return;
     } catch (_) {}
     await Clipboard.setData(ClipboardData(text: raw));
-    messenger.showSnackBar(const SnackBar(backgroundColor: Color(0xFF1A1A1A), content: Text('Número copiado.')));
+    AppToast.showOn(overlay,
+        type: AppToastType.success,
+        title: 'Número copiado',
+        message: 'Pégalo en WhatsApp para contactar.');
   }
 
   @override

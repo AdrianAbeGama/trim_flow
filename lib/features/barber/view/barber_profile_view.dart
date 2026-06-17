@@ -5,14 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/orders/barber_orders_view.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_roles_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_header.dart';
@@ -50,6 +54,7 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
   void initState() {
     super.initState();
     _loadData();
+    PermissionsStore.instance.load();
   }
 
   void _loadData() {
@@ -168,10 +173,71 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
+                SliverToBoxAdapter(
+                  child: ValueListenableBuilder<PreviewRole?>(
+                    valueListenable: PermissionsStore.instance.preview,
+                    builder: (context, preview, _) {
+                      if (preview == null) return const SizedBox.shrink();
+                      final gold = context.primaryGold;
+                      return Container(
+                        margin: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: gold.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: gold.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.visibility_outlined,
+                                size: 18, color: gold),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Viendo como ${preview.name}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            PremiumPressable(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                PermissionsStore.instance.stopPreview();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: gold,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  'Salir',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: premiumOnAccent(gold),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 BarberProfileHeader(
                   user: user,
                   onAvatarTap: () => _editProfile(user),
                   onSettingsTap: () => _openSettings(user),
+                  onOrdersTap: _openOrders,
                 ),
                 SliverToBoxAdapter(
                   child: FutureBuilder<AgendaTodaySummary>(
@@ -197,12 +263,13 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                     },
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: _OrdersEntryCard(onTap: _openOrders),
-                ),
                 if (isAdmin)
                   SliverToBoxAdapter(
                     child: BarberAdminSection(tenantId: user.tenantId),
+                  ),
+                if (isAdmin)
+                  SliverToBoxAdapter(
+                    child: BarberRolesSection(tenantId: user.tenantId),
                   ),
                 BarberProfilePersonalData(
                   user: user,
@@ -225,72 +292,3 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
   }
 }
 
-/// Acceso a la lista de pedidos de clientes desde el perfil del barbero.
-class _OrdersEntryCard extends StatelessWidget {
-  const _OrdersEntryCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = context.primaryGold;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111111),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: gold.withValues(alpha: 0.18)),
-                ),
-                child: Icon(Icons.receipt_long_rounded, color: gold, size: 18),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Pedidos de clientes',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Productos comprados y su estado',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded,
-                  size: 20, color: Colors.white.withValues(alpha: 0.25)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

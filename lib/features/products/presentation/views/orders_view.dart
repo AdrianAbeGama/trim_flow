@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -65,8 +66,8 @@ class _OrdersViewState extends State<OrdersView> {
     final box = context.findRenderObject() as RenderBox?;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
     if (box == null || overlay == null) return;
-    final topRight = box.localToGlobal(box.size.topRight(Offset.zero), ancestor: overlay);
-    final position = RelativeRect.fromLTRB(topRight.dx - 200, topRight.dy + 8, 20, 0);
+    final anchor = box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay);
+    final position = RelativeRect.fromLTRB(anchor.dx - 200, anchor.dy + 10, 20, 0);
 
     final selected = await showMenu<OrderFilter>(
       context: context,
@@ -237,6 +238,29 @@ class _Header extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
+                PremiumPressable(
+                  pressedScale: 0.9,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    showModalBottomSheet<void>(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (_) => const _HowItWorksSheet(),
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161616),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                    ),
+                    child: Icon(Icons.help_outline_rounded, size: 18, color: Colors.white.withValues(alpha: 0.7)),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Builder(
                   builder: (btnContext) => PremiumPressable(
                     pressedScale: 0.9,
@@ -327,6 +351,113 @@ class _EmptyOrders extends StatelessWidget {
               'Cuando compres productos, aparecerán aquí con su estado y punto de recojo.',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.45), height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HowItWorksSheet extends StatelessWidget {
+  const _HowItWorksSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    final steps = [
+      (FontAwesomeIcons.bagShopping, 'Haces tu pedido', 'Eliges productos y confirmas el método de pago.'),
+      (FontAwesomeIcons.creditCard, 'Pagas', 'Yape o BCP se confirman al instante; en efectivo pagas al recoger.'),
+      (FontAwesomeIcons.boxOpen, 'Lo preparamos', 'Cuando esté listo verás el estado "Listo para recoger".'),
+      (FontAwesomeIcons.shop, 'Recoges en la sede', 'Muestra el código del comprobante en recepción y listo.'),
+    ];
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0E0E0E),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
+              ),
+            ),
+            const SizedBox(height: 22),
+            Center(
+              child: Text('¿Cómo funciona?', style: GoogleFonts.inter(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.6)),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: Text(
+                'Tus pedidos se recogen en la sede de la barbería',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.45), fontSize: 12.5, fontWeight: FontWeight.w500, height: 1.35),
+              ),
+            ),
+            const SizedBox(height: 26),
+            ...steps.asMap().entries.map((e) {
+              final (icon, title, desc) = e.value;
+              final isLast = e.key == steps.length - 1;
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: gold.withValues(alpha: 0.10),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: gold.withValues(alpha: 0.28)),
+                          ),
+                          alignment: Alignment.center,
+                          child: FaIcon(icon, color: gold, size: 17),
+                        ),
+                        if (!isLast)
+                          Expanded(
+                            child: Container(width: 2, margin: const EdgeInsets.symmetric(vertical: 4), color: gold.withValues(alpha: 0.18)),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 4, bottom: isLast ? 0 : 22),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('PASO ${e.key + 1}', style: GoogleFonts.inter(color: gold.withValues(alpha: 0.85), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.4)),
+                            const SizedBox(height: 3),
+                            Text(title, style: GoogleFonts.inter(color: Colors.white, fontSize: 15.5, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+                            const SizedBox(height: 3),
+                            Text(desc, style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.5), fontSize: 12.5, fontWeight: FontWeight.w500, height: 1.45)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 14, color: Colors.white.withValues(alpha: 0.3)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Puedes cancelar mientras el pedido no haya sido recogido.', style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.38), fontSize: 11.5, fontWeight: FontWeight.w500, height: 1.4)),
+                ),
+              ],
             ),
           ],
         ),
