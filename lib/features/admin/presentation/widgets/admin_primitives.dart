@@ -4,19 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 
 String adminMoney(double v) => 'S/ ${NumberFormat('#,##0.00', 'es').format(v)}';
 
-/// Snackbar oscuro estándar del panel admin (un solo lugar para el estilo).
+/// Aviso estándar del panel admin (tostada de éxito).
 void adminSnack(BuildContext context, String text) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: const Color(0xFF1A1A1A),
-      content: Text(text, style: GoogleFonts.inter(color: Colors.white)),
-    ),
-  );
+  AppToast.success(context, 'Listo', message: text);
 }
 
 /// Loader centrado con el acento del tenant.

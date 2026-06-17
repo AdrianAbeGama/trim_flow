@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
@@ -52,15 +53,28 @@ class ProductsHeader extends StatelessWidget {
                         onTap: () => CartBottomSheet.show(context),
                       ),
                     ),
-                    if (isBarber) ...[
-                      const SizedBox(width: 8),
-                      _EditToggleButton(
-                        isEditing: state.isEditing,
-                        onTap: () => context
-                            .read<ProductBloc>()
-                            .add(const ProductEvent.toggleEditMode()),
+                    if (isBarber)
+                      ValueListenableBuilder<PreviewRole?>(
+                        valueListenable: PermissionsStore.instance.preview,
+                        builder: (context, _, _) {
+                          if (!PermissionsStore.instance
+                              .can('products_manage')) {
+                            return const SizedBox.shrink();
+                          }
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(width: 8),
+                              _EditToggleButton(
+                                isEditing: state.isEditing,
+                                onTap: () => context
+                                    .read<ProductBloc>()
+                                    .add(const ProductEvent.toggleEditMode()),
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    ],
                   ],
                 )
                     .animate()

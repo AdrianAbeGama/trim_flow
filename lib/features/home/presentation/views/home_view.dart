@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:core/core.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 
 import '../../domain/models/home_content.dart';
@@ -51,6 +53,13 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    // Asegura que el catálogo (servicios/sedes reales) esté cargado para Inicio.
+    context.read<CatalogBloc>().add(const CatalogEvent.load());
+  }
+
   // === MOCKS de fallback (solo si state.content.services/products vacíos) ===
   static const List<HomeStyleItem> _fallbackServices = [
     HomeStyleItem(name: 'Corte Clásico', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600', price: '35', duration: '30 min', featured: true),
@@ -80,6 +89,23 @@ class _HomeViewState extends State<HomeView> {
       description: 'Textura ligera, sin brillo. Reactivable con agua durante el día.',
     ),
   ];
+
+  /// Servicios REALES del catálogo del tenant. Es la fuente principal para la
+  /// sección "Servicios" de Inicio (los que configuró la barbería).
+  List<HomeStyleItem> _servicesFromCatalog(List<Service> services) {
+    return services.map((s) {
+      final p = s.price;
+      return HomeStyleItem(
+        name: s.name,
+        image: '',
+        price: p > 0
+            ? (p % 1 == 0 ? p.toStringAsFixed(0) : p.toStringAsFixed(2))
+            : null,
+        duration: s.durationInMinutes > 0 ? '${s.durationInMinutes} min' : null,
+        featured: s.isFeatured,
+      );
+    }).toList();
+  }
 
   List<HomeStyleItem> _servicesFrom(HomeContent c) {
     if (c.services.isEmpty) return _fallbackServices;
@@ -148,16 +174,19 @@ class _HomeViewState extends State<HomeView> {
                     onTap: widget.onNavigateToAppointments,
                   ),
                 HomeInfiniteServicesSection(
-                  items: _servicesFrom(state.content),
+                  items: () {
+                    final catalogServices =
+                        context.watch<CatalogBloc>().state.services;
+                    return catalogServices.isNotEmpty
+                        ? _servicesFromCatalog(catalogServices)
+                        : _servicesFrom(state.content);
+                  }(),
                   onSeeAll: widget.onNavigateToServices,
-                  onItemTap: widget.onNavigateToServices == null
+                  onItemTap: widget.onNavigateToAppointments == null
                       ? null
                       : (item) {
-                          HomePage.requestedService.value = {
-                            'name': item.name,
-                            'price': 'S/ ${item.price ?? ''}',
-                          };
-                          widget.onNavigateToServices!();
+                          HomePage.requestedService.value = {'title': item.name};
+                          widget.onNavigateToAppointments!();
                         },
                 ),
                 HomeProductSpotlightSection(
@@ -173,7 +202,10 @@ class _HomeViewState extends State<HomeView> {
                 HomeAboutSection(content: state.content),
                 HomeLocationsSection(
                   content: state.content,
-                  onReserve: widget.onNavigateToAppointments,
+                  onReserve: (branch) {
+                    HomePage.requestedService.value = {'branch': branch};
+                    widget.onNavigateToAppointments?.call();
+                  },
                 ),
                 HomeSocialFooter(content: state.content),
                 const SliverToBoxAdapter(child: SizedBox(height: 140)),

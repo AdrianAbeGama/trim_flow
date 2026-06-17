@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/reservation_progress.dart';
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
@@ -19,6 +20,7 @@ import 'package:trim_flow/features/reservations/presentation/widgets/phase_2_ser
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_3_professional_selector.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_4_datetime_selector.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_5_confirmation_receipt.dart';
+import 'package:trim_flow/features/reservations/presentation/widgets/reservation_coupon_selector.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
@@ -35,6 +37,7 @@ class ReservationView extends StatefulWidget {
 
 class _ReservationViewState extends State<ReservationView> {
   bool _makingNew = false;
+  Map<String, String>? _pending;
 
   @override
   void initState() {
@@ -55,36 +58,104 @@ class _ReservationViewState extends State<ReservationView> {
     final requested = HomePage.requestedService.value;
     if (requested == null || !mounted) return;
     final name = requested['title'] ?? '';
-    if (name.isEmpty) {
-      HomePage.requestedService.value = null;
+    final branch = requested['branch'] ?? '';
+    final barberId = HomePage.requestedBarberId.value;
+    HomePage.requestedService.value = null;
+    HomePage.requestedBarberId.value = null;
+    if (name.isEmpty && branch.isEmpty && barberId == null) return;
+
+    // Si el cliente ya tiene una cita proxima, no abrir el wizard: dejarlo en su
+    // cita (landing) y avisarle con una tostada.
+    final hasUpcoming =
+        context.read<ProfileBloc>().state.scheduledAppointments.isNotEmpty;
+    if (hasUpcoming) {
+      AppToast.info(context, 'Ya tienes una cita',
+          message: 'Aquí está tu próxima cita.');
+      if (_makingNew) setState(() => _makingNew = false);
       return;
     }
-    // Viene un servicio preseleccionado desde Home → abrir el wizard.
-    setState(() => _makingNew = true);
-    // Busca el servicio matching en el catalogo real (case-insensitive)
-    final match = context.read<CatalogBloc>().state.services.where(
-      (s) => s.name.toLowerCase() == name.toLowerCase(),
-    ).firstOrNull;
-    if (match != null) {
-      context.read<ReservationBloc>()
-        ..add(ReservationEvent.toggleService(match))
-        ..add(const ReservationEvent.goToPhase(2));
+
+    final pending = <String, String>{};
+    if (name.isNotEmpty) pending['service'] = name;
+    if (branch.isNotEmpty) pending['branch'] = branch;
+    if (barberId != null) pending['barberId'] = barberId;
+    setState(() {
+      _makingNew = true;
+      _pending = pending;
+    });
+    _applyPending();
+  }
+
+  /// Pre-llena el wizard con el servicio (+ barbero y sede si vienen de la
+  /// galería). Si el catálogo aún no cargó, se reintenta al cargar.
+  void _applyPending() {
+    final pending = _pending;
+    if (pending == null || !mounted) return;
+    final catalog = context.read<CatalogBloc>().state;
+    if (catalog.status != CatalogStatus.loaded || catalog.services.isEmpty) {
+      return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Servicio preseleccionado: $name'),
-        duration: const Duration(seconds: 2),
-        backgroundColor: context.primaryGold,
-      ),
-    );
-    HomePage.requestedService.value = null;
+    final bloc = context.read<ReservationBloc>();
+    final serviceName = pending['service'];
+    final branchName = pending['branch'];
+    final barberId = pending['barberId'];
+
+    final service = serviceName == null
+        ? null
+        : catalog.services
+            .where((s) => s.name.toLowerCase() == serviceName.toLowerCase())
+            .firstOrNull;
+    final member = barberId == null
+        ? null
+        : catalog.team.where((m) => m.id == barberId).firstOrNull;
+    final center = member != null
+        ? catalog.centers.where((c) => c.id == member.branchId).firstOrNull
+        : (branchName != null
+            ? catalog.centers
+                .where((c) => c.name.toLowerCase() == branchName.toLowerCase())
+                .firstOrNull
+            : (service != null && catalog.centers.isNotEmpty
+                ? catalog.centers.first
+                : null));
+
+    if (center != null) bloc.add(ReservationEvent.selectCenter(center));
+    if (service != null) bloc.add(ReservationEvent.toggleService(service));
+    if (member != null) {
+      bloc.add(ReservationEvent.selectProfessional(member.toProfessional()));
+    }
+
+    final int phase;
+    if (member != null) {
+      phase = 4;
+    } else if (center != null && service != null) {
+      phase = 3;
+    } else if (service != null || center != null) {
+      phase = 2;
+    } else {
+      phase = 1;
+    }
+    if (phase > 1) bloc.add(ReservationEvent.goToPhase(phase));
+    _pending = null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      buildWhen: (a, b) => a.scheduledAppointments != b.scheduledAppointments,
-      builder: (context, profileState) {
+    return BlocListener<CatalogBloc, CatalogState>(
+      listenWhen: (p, c) =>
+          p.status != c.status && c.status == CatalogStatus.loaded,
+      listener: (context, catalog) {
+        // Si la reserva en curso quedó de otra barbería (cambió el tenant),
+        // reiniciarla para no reservar en la barbería equivocada.
+        final res = context.read<ReservationBloc>().state.reservation;
+        final center = res.center;
+        if (center != null && !catalog.centers.any((c) => c.id == center.id)) {
+          context.read<ReservationBloc>().add(const ReservationEvent.reset());
+        }
+        _applyPending();
+      },
+      child: BlocBuilder<ProfileBloc, ProfileState>(
+        buildWhen: (a, b) => a.scheduledAppointments != b.scheduledAppointments,
+        builder: (context, profileState) {
         final appts = profileState.scheduledAppointments;
         if (appts.isNotEmpty && !_makingNew) {
           return ReservationLanding(
@@ -98,7 +169,8 @@ class _ReservationViewState extends State<ReservationView> {
         return _ReservationContent(
           onExitToLanding: appts.isNotEmpty ? () => setState(() => _makingNew = false) : null,
         );
-      },
+        },
+      ),
     );
   }
 }
@@ -158,6 +230,11 @@ class _ReservationContent extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) => ReservationSuccessView(
                 reservation: state.reservation,
+                couponName: state.selectedCoupon?.name,
+                couponDiscount: state.couponDiscount > 0
+                    ? state.couponDiscount
+                    : null,
+                finalPrice: state.finalPrice,
                 onGoToProfile: () {
                   HomePage.requestedTab.value = 4; // tab perfil
                   HomePage.justBooked.value = true;
@@ -182,14 +259,8 @@ class _ReservationContent extends StatelessWidget {
               previous.status != ReservationStatus.failure &&
               current.status == ReservationStatus.failure,
           listener: (context, state) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage ?? 'No se pudo crear la reserva.'),
-                backgroundColor: const Color(0xFFCF6679),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 3),
-              ),
-            );
+            AppToast.error(context, 'No se pudo reservar',
+                message: state.errorMessage ?? 'Intenta de nuevo.');
           },
         ),
       ],
@@ -401,9 +472,17 @@ class _ReservationContent extends StatelessWidget {
                           _PhaseWrapper(
                             phase: 5,
                             currentPhase: state.currentPhase,
-                            child: Phase5ConfirmationReceipt(
-                              reservation: state.reservation,
-                              isSuccess: state.status == ReservationStatus.success,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (state.status != ReservationStatus.success)
+                                  ReservationCouponSelector(state: state),
+                                Phase5ConfirmationReceipt(
+                                  reservation: state.reservation,
+                                  isSuccess: state.status ==
+                                      ReservationStatus.success,
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 180),

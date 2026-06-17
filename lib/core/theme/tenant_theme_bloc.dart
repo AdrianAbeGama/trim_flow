@@ -4,6 +4,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/default_tenant_colors.dart';
 import 'package:trim_flow/core/theme/tenant_branding_colors.dart';
@@ -103,8 +104,27 @@ class TenantThemeState {
 class TenantThemeBloc extends Cubit<TenantThemeState> {
   TenantThemeBloc() : super(TenantThemeState.initial());
 
+  static const String _kLastTenantKey = 'last_tenant_id';
+
   StreamSubscription<AuthState>? _authSub;
   bool _resolving = false;
+
+  Future<void> _saveLastTenant(String tenantId) async {
+    if (tenantId.isEmpty || tenantId == kDefaultTenantId) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kLastTenantKey, tenantId);
+    } catch (_) {}
+  }
+
+  Future<String?> _readLastTenant() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_kLastTenantKey);
+    } catch (_) {
+      return null;
+    }
+  }
 
   void loadTenant(String tenantId) {
     emit(state.copyWith(tenantId: tenantId));
@@ -112,6 +132,14 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
 
   Future<void> loadTenantFromAuth() async {
     _ensureAuthSubscription();
+    await _resolveTenantFromAuth();
+  }
+
+  /// Fuerza re-resolver las barberias del usuario (ej. tras vincular una nueva
+  /// por codigo de acceso). Ignora la cache de "ya resuelto".
+  Future<void> refreshFromAuth() async {
+    if (isClosed) return;
+    emit(state.copyWith(isResolved: false));
     await _resolveTenantFromAuth();
   }
 
@@ -129,6 +157,7 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
       isResolved: true,
       isSwitching: true,
     ));
+    await _saveLastTenant(tenantId);
   }
 
   Future<void> _resolveTenantFromAuth() async {
@@ -163,11 +192,20 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
         return;
       }
 
-      // Si ya había un tenant activo válido en la lista, conservarlo.
+      // Prioridad: 1) tenant activo válido en memoria, 2) última barbería usada
+      // (guardada en el dispositivo), 3) la primera de la lista.
       final keepActive = tenants.any((t) => t.id == state.tenantId);
-      final active = keepActive
-          ? tenants.firstWhere((t) => t.id == state.tenantId)
-          : tenants.first;
+      final TenantInfo active;
+      if (keepActive) {
+        active = tenants.firstWhere((t) => t.id == state.tenantId);
+      } else {
+        final lastId = await _readLastTenant();
+        active = (lastId == null
+                ? null
+                : tenants.where((t) => t.id == lastId).firstOrNull) ??
+            tenants.first;
+      }
+      await _saveLastTenant(active.id);
 
       emit(state.copyWith(
         tenantId: active.id,
@@ -219,26 +257,32 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
       return info != null ? [info] : [];
     }
 
-    // 2. Cliente: puede tener N filas en customers con distintos tenant_id
-    final customerRows = await client
-        .from('customers')
-        .select('tenant_id')
-        .eq('auth_user_id', userId)
-        .filter('deleted_at', 'is', null);
-
-    final tenantIds = (customerRows as List)
+    // 2. Cliente: Hub de barberias via RPC del backend (get_my_barbershops).
+    //    Reemplaza la lectura directa de customers, que rompia con multi-tenant
+    //    (varias fichas bajo el mismo auth_user_id).
+    final hub = await client.rpc('get_my_barbershops');
+    final rows = (hub as List?) ?? const [];
+    return rows
         .whereType<Map<String, dynamic>>()
-        .map((r) => r['tenant_id'] as String?)
-        .whereType<String>()
-        .toSet()
+        .map(_tenantInfoFromHub)
         .toList();
+  }
 
-    if (tenantIds.isEmpty) return [];
-
-    final infos = await Future.wait(
-      tenantIds.map((id) => _fetchTenantInfo(client, id)),
+  TenantInfo _tenantInfoFromHub(Map<String, dynamic> row) {
+    final branding = <String, dynamic>{
+      'primary_color': row['primaryColor'],
+      'secondary_color': row['secondaryColor'],
+      'accent_color': row['accentColor'],
+    };
+    final colors =
+        TenantBrandingColors.tryParse(branding) ?? DefaultTenantColors();
+    return TenantInfo(
+      id: row['tenantId'] as String,
+      name: (row['name'] as String?) ?? 'Negocio',
+      slug: (row['slug'] as String?) ?? '',
+      colors: colors,
+      points: (row['points'] as num?)?.toInt() ?? 0,
     );
-    return infos.whereType<TenantInfo>().toList();
   }
 
   Future<TenantInfo?> _fetchTenantInfo(

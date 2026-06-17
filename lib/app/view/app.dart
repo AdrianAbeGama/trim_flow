@@ -2,7 +2,6 @@ import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
-import 'package:trim_flow/features/profile/presentation/views/complete_profile_view.dart';
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart';
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:trim_flow/core/di/injection.dart';
+import 'package:trim_flow/core/settings/ticket_style.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
@@ -18,7 +18,7 @@ import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred as barber;
-import 'package:trim_flow/features/auth/presentation/views/access_code_view.dart';
+import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
@@ -190,6 +190,10 @@ class _ClientGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<TenantThemeBloc>().state;
+    // Cold start: cliente logueado sin barberias vinculadas → pegar codigo.
+    if (themeState.isResolved && themeState.availableTenants.isEmpty) {
+      return const ClaimProfileView();
+    }
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
         final user = state.user;
@@ -206,9 +210,6 @@ class _ClientGate extends StatelessWidget {
           }
           return _PostLoginTransition(label: switchingName);
         }
-        final complete =
-            user.birthDate.trim().isNotEmpty && user.phone.trim().isNotEmpty;
-        if (!complete) return CompleteProfileView(user: user);
         return const HomePage();
       },
     );
@@ -230,6 +231,8 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+    HomePage.loadUiPrefs();
+    TicketStyle.load();
     if (widget.bootstrapMode.isBusiness) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         getIt<AppModeBloc>().add(const AppModeEvent.setAccessCode('2'));
@@ -308,6 +311,17 @@ class _AppState extends State<App> {
                 Locale('en', 'US'),
               ],
               locale: const Locale('es', 'ES'),
+              builder: (context, child) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: HomePage.reduceMotion,
+                  builder: (ctx, reduce, _) {
+                    return MediaQuery(
+                      data: MediaQuery.of(ctx).copyWith(disableAnimations: reduce),
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
+                );
+              },
               home: BlocBuilder<AppModeBloc, AppModeState>(
                 builder: (context, state) {
                   if (!state.isInitialized) {
@@ -319,15 +333,6 @@ class _AppState extends State<App> {
                           strokeWidth: 2,
                         ),
                       ),
-                    );
-                  }
-
-                  if (state.accessCode == null) {
-                    if (widget.bootstrapMode.isBusiness) {
-                      return const _PostLoginTransition();
-                    }
-                    return AccessCodeView(
-                      onCodeValidated: (code) => context.read<AppModeBloc>().add(AppModeEvent.setAccessCode(code)),
                     );
                   }
 

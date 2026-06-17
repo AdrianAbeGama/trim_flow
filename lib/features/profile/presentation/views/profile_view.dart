@@ -1,6 +1,5 @@
 
 import 'package:core/core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +7,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/domain/models/product_order.dart';
 import 'package:trim_flow/features/products/presentation/bloc/orders_bloc.dart';
 import 'package:trim_flow/features/products/presentation/views/orders_view.dart';
@@ -15,6 +15,7 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:trim_flow/features/profile/presentation/views/profile_settings_view.dart';
+import 'package:trim_flow/features/profile/presentation/widgets/profile_view/referral_section.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_header.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_fidelity.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_next_appointment.dart';
@@ -123,25 +124,14 @@ class _ProfileBodyState extends State<_ProfileBody> {
 
   Future<void> _confirmLogout() async {
     HapticFeedback.mediumImpact();
-    final ok = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Seguro que quieres salir de tu cuenta?'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
-      ),
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Cerrar sesión',
+      message: '¿Seguro que quieres salir de tu cuenta? Tendrás que volver a iniciar sesión.',
+      confirmLabel: 'CERRAR SESIÓN',
+      icon: Icons.logout_rounded,
     );
-    if (ok == true && mounted) {
+    if (ok && mounted) {
       context.read<AppModeBloc>().add(const AppModeEvent.requestLogout());
     }
   }
@@ -236,6 +226,16 @@ class _ProfileBodyState extends State<_ProfileBody> {
 
                 // 5. HISTORIAL TIMELINE — siempre visible (con empty state)
                 ProfileHistoryTimeline(history: state.appointmentHistory),
+
+                // 6. INVITA A UN AMIGO + referidos/puntos
+                Builder(
+                  builder: (ctx) {
+                    final tid = ctx.watch<TenantThemeBloc>().state.tenantId;
+                    return SliverToBoxAdapter(
+                      child: ReferralSection(key: ValueKey('ref_$tid')),
+                    );
+                  },
+                ),
 
                 // 7. DATOS PERSONALES
                 ProfilePersonalDataGrid(

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
-import 'package:trim_flow/core/di/injection.dart';
 
 class QrScannerFacade extends StatefulWidget {
   const QrScannerFacade({super.key});
@@ -23,21 +21,12 @@ class _QrScannerFacadeState extends State<QrScannerFacade> {
   void _onDetect(BarcodeCapture capture) {
     if (_hasScanned) return;
 
-    final List<Barcode> barcodes = capture.barcodes;
-    for (final barcode in barcodes) {
-      final String? code = barcode.rawValue;
-      if (code != null) {
-        // Aceptamos el código de Elite o cualquier UUID
-        if (code.contains('-') || code == "1" || code == "2") {
-          _hasScanned = true;
-          
-          // Actualizamos el Tenant
-          getIt<TenantThemeBloc>().loadTenant(code);
-          
-          // Feedback sutil y salida inmediata
-          Navigator.pop(context, code);
-          break;
-        }
+    for (final barcode in capture.barcodes) {
+      final code = barcode.rawValue?.trim();
+      if (code != null && code.isNotEmpty) {
+        _hasScanned = true;
+        Navigator.pop(context, code);
+        break;
       }
     }
   }

@@ -1,24 +1,31 @@
 import 'package:core/core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
-import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
+import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
-import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
+import 'package:trim_flow/features/profile/presentation/views/about_view.dart';
+import 'package:trim_flow/features/profile/presentation/views/legal_view.dart';
+import 'package:trim_flow/features/profile/presentation/views/support_faq_view.dart';
+import 'package:trim_flow/features/profile/presentation/views/test_alerts_view.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
+import 'package:trim_flow/features/profile/presentation/widgets/profile_edit_sheet.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/settings/settings_header.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/settings/settings_logout_button.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/settings/settings_rows.dart';
 
-/// Configuración — orquestador limpio.
-/// Toda la UI vive en widgets/settings/.
+/// Configuración — minimalista premium. Íconos monocromáticos, secciones
+/// divididas, filas de estado (sin switches), Acerca de inline, eliminar al
+/// final. Mismo diseño para cliente y barbero.
 class ProfileSettingsView extends StatelessWidget {
   const ProfileSettingsView({
     super.key,
@@ -29,27 +36,56 @@ class ProfileSettingsView extends StatelessWidget {
   final UserProfile user;
   final bool isBarber;
 
-  Future<void> _confirmLogout(BuildContext context) async {
-    HapticFeedback.mediumImpact();
-    final ok = await showCupertinoDialog<bool>(
+  static final Color _icon = Colors.white.withValues(alpha: 0.72);
+  static final Color _iconBg = Colors.white.withValues(alpha: 0.05);
+
+  void _editProfile(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final bloc = context.read<ProfileBloc>();
+    final current = bloc.state.user ?? user;
+    showMaterialModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Seguro que quieres salir de tu cuenta?'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
+      backgroundColor: const Color(0xFF0E0E0E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (_) => isBarber
+          ? BlocProvider.value(
+              value: bloc,
+              child: BarberProfileEditSheet(user: current),
+            )
+          : ProfileEditSheet(user: current, profileBloc: bloc),
     );
-    if (ok == true && context.mounted) {
+  }
+
+  void _push(BuildContext context, Widget screen) {
+    HapticFeedback.selectionClick();
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Future<void> _launch(String url) async {
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
+  void _clearCache(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+    AppToast.success(context, 'Caché limpiada', message: 'Liberamos las imágenes en memoria.');
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Cerrar sesión',
+      message:
+          '¿Seguro que quieres salir de tu cuenta? Tendrás que volver a iniciar sesión.',
+      confirmLabel: 'CERRAR SESIÓN',
+      icon: Icons.logout_rounded,
+    );
+    if (ok && context.mounted) {
       Navigator.pop(context);
       context.read<AppModeBloc>().add(const AppModeEvent.requestLogout());
     }
@@ -57,7 +93,8 @@ class ProfileSettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileBloc = context.read<ProfileBloc>();
+    var d = 150;
+    int next() => d += 60;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
@@ -76,184 +113,255 @@ class ProfileSettingsView extends StatelessWidget {
                   .animate()
                   .fadeIn(delay: 100.ms, duration: 500.ms)
                   .slideY(
-                    begin: 0.08, end: 0,
-                    delay: 100.ms, duration: 500.ms,
+                    begin: 0.08,
+                    end: 0,
+                    delay: 100.ms,
+                    duration: 500.ms,
                     curve: Curves.easeOutCubic,
                   ),
             ),
-            // === AJUSTES ===
-            SliverToBoxAdapter(
-              child: SettingsSection(
-                title: 'Ajustes',
-                delay: 200,
-                children: [
-                  BlocBuilder<ProfileBloc, ProfileState>(
-                    builder: (context, state) {
-                      final currentUser = state.user ?? user;
-                      return SettingsToggleRow(
-                        iconColor: const Color(0xFFFF8A95),
-                        iconBg: const Color(0xFFFF8A95).withValues(alpha: 0.12),
-                        icon: Icons.notifications_active_rounded,
-                        label: 'Notificaciones push',
-                        subtitle: 'Avisos en tiempo real',
-                        value: currentUser.notificationsEnabled,
-                        onChanged: (_) => profileBloc
-                            .add(const RequestNotificationPermissionEvent()),
-                      );
-                    },
-                  ),
-                  const SettingsRowDivider(),
-                  SettingsActionRow(
-                    iconColor: context.primaryGold,
-                    iconBg: context.primaryGold.withValues(alpha: 0.12),
-                    icon: Icons.volume_up_rounded,
-                    label: 'Probar alerta',
-                    subtitle: 'Lanza una notificación de prueba',
-                    onTap: () => profileBloc.add(const TestNotificationEvent()),
-                  ),
-                ],
+
+            // === CUENTA ===
+            _section('Cuenta', d, [
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.person_outline_rounded,
+                label: 'Editar mis datos',
+                subtitle: isBarber ? 'Nombre y WhatsApp' : 'Nombre, WhatsApp, cumpleaños',
+                onTap: () => _editProfile(context),
               ),
-            ),
+            ]),
+
+            // === NOTIFICACIONES ===
+            _section('Notificaciones', next(), [
+              const SettingsNotificationRow(),
+              const SettingsRowDivider(),
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.notifications_none_rounded,
+                label: 'Ver alertas de ejemplo',
+                subtitle: 'Toca una para probarla',
+                onTap: () => _push(context, const TestAlertsView()),
+              ),
+            ]),
+
             // === ADMINISTRACIÓN (solo barbero) ===
             if (isBarber)
-              SliverToBoxAdapter(
-                child: SettingsSection(
-                  title: 'Administración',
-                  delay: 280,
-                  children: [
-                    ValueListenableBuilder<bool>(
-                      valueListenable: BarberHomePage.showBarberBadge,
-                      builder: (_, show, _) {
-                        return SettingsToggleRow(
-                          iconColor: context.primaryGold,
-                          iconBg: context.primaryGold.withValues(alpha: 0.12),
-                          icon: Icons.label_important_rounded,
-                          label: 'Etiqueta Modo Barbero',
-                          subtitle: 'Indicador flotante en pantalla',
-                          value: show,
-                          onChanged: (v) =>
-                              BarberHomePage.showBarberBadge.value = v,
-                        );
-                      },
-                    ),
-                  ],
+              _section('Administración', next(), [
+                ValueListenableBuilder<bool>(
+                  valueListenable: BarberHomePage.showBarberBadge,
+                  builder: (_, show, _) {
+                    return SettingsStateRow(
+                      iconColor: _icon,
+                      iconBg: _iconBg,
+                      icon: Icons.label_important_outline_rounded,
+                      label: 'Etiqueta Modo Barbero',
+                      subtitle: 'Indicador flotante en pantalla',
+                      value: show,
+                      onChanged: (v) => BarberHomePage.showBarberBadge.value = v,
+                    );
+                  },
+                ),
+              ]),
+
+            // === RENDIMIENTO ===
+            _section('Rendimiento', next(), [
+              ValueListenableBuilder<bool>(
+                valueListenable: HomePage.enableSwipe,
+                builder: (_, swipe, _) => SettingsStateRow(
+                  iconColor: _icon,
+                  iconBg: _iconBg,
+                  icon: Icons.swipe_rounded,
+                  label: 'Navegación por swipe',
+                  subtitle: 'Cambia de tab desplazando',
+                  value: swipe,
+                  onChanged: (v) => HomePage.enableSwipe.value = v,
                 ),
               ),
-            // === RENDIMIENTO ===
-            SliverToBoxAdapter(
-              child: SettingsSection(
-                title: 'Rendimiento',
-                delay: isBarber ? 360 : 280,
-                children: [
-                  ValueListenableBuilder<bool>(
-                    valueListenable: HomePage.enableSwipe,
-                    builder: (_, swipe, _) {
-                      return SettingsToggleRow(
-                        iconColor: context.primaryGold,
-                        iconBg: context.primaryGold.withValues(alpha: 0.12),
-                        icon: Icons.swipe_rounded,
-                        label: 'Navegación por swipe',
-                        subtitle: 'Cambia de tab desplazando',
-                        value: swipe,
-                        onChanged: (v) => HomePage.enableSwipe.value = v,
-                      );
-                    },
-                  ),
-                  const SettingsRowDivider(),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: HomePage.persistentNavBar,
-                    builder: (_, persistent, _) {
-                      return SettingsToggleRow(
-                        iconColor: context.primaryGold,
-                        iconBg: context.primaryGold.withValues(alpha: 0.12),
-                        icon: Icons.view_day_rounded,
-                        label: 'Barra siempre visible',
-                        subtitle: 'Mantener la barra al hacer scroll',
-                        value: persistent,
-                        onChanged: (v) => HomePage.persistentNavBar.value = v,
-                      );
-                    },
-                  ),
-                ],
+              const SettingsRowDivider(),
+              ValueListenableBuilder<bool>(
+                valueListenable: HomePage.persistentNavBar,
+                builder: (_, persistent, _) => SettingsStateRow(
+                  iconColor: _icon,
+                  iconBg: _iconBg,
+                  icon: Icons.view_day_outlined,
+                  label: 'Barra siempre visible',
+                  subtitle: 'Mantener la barra al hacer scroll',
+                  value: persistent,
+                  onChanged: (v) => HomePage.persistentNavBar.value = v,
+                ),
               ),
-            ),
+              const SettingsRowDivider(),
+              ValueListenableBuilder<bool>(
+                valueListenable: HomePage.reduceMotion,
+                builder: (_, reduce, _) => SettingsStateRow(
+                  iconColor: _icon,
+                  iconBg: _iconBg,
+                  icon: Icons.motion_photos_off_outlined,
+                  label: 'Desactivar animaciones',
+                  subtitle: 'Menos movimiento, más fluido',
+                  value: reduce,
+                  onChanged: (v) => HomePage.reduceMotion.value = v,
+                ),
+              ),
+              const SettingsRowDivider(),
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.cleaning_services_outlined,
+                label: 'Limpiar caché',
+                subtitle: 'Libera espacio de imágenes',
+                onTap: () => _clearCache(context),
+              ),
+            ]),
+
+            // === PRIVACIDAD Y PERMISOS ===
+            _section('Privacidad y permisos', next(), [
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.notifications_active_outlined,
+                label: 'Notificaciones',
+                subtitle: 'Administra el permiso en el sistema',
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  openAppSettings();
+                },
+              ),
+              const SettingsRowDivider(),
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.camera_alt_outlined,
+                label: 'Cámara',
+                subtitle: 'Para escanear códigos QR',
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  openAppSettings();
+                },
+              ),
+            ]),
+
             // === SOPORTE ===
-            SliverToBoxAdapter(
-              child: SettingsSection(
-                title: 'Soporte',
-                delay: isBarber ? 440 : 360,
-                children: [
-                  SettingsActionRow(
-                    iconColor: const Color(0xFF5DCBF9),
-                    iconBg: const Color(0xFF5DCBF9).withValues(alpha: 0.12),
-                    icon: Icons.info_outline_rounded,
-                    label: 'Acerca de TrimFlow',
-                    subtitle: 'Versión, créditos, agradecimientos',
-                    onTap: () => HapticFeedback.selectionClick(),
+            _section('Soporte', next(), [
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.help_outline_rounded,
+                label: 'Preguntas frecuentes',
+                subtitle: 'Resolvemos tus dudas',
+                onTap: () => _push(context, const SupportFaqView()),
+              ),
+              const SettingsRowDivider(),
+              SettingsExpandableRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.chat_bubble_outline_rounded,
+                label: 'Contactar por WhatsApp',
+                subtitle: 'Elige el motivo',
+                options: [
+                  SettingsOption(
+                    icon: Icons.bug_report_outlined,
+                    label: 'Errores en la app',
+                    onTap: () => _launch(
+                        'https://wa.me/51999000111?text=Hola,%20tengo%20un%20error%20en%20TrimFlow'),
                   ),
-                  const SettingsRowDivider(),
-                  SettingsActionRow(
-                    iconColor: Colors.white.withValues(alpha: 0.7),
-                    iconBg: Colors.white.withValues(alpha: 0.05),
-                    icon: Icons.description_outlined,
-                    label: 'Términos y privacidad',
-                    subtitle: 'Política de uso de la app',
-                    onTap: () => HapticFeedback.selectionClick(),
+                  SettingsOption(
+                    icon: Icons.report_gmailerrorred_outlined,
+                    label: 'Reclamaciones',
+                    onTap: () => _launch(
+                        'https://wa.me/51999000111?text=Hola,%20tengo%20un%20reclamo'),
+                  ),
+                  SettingsOption(
+                    icon: Icons.rocket_launch_outlined,
+                    label: '¿Quieres una app como esta?',
+                    highlight: true,
+                    onTap: () => _launch(
+                        'https://wa.me/51999000222?text=Hola,%20quiero%20una%20app%20como%20TrimFlow%20para%20mi%20negocio'),
                   ),
                 ],
               ),
-            ),
-            // === VERSIÓN ===
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 16),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'TRIMFLOW',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white.withValues(alpha: 0.22),
-                          letterSpacing: 3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'v1.0.0 · build 2026.06',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.15),
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
+              const SettingsRowDivider(),
+              SettingsExpandableRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.flag_outlined,
+                label: 'Reportar un problema',
+                subtitle: 'Escríbenos por correo',
+                options: [
+                  SettingsOption(
+                    icon: Icons.headset_mic_outlined,
+                    label: 'Soporte técnico',
+                    onTap: () => _launch(
+                        'mailto:soporte@trimflow.app?subject=Soporte%20-%20TrimFlow'),
                   ),
-                ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
+                  SettingsOption(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Reclamos y sugerencias',
+                    onTap: () => _launch(
+                        'mailto:reclamos@trimflow.app?subject=Reclamo%20-%20TrimFlow'),
+                  ),
+                ],
               ),
-            ),
+              const SettingsRowDivider(),
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.star_outline_rounded,
+                label: 'Calificar la app',
+                subtitle: 'Tu opinión nos ayuda',
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  _launch(
+                      'https://play.google.com/store/apps/details?id=com.trimflow.app');
+                },
+              ),
+            ]),
+
+            // === INFORMACIÓN ===
+            _section('Información', next(), [
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.shield_outlined,
+                label: 'Términos y seguridad',
+                subtitle: 'Condiciones de uso y protección de datos',
+                onTap: () => _push(context, const LegalView()),
+              ),
+              const SettingsRowDivider(),
+              SettingsActionRow(
+                iconColor: _icon,
+                iconBg: _iconBg,
+                icon: Icons.info_outline_rounded,
+                label: 'Acerca de TrimFlow',
+                subtitle: 'Versión y créditos',
+                onTap: () => _push(context, const AboutView()),
+              ),
+            ]),
+
             // === LOGOUT ===
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                child: SettingsLogoutButton(
-                  onTap: () => _confirmLogout(context),
-                )
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                child: SettingsLogoutButton(onTap: () => _confirmLogout(context))
                     .animate()
-                    .fadeIn(delay: 680.ms, duration: 500.ms)
-                    .slideY(
-                      begin: 0.15, end: 0,
-                      delay: 680.ms, duration: 500.ms,
-                      curve: Curves.easeOutCubic,
-                    ),
+                    .fadeIn(delay: 660.ms, duration: 500.ms),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 44)),
           ],
         ),
       ),
     );
   }
+
+  Widget _section(String title, int delay, List<Widget> children) {
+    return SliverToBoxAdapter(
+      child: SettingsSection(title: title, delay: delay, children: children),
+    );
+  }
 }
+

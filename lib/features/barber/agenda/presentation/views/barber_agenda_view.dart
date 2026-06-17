@@ -10,6 +10,7 @@ import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/avatar_premium.dart';
 import 'package:trim_flow/core/widgets/premium/smart_calendar.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
@@ -54,9 +55,8 @@ class _AgendaScaffold extends StatelessWidget {
     final baseRefs = bloc.state.lookupRefs;
 
     if (baseRefs == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Resolviendo configuracion del barbero, intenta de nuevo en un instante.'),
-      ));
+      AppToast.info(context, 'Un momento',
+          message: 'Resolviendo tu configuración, intenta de nuevo en un instante.');
       bloc.add(const AgendaEvent.resolveRefsRequested());
       return;
     }
@@ -68,9 +68,8 @@ class _AgendaScaffold extends StatelessWidget {
     );
 
     if (refs.defaultBranchId == null || refs.defaultServiceId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Falta asignar sucursal o servicio activo en tu perfil.'),
-      ));
+      AppToast.warning(context, 'Falta configuración',
+          message: 'Asigna sucursal o servicio activo en tu perfil.');
       return;
     }
 
@@ -99,9 +98,7 @@ class _AgendaScaffold extends StatelessWidget {
       listenWhen: (prev, curr) =>
           prev.errorMessage != curr.errorMessage && curr.errorMessage != null,
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.errorMessage ?? '')),
-        );
+        AppToast.error(context, 'Error', message: state.errorMessage ?? '');
       },
       builder: (context, state) {
         final gold = context.primaryGold;

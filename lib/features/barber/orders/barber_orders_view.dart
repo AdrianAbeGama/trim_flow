@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
+import 'package:trim_flow/core/widgets/safe_image.dart';
 import 'package:trim_flow/features/barber/orders/barber_order_detail_view.dart';
 import 'package:trim_flow/features/barber/orders/barber_orders_mock.dart';
 import 'package:trim_flow/features/products/domain/models/product_order.dart';
@@ -80,27 +82,101 @@ class _BarberOrdersViewState extends State<BarberOrdersView> {
     });
   }
 
+  Future<void> _openFilterMenu(BuildContext btnContext) async {
+    final gold = context.primaryGold;
+    final box = btnContext.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(btnContext).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+    final anchor = box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay);
+    final position = RelativeRect.fromLTRB(anchor.dx - 200, anchor.dy + 10, 20, 0);
+
+    final selected = await showMenu<_BFilter>(
+      context: context,
+      position: position,
+      color: const Color(0xFF1A1A1A),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      items: _BFilter.values.map((f) {
+        final isSel = f == _filter;
+        return PopupMenuItem<_BFilter>(
+          value: f,
+          height: 40,
+          child: Row(
+            children: [
+              Icon(isSel ? Icons.check_rounded : Icons.circle_outlined, size: 14, color: isSel ? gold : Colors.white.withValues(alpha: 0.25)),
+              const SizedBox(width: 10),
+              Text(
+                f.label,
+                style: GoogleFonts.inter(
+                  color: isSel ? Colors.white : Colors.white.withValues(alpha: 0.7),
+                  fontSize: 12.5,
+                  fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+    if (selected != null) {
+      HapticFeedback.selectionClick();
+      setState(() => _filter = selected);
+    }
+  }
+
+  static const List<(OrderStatus, String)> _groups = [
+    (OrderStatus.pendingPayment, 'POR PAGAR'),
+    (OrderStatus.paid, 'EN PREPARACIÓN'),
+    (OrderStatus.ready, 'LISTOS'),
+    (OrderStatus.completed, 'RECOGIDOS'),
+    (OrderStatus.cancelled, 'CANCELADOS'),
+  ];
+
+  Widget _cardAt(ProductOrder o, int i) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _BarberOrderCard(order: o, onTap: () => _open(o.id))
+            .animate()
+            .fadeIn(delay: (40 * i).clamp(0, 400).ms, duration: 360.ms)
+            .slideY(begin: 0.08, end: 0, duration: 360.ms, curve: Curves.easeOutCubic),
+      );
+
+  List<Widget> _items(List<ProductOrder> all) {
+    final children = <Widget>[];
+    if (_filter == _BFilter.todos) {
+      var first = true;
+      for (final g in _groups) {
+        final list = all.where((o) => o.status == g.$1).toList();
+        if (list.isEmpty) continue;
+        children.add(_SectionHeader(label: g.$2, count: list.length, first: first));
+        first = false;
+        for (var i = 0; i < list.length; i++) {
+          children.add(_cardAt(list[i], i));
+        }
+      }
+    } else {
+      final list = all.where(_filter.matches).toList();
+      for (var i = 0; i < list.length; i++) {
+        children.add(_cardAt(list[i], i));
+      }
+    }
+    return children;
+  }
+
   @override
   Widget build(BuildContext context) {
     final all = _store.list();
-    final orders = all.where(_filter.matches).toList();
+    final children = _items(all);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _Header(count: all.length)),
-          SliverToBoxAdapter(
-            child: _FilterRow(
-              current: _filter,
-              onSelect: (f) {
-                HapticFeedback.selectionClick();
-                setState(() => _filter = f);
-              },
-            ),
-          ),
-          if (orders.isEmpty)
+          SliverToBoxAdapter(child: _Header(count: all.length, filter: _filter, onFilter: _openFilterMenu)),
+          if (children.isEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 60),
@@ -118,26 +194,7 @@ class _BarberOrdersViewState extends State<BarberOrdersView> {
           else
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 6, 20, 110),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final o = orders[i];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _BarberOrderCard(order: o, onTap: () => _open(o.id))
-                          .animate()
-                          .fadeIn(
-                              delay: (40 * i).clamp(0, 400).ms, duration: 360.ms)
-                          .slideY(
-                              begin: 0.08,
-                              end: 0,
-                              duration: 360.ms,
-                              curve: Curves.easeOutCubic),
-                    );
-                  },
-                  childCount: orders.length,
-                ),
-              ),
+              sliver: SliverList(delegate: SliverChildListDelegate(children)),
             ),
         ],
       ),
@@ -145,10 +202,37 @@ class _BarberOrdersViewState extends State<BarberOrdersView> {
   }
 }
 
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label, required this.count, required this.first});
+
+  final String label;
+  final int count;
+  final bool first;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, first ? 4 : 16, 0, 10),
+      child: Row(
+        children: [
+          Container(width: 14, height: 1.5, color: gold),
+          const SizedBox(width: 8),
+          Text(label, style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.55), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.8)),
+          const Spacer(),
+          Text('$count', style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.35), fontSize: 11, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
-  const _Header({required this.count});
+  const _Header({required this.count, required this.filter, required this.onFilter});
 
   final int count;
+  final _BFilter filter;
+  final void Function(BuildContext) onFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -177,6 +261,26 @@ class _Header extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                           color: gold,
                           letterSpacing: 1.5)),
+                ),
+                const Spacer(),
+                Builder(
+                  builder: (btnContext) => PremiumPressable(
+                    pressedScale: 0.9,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      onFilter(btnContext);
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: filter == _BFilter.todos ? const Color(0xFF161616) : gold.withValues(alpha: 0.14),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: filter == _BFilter.todos ? Colors.white.withValues(alpha: 0.06) : gold.withValues(alpha: 0.45)),
+                      ),
+                      child: Icon(Icons.tune_rounded, size: 17, color: filter == _BFilter.todos ? Colors.white.withValues(alpha: 0.7) : gold),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -214,156 +318,158 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _FilterRow extends StatelessWidget {
-  const _FilterRow({required this.current, required this.onSelect});
-
-  final _BFilter current;
-  final ValueChanged<_BFilter> onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    final gold = context.primaryGold;
-    return SizedBox(
-      height: 38,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _BFilter.values.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final f = _BFilter.values[i];
-          final sel = f == current;
-          return GestureDetector(
-            onTap: () => onSelect(f),
-            child: Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: sel ? gold.withValues(alpha: 0.14) : Colors.white.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: sel
-                        ? gold.withValues(alpha: 0.5)
-                        : Colors.white.withValues(alpha: 0.07)),
-              ),
-              child: Text(f.label,
-                  style: GoogleFonts.inter(
-                      color: sel ? gold : Colors.white.withValues(alpha: 0.6),
-                      fontSize: 12,
-                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600)),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _BarberOrderCard extends StatelessWidget {
+class _BarberOrderCard extends StatefulWidget {
   const _BarberOrderCard({required this.order, required this.onTap});
 
   final ProductOrder order;
   final VoidCallback onTap;
 
   @override
+  State<_BarberOrderCard> createState() => _BarberOrderCardState();
+}
+
+class _BarberOrderCardState extends State<_BarberOrderCard> {
+  bool _expanded = false;
+
+  void _toggle() {
+    HapticFeedback.lightImpact();
+    setState(() => _expanded = !_expanded);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final order = widget.order;
     final gold = context.primaryGold;
     final statusColor = _statusColor(order.status, gold);
-    final first = order.items.isNotEmpty ? order.items.first.product.name : 'Productos';
-    final extra = order.items.length - 1;
-    final summary =
-        extra > 0 ? '$first  ·  +$extra más' : first;
+    final first = order.items.isNotEmpty ? order.items.first.product : null;
+    final extras = order.items.skip(1).toList();
+    final hasExtras = extras.isNotEmpty;
+    final summary = first?.name ?? 'Productos';
 
     return PremiumPressable(
       pressedScale: 0.99,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.02),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    order.customerName.isEmpty ? 'Cliente' : order.customerName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(order.status.short,
-                      style: GoogleFonts.inter(
-                          color: statusColor,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Text(order.code,
-                    style: GoogleFonts.inter(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(summary,
+      onTap: widget.onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: first != null
+                    ? SafeImage(url: first.imageUrl, width: 96, height: 96, fit: BoxFit.cover)
+                    : Container(width: 96, height: 96, color: Colors.white.withValues(alpha: 0.04)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
+                        const SizedBox(width: 6),
+                        Text(order.status.short,
+                            style: GoogleFonts.inter(color: statusColor, fontSize: 9.5, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                        const Spacer(),
+                        Icon(Icons.event_rounded, size: 12, color: Colors.white.withValues(alpha: 0.4)),
+                        const SizedBox(width: 4),
+                        Text(DateFormat("d MMM · HH:mm", 'es').format(order.createdAt),
+                            style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.55), fontSize: 11.5, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      order.customerName.isEmpty ? 'Cliente' : order.customerName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500)),
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -0.4),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      summary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.45), fontSize: 12.5, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('S/ ${order.total.toStringAsFixed(2)}',
+                            style: GoogleFonts.inter(color: gold, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                        const Spacer(),
+                        if (hasExtras)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _toggle,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _expanded ? 'Ocultar' : '+${extras.length} ${extras.length == 1 ? "producto" : "productos"}',
+                                  style: GoogleFonts.inter(color: gold, fontSize: 11.5, fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(width: 2),
+                                AnimatedRotation(
+                                  turns: _expanded ? 0.5 : 0,
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeOutCubic,
+                                  child: Icon(Icons.keyboard_arrow_down_rounded, color: gold, size: 18),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(height: 1, color: Colors.white.withValues(alpha: 0.05)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.payments_rounded,
-                    size: 13, color: Colors.white.withValues(alpha: 0.4)),
-                const SizedBox(width: 5),
-                Text(order.paymentMethod.label,
-                    style: GoogleFonts.inter(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600)),
-                const Spacer(),
-                Text('S/ ${order.total.toStringAsFixed(2)}',
-                    style: GoogleFonts.inter(
-                        color: gold,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.3)),
-                const SizedBox(width: 6),
-                Icon(Icons.chevron_right_rounded,
-                    color: gold, size: 18),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 240),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: (_expanded && hasExtras)
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 14),
+                    child: Column(
+                      children: extras
+                          .map((it) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child: SafeImage(url: it.product.imageUrl, width: 52, height: 52, fit: BoxFit.cover),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(it.product.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.inter(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
+                                          const SizedBox(height: 2),
+                                          Text('${it.quantity} ${it.quantity == 1 ? "unidad" : "unidades"}', style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w500)),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text('S/ ${(it.product.price * it.quantity).toStringAsFixed(2)}', style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.6), fontSize: 13, fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+          const SizedBox(height: 16),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+        ],
       ),
     );
   }

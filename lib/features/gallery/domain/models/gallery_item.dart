@@ -12,6 +12,7 @@ class GalleryItem {
   final DateTime createdAt;
   final int displayOrder;
   final bool isFeatured;
+  final double? price;
 
   const GalleryItem({
     this.id,
@@ -27,6 +28,7 @@ class GalleryItem {
     required this.createdAt,
     this.displayOrder = 0,
     this.isFeatured = false,
+    this.price,
   });
 
   GalleryItem copyWith({
@@ -38,6 +40,7 @@ class GalleryItem {
     String? barberProfileId,
     String? barberFullName,
     String? barberSpecialty,
+    double? price,
   }) {
     return GalleryItem(
       id: id ?? this.id,
@@ -53,6 +56,7 @@ class GalleryItem {
       createdAt: createdAt,
       displayOrder: displayOrder ?? this.displayOrder,
       isFeatured: isFeatured ?? this.isFeatured,
+      price: price ?? this.price,
     );
   }
 
@@ -70,6 +74,7 @@ class GalleryItem {
       'createdAt': createdAt.toIso8601String(),
       'displayOrder': displayOrder,
       'isFeatured': isFeatured,
+      'price': price,
     };
   }
 
@@ -89,6 +94,7 @@ class GalleryItem {
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
       displayOrder: map['displayOrder'] as int? ?? 0,
       isFeatured: map['isFeatured'] as bool? ?? false,
+      price: (map['price'] as num?)?.toDouble(),
     );
   }
 }

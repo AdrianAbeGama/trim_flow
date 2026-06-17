@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart';
@@ -48,15 +49,27 @@ class GalleryTopBar extends StatelessWidget {
                     count: state.allItems.where((it) => it.isFeatured).length,
                     onTap: () => GalleryFavoritesSheet.show(context),
                   ),
-                  if (isBarberMode) ...[
-                    const SizedBox(width: 8),
-                    _EditToggleButton(
-                      isEditing: state.isEditing,
-                      onTap: () => context
-                          .read<GalleryBloc>()
-                          .add(const GalleryEvent.editModeToggled()),
+                  if (isBarberMode)
+                    ValueListenableBuilder<PreviewRole?>(
+                      valueListenable: PermissionsStore.instance.preview,
+                      builder: (context, _, _) {
+                        if (!PermissionsStore.instance.can('gallery_manage')) {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(width: 8),
+                            _EditToggleButton(
+                              isEditing: state.isEditing,
+                              onTap: () => context
+                                  .read<GalleryBloc>()
+                                  .add(const GalleryEvent.editModeToggled()),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                  ],
                 ],
               )
                   .animate()
@@ -109,7 +122,7 @@ class GalleryTopBar extends StatelessWidget {
                   Container(width: 16, height: 1.5, color: gold),
                   const SizedBox(width: 8),
                   Text(
-                    'Nuestro portafolio premium',
+                    'Elige un barbero y mira su trabajo',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -195,7 +208,7 @@ class _FavoritesIconButtonState extends State<_FavoritesIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    final starYellow = context.primaryGold;
+    const starYellow = Color(0xFFFFC93C);
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),

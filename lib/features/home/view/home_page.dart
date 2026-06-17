@@ -6,6 +6,7 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_bar_trigger.dart';
 import 'package:trim_flow/core/widgets/premium/premium_bottom_nav_item.dart';
@@ -24,6 +25,7 @@ class HomePage extends StatefulWidget {
   static const int reservationsTabIndex = 2;
   static final ValueNotifier<bool> enableSwipe = ValueNotifier<bool>(false);
   static final ValueNotifier<bool> persistentNavBar = ValueNotifier<bool>(false);
+  static final ValueNotifier<bool> reduceMotion = ValueNotifier<bool>(false);
   static final ValueNotifier<int?> requestedTab = ValueNotifier<int?>(null);
   // Se activa tras confirmar una reserva: la tarjeta de próxima cita del perfil
   // reproduce una vez el efecto de ondas radiales al consumirlo.
@@ -32,6 +34,37 @@ class HomePage extends StatefulWidget {
   // home, se setea aquí y el destino lo consume al activarse.
   static final ValueNotifier<Map<String, String>?> requestedService = ValueNotifier<Map<String, String>?>(null);
   static final ValueNotifier<String?> requestedProductId = ValueNotifier<String?>(null);
+  // Barbero pre-seleccionado (id real) al reservar desde la galería.
+  static final ValueNotifier<String?> requestedBarberId = ValueNotifier<String?>(null);
+
+  static const _kSwipeKey = 'ui_enable_swipe';
+  static const _kBarKey = 'ui_persistent_navbar';
+  static const _kMotionKey = 'ui_reduce_motion';
+  static bool _uiPrefsWired = false;
+
+  /// Carga las preferencias de UI (swipe / barra siempre visible / animaciones)
+  /// guardadas en el dispositivo y las persiste al cambiar. Se llama una vez.
+  static Future<void> loadUiPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    enableSwipe.value = prefs.getBool(_kSwipeKey) ?? false;
+    persistentNavBar.value = prefs.getBool(_kBarKey) ?? false;
+    reduceMotion.value = prefs.getBool(_kMotionKey) ?? false;
+    if (!_uiPrefsWired) {
+      _uiPrefsWired = true;
+      enableSwipe.addListener(() async {
+        final p = await SharedPreferences.getInstance();
+        await p.setBool(_kSwipeKey, enableSwipe.value);
+      });
+      persistentNavBar.addListener(() async {
+        final p = await SharedPreferences.getInstance();
+        await p.setBool(_kBarKey, persistentNavBar.value);
+      });
+      reduceMotion.addListener(() async {
+        final p = await SharedPreferences.getInstance();
+        await p.setBool(_kMotionKey, reduceMotion.value);
+      });
+    }
+  }
 
   @override
   State<HomePage> createState() => _HomePageState();

@@ -8,9 +8,11 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:confetti/confetti.dart';
 import 'package:intl/intl.dart';
+import 'package:trim_flow/core/settings/ticket_style.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_state.dart';
+import 'package:trim_flow/features/products/presentation/widgets/barcode_widget.dart';
 
 class ProductPurchaseSuccessView extends StatefulWidget {
   final CartState cartState;
@@ -105,20 +107,12 @@ class _ProductPurchaseSuccessViewState extends State<ProductPurchaseSuccessView>
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.ios_share_rounded, size: 17, color: Colors.white),
-                                const SizedBox(width: 8),
-                                Text('COMPARTIR', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12)),
-                              ],
-                            ),
+                            child: Text('COMPARTIR', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12.5)),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        flex: 2,
                         child: PremiumPressable(
                           pressedScale: 0.97,
                           onTap: () {
@@ -132,14 +126,7 @@ class _ProductPurchaseSuccessViewState extends State<ProductPurchaseSuccessView>
                               color: const Color(0xFFF7F3EC),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.receipt_long_rounded, size: 17, color: Colors.black),
-                                const SizedBox(width: 8),
-                                Text('VER MIS PEDIDOS', style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 0.6, fontSize: 12)),
-                              ],
-                            ),
+                            child: Text('VER MIS PEDIDOS', style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.w900, letterSpacing: 0.6, fontSize: 12.5)),
                           ),
                         ),
                       ),
@@ -186,256 +173,123 @@ class _ProductPurchaseSuccessViewState extends State<ProductPurchaseSuccessView>
         ? firstProduct.barcode
         : (firstProduct != null ? firstProduct.id : 'TF-${100000 + Random().nextInt(900000)}');
 
-    return ClipPath(
-      clipper: _TicketClipper(),
-      child: Container(
-        width: double.infinity,
-        color: Colors.white,
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: context.primaryGold,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'PAGO EXITOSO',
-              style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
-            const SizedBox(height: 24),
-            
-            _buildDetailRow('FECHA', DateFormat("dd / MM / yyyy").format(DateTime.now())),
-            const SizedBox(height: 12),
-            _buildDetailRow('MÉTODO', widget.paymentMethod.toUpperCase()),
-            
-            const SizedBox(height: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ValueListenableBuilder<bool>(
+      valueListenable: TicketStyle.dark,
+      builder: (context, dark, _) {
+        final gold = context.primaryGold;
+        final bg = dark ? const Color(0xFF1A1A1A) : Colors.white;
+        final textPrimary = dark ? Colors.white : Colors.black;
+        final textMuted = dark ? Colors.white.withValues(alpha: 0.55) : Colors.black54;
+        final label = dark ? Colors.white.withValues(alpha: 0.4) : Colors.black38;
+        final divider = dark ? Colors.white.withValues(alpha: 0.12) : Colors.black12;
+        final folio = dark ? Colors.white.withValues(alpha: 0.3) : Colors.black26;
+
+        return ClipPath(
+          clipper: _TicketClipper(),
+          child: Container(
+            width: double.infinity,
+            color: bg,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('PRODUCTOS', style: TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                const SizedBox(height: 8),
-                ...widget.cartState.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: dark ? gold.withValues(alpha: 0.14) : gold,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: dark ? gold.withValues(alpha: 0.45) : Colors.white, width: 2),
+                  ),
+                  child: Icon(Icons.check_rounded, color: dark ? gold : Colors.white, size: 24),
+                ),
+                const SizedBox(height: 12),
+                Text('PAGO EXITOSO', style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                const SizedBox(height: 24),
+                _buildDetailRow('FECHA', DateFormat("dd / MM / yyyy").format(DateTime.now()), label, textPrimary),
+                const SizedBox(height: 12),
+                _buildDetailRow('MÉTODO', widget.paymentMethod.toUpperCase(), label, textPrimary),
+                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          '${item.quantity}X ${item.product.name.toUpperCase()}', 
-                          style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'S/ ${(item.product.price * item.quantity).toStringAsFixed(2)}', 
-                        style: const TextStyle(color: Colors.black54, fontSize: 11)
-                      ),
+                      Text('PRODUCTOS', style: TextStyle(color: label, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      ...widget.cartState.items.map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${item.quantity}X ${item.product.name.toUpperCase()}',
+                                    style: TextStyle(color: textPrimary, fontSize: 11, fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text('S/ ${(item.product.price * item.quantity).toStringAsFixed(2)}', style: TextStyle(color: textMuted, fontSize: 11)),
+                              ],
+                            ),
+                          )),
                     ],
                   ),
-                )),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            _buildDashedLine(),
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('TOTAL PAGADO', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.w900)),
-                Text(
-                  'S/ ${widget.cartState.totalPrice.toStringAsFixed(2)}',
-                  style: TextStyle(color: context.primaryGold, fontSize: 24, fontWeight: FontWeight.w900),
                 ),
+                const SizedBox(height: 20),
+                _buildDashedLine(divider),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('TOTAL PAGADO', style: TextStyle(color: textPrimary, fontSize: 11, fontWeight: FontWeight.w900)),
+                    Text('S/ ${widget.cartState.totalPrice.toStringAsFixed(2)}', style: TextStyle(color: gold, fontSize: 24, fontWeight: FontWeight.w900)),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                // Código de barras (toca para ampliar). Sobre azulejo blanco en modo oscuro.
+                GestureDetector(
+                  onTap: () => showBarcodeZoom(context, barcodeToShow),
+                  child: dark
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                          child: BarcodeWidget(code: barcodeToShow),
+                        )
+                      : BarcodeWidget(code: barcodeToShow),
+                ),
+                const SizedBox(height: 20),
+                Text('GRACIAS POR TU PREFERENCIA', style: TextStyle(color: folio, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 2)),
               ],
             ),
-
-            const SizedBox(height: 36),
-            
-            // TAREA 5: Componente de código de barras centrado y dinámico
-            BarcodeWidget(code: barcodeToShow),
-            
-            const SizedBox(height: 20),
-            const Text(
-              'GRACIAS POR TU PREFERENCIA',
-              style: TextStyle(color: Colors.black26, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 2),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, Color labelColor, Color valueColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.black38, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
-        Text(value, style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900)),
+        Text(label, style: TextStyle(color: labelColor, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        Text(value, style: TextStyle(color: valueColor, fontSize: 13, fontWeight: FontWeight.w900)),
       ],
     );
   }
 
-  Widget _buildDashedLine() {
+  Widget _buildDashedLine(Color color) {
     return Row(
       children: List.generate(
         30,
         (index) => Expanded(
           child: Container(
-            color: index % 2 == 0 ? Colors.transparent : Colors.black12,
+            color: index % 2 == 0 ? Colors.transparent : color,
             height: 1.5,
           ),
         ),
       ),
     );
-  }
-}
-
-class BarcodeWidget extends StatelessWidget {
-  final String code;
-  final double height;
-
-  const BarcodeWidget({
-    super.key,
-    required this.code,
-    this.height = 50.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          height: height,
-          width: 240,
-          child: CustomPaint(
-            painter: _DynamicBarcodePainter(code: code),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.only(left: 2.0), // Compensar el letterSpacing final
-          child: Text(
-            code.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.black54,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DynamicBarcodePainter extends CustomPainter {
-  final String code;
-
-  _DynamicBarcodePainter({required this.code});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.fill;
-
-    final String sanitized = code.toUpperCase();
-    
-    // Dimensiones de barra
-    const double thinWidth = 1.5;
-    const double thickWidth = 3.5;
-    const double spaceThin = 1.5;
-    const double spaceThick = 3.5;
-
-    // Calcular ancho total de las barras
-    double totalWidth = 0.0;
-
-    // Start Guard: drawBar(thinWidth) + drawSpace(spaceThin) + drawBar(thinWidth) + drawSpace(spaceThin)
-    totalWidth += thinWidth + spaceThin + thinWidth + spaceThin;
-
-    // Mapeo pseudo-real de código de barras Code 39 para ancho total
-    for (int i = 0; i < sanitized.length; i++) {
-      final int charVal = sanitized.codeUnitAt(i);
-      for (int bit = 0; bit < 6; bit++) {
-        final bool isBar = bit % 2 == 0;
-        final bool isWide = ((charVal >> bit) & 1) == 1;
-
-        if (isBar) {
-          totalWidth += isWide ? thickWidth : thinWidth;
-        } else {
-          totalWidth += isWide ? spaceThick : spaceThin;
-        }
-      }
-      // Espacio fino separador
-      totalWidth += spaceThin;
-    }
-
-    // Stop Guard: drawBar(thinWidth) + drawSpace(spaceThin) + drawBar(thinWidth)
-    totalWidth += thinWidth + spaceThin + thinWidth;
-
-    // Alinear al centro restando del ancho total del lienzo
-    double currentX = (size.width - totalWidth) / 2;
-    if (currentX < 0) currentX = 0.0;
-
-    void drawBar(double width) {
-      canvas.drawRect(Rect.fromLTWH(currentX, 0, width, size.height), paint);
-      currentX += width;
-    }
-
-    void drawSpace(double width) {
-      currentX += width;
-    }
-
-    // Delimitador de inicio (Start Guard)
-    drawBar(thinWidth);
-    drawSpace(spaceThin);
-    drawBar(thinWidth);
-    drawSpace(spaceThin);
-
-    // Pintar los caracteres
-    for (int i = 0; i < sanitized.length; i++) {
-      final int charVal = sanitized.codeUnitAt(i);
-      
-      // Pattern
-      for (int bit = 0; bit < 6; bit++) {
-        final bool isBar = bit % 2 == 0;
-        final bool isWide = ((charVal >> bit) & 1) == 1;
-
-        if (isBar) {
-          drawBar(isWide ? thickWidth : thinWidth);
-        } else {
-          drawSpace(isWide ? spaceThick : spaceThin);
-        }
-      }
-      // Espacio fino separador
-      drawSpace(spaceThin);
-    }
-
-    // Delimitador de fin (Stop Guard)
-    drawBar(thinWidth);
-    drawSpace(spaceThin);
-    drawBar(thinWidth);
-  }
-
-  @override
-  bool shouldRepaint(covariant _DynamicBarcodePainter oldDelegate) {
-    return oldDelegate.code != code;
   }
 }
 

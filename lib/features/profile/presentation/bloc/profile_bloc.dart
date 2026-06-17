@@ -28,11 +28,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   StreamSubscription<AppModeState>? _modeSub;
   String? _trackedUserId;
 
-  // Datos personales del cliente ya completados (en memoria, vida de la app).
-  // Permiten reutilizarlos al entrar a otra barberia sin re-pedir el onboarding.
-  ({String firstName, String lastName, String phone, String birthDate})?
-      _cachedClientInfo;
-
   ProfileBloc(
     this._authService,
     this._repository,
@@ -142,15 +137,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final mode = _currentMode();
 
     try {
+      final hasTenant = tenantId != kDefaultTenantId && tenantId.isNotEmpty;
       final result = mode == AppMode.barber
           ? await _repository.loadStaffProfile(
               authUserId: authUser.id,
               fallbackTenantId: tenantId,
             )
-          : await _repository.loadCustomerProfile(
-              authUserId: authUser.id,
-              fallbackTenantId: tenantId,
-            );
+          : (hasTenant
+              ? await _repository.loadCustomerProfile(
+                  authUserId: authUser.id,
+                  fallbackTenantId: tenantId,
+                )
+              : null);
 
       if (result == null) {
         emit(state.copyWith(
@@ -164,19 +162,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         return;
       }
 
-      if (mode == AppMode.client && result.user.customerId != null) {
-        final user =
-            await _ensureClientInfoCarried(authUser.id, tenantId, result.user);
-        final appointments = await _safeLoadAppointments(user.customerId!);
-        final history = await _safeLoadHistory(user.customerId!);
-        final coupons = await _safeLoadCoupons(user.customerId!);
+      if (mode == AppMode.client) {
+        final reservations = await _safeLoadReservations(tenantId);
+        final coupons = await _safeLoadCoupons(tenantId);
         emit(state.copyWith(
           status: ProfileStatus.loaded,
-          user: user,
+          user: result.user,
           completedCuts: result.loyaltyPoints,
           isRewardAvailable: result.isRewardAvailable,
-          scheduledAppointments: appointments,
-          appointmentHistory: history.isEmpty ? _demoHistory : history,
+          scheduledAppointments: reservations.upcoming,
+          appointmentHistory:
+              reservations.recent.isEmpty ? _demoHistory : reservations.recent,
           coupons: coupons,
           clientCode: result.clientCode,
           lastVisit: result.lastVisit,
@@ -205,95 +201,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 
-  Future<List<Reservation>> _safeLoadAppointments(String customerId) async {
+  Future<MyReservationsResult> _safeLoadReservations(String tenantId) async {
     try {
-      return await _repository.loadActiveReservations(customerId: customerId);
+      return await _repository.loadMyReservations(tenantId: tenantId);
     } catch (e) {
-      debugPrint('ProfileBloc.loadActiveReservations error: $e');
-      return const [];
+      debugPrint('ProfileBloc.loadMyReservations error: $e');
+      return const MyReservationsResult();
     }
   }
 
-  Future<List<PastAppointment>> _safeLoadHistory(String customerId) async {
+  Future<List<CustomerCoupon>> _safeLoadCoupons(String tenantId) async {
     try {
-      return await _repository.loadAppointmentHistory(customerId: customerId);
-    } catch (e) {
-      debugPrint('ProfileBloc.loadAppointmentHistory error: $e');
-      return const [];
-    }
-  }
-
-  Future<List<CustomerCoupon>> _safeLoadCoupons(String customerId) async {
-    try {
-      return await _repository.loadCustomerCoupons(customerId: customerId);
+      return await _repository.loadCustomerCoupons(tenantId: tenantId);
     } catch (e) {
       debugPrint('ProfileBloc.loadCustomerCoupons error: $e');
       return const [];
-    }
-  }
-
-  bool _isClientInfoComplete(UserProfile u) =>
-      u.birthDate.trim().isNotEmpty && u.phone.trim().isNotEmpty;
-
-  void _cacheClientInfo(UserProfile u) {
-    _cachedClientInfo = (
-      firstName: u.firstName,
-      lastName: u.lastName,
-      phone: u.phone,
-      birthDate: u.birthDate,
-    );
-  }
-
-  /// Si el cliente ya completo sus datos en otra barberia, los reutiliza en la
-  /// barberia activa (auto-bootstrap) para no volver a mostrar el onboarding.
-  /// Si no hay datos previos, devuelve el perfil tal cual (se mostrara el form).
-  Future<UserProfile> _ensureClientInfoCarried(
-      String authUserId, String tenantId, UserProfile user) async {
-    if (_isClientInfoComplete(user)) {
-      _cacheClientInfo(user);
-      return user;
-    }
-    // Reutiliza datos ya completados: primero la cache en memoria; si no hay,
-    // los busca en las otras barberias del usuario (sobrevive reinicios).
-    var cache = _cachedClientInfo;
-    if (cache == null) {
-      try {
-        final known =
-            await _repository.loadKnownCustomerInfo(authUserId: authUserId);
-        if (known != null) {
-          cache = (
-            firstName: known.firstName,
-            lastName: known.lastName,
-            phone: known.phone,
-            birthDate: known.birthDate,
-          );
-          _cachedClientInfo = cache;
-        }
-      } catch (e) {
-        debugPrint('ProfileBloc.loadKnownCustomerInfo error: $e');
-      }
-    }
-    if (cache == null) return user;
-    try {
-      await _repository.updateCustomerProfile(
-        authUserId: authUserId,
-        tenantId: tenantId == kDefaultTenantId ? null : tenantId,
-        input: ProfileUpdateInput(
-          firstName: cache.firstName,
-          lastName: cache.lastName,
-          phone: cache.phone,
-          birthDate: cache.birthDate,
-        ),
-      );
-      return user.copyWith(
-        firstName: cache.firstName,
-        lastName: cache.lastName,
-        phone: cache.phone,
-        birthDate: cache.birthDate,
-      );
-    } catch (e) {
-      debugPrint('ProfileBloc auto-carry failed: $e');
-      return user;
     }
   }
 
@@ -337,10 +259,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         phone: event.phone,
         birthDate: isBarberMode ? currentUser.birthDate : event.birthDate,
       );
-
-      if (!isBarberMode && _isClientInfoComplete(updatedUser)) {
-        _cacheClientInfo(updatedUser);
-      }
 
       emit(state.copyWith(
         status: ProfileStatus.loaded,

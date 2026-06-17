@@ -2,38 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 
 void showPremiumFeedback(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).clearSnackBars();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Row(
-        children: [
-          Icon(Icons.check_circle_outline_rounded, color: context.primaryGold, size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: const Color(0xFF161616),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: context.primaryGold.withValues(alpha: 0.2)),
-      ),
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    ),
-  );
+  AppToast.success(context, 'Copiado', message: 'Pégalo donde lo necesites.');
 }
 
 class CopyBadgeButton extends StatelessWidget {

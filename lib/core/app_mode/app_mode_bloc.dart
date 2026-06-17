@@ -56,11 +56,6 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     final savedCode = prefs.getString(_kAccessCodeKey);
     final resolvedMode = await _resolveStoredMode(prefs, savedCode);
 
-    if (savedCode == null) {
-      emit(state.copyWith(accessCode: null, isLoggedIn: false, isInitialized: true));
-      return;
-    }
-
     final currentUser = _authService.currentUser;
     _lastKnownUserId = currentUser?.id;
 

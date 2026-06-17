@@ -34,6 +34,36 @@ class ProfileUpdateInput {
   });
 }
 
+/// Estadisticas de referidos del cliente (RPC get_my_referral_stats).
+class ReferralStats {
+  final String? code;
+  final int usesCount;
+  final int maxUses;
+  final int referredCount;
+  final int totalEarned;
+
+  const ReferralStats({
+    this.code,
+    this.usesCount = 0,
+    this.maxUses = 0,
+    this.referredCount = 0,
+    this.totalEarned = 0,
+  });
+}
+
+/// Resultado de `get_my_reservations`: proximas + historial en una sola llamada.
+class MyReservationsResult {
+  final List<Reservation> upcoming;
+  final List<PastAppointment> recent;
+  final bool recentHasMore;
+
+  const MyReservationsResult({
+    this.upcoming = const [],
+    this.recent = const [],
+    this.recentHasMore = false,
+  });
+}
+
 abstract class ProfileRepository {
   Future<ProfileLoadResult?> loadCustomerProfile({
     required String authUserId,
@@ -51,29 +81,40 @@ abstract class ProfileRepository {
     required ProfileUpdateInput input,
   });
 
-  /// Datos personales (nombre, WhatsApp, cumpleanos) ya completados por el
-  /// usuario en CUALQUIER barberia. Sirve para reutilizarlos al entrar a una
-  /// nueva barberia sin volver a pedir el onboarding. null si no hay ninguno.
-  Future<ProfileUpdateInput?> loadKnownCustomerInfo({
-    required String authUserId,
-  });
-
   Future<void> updateStaffProfile({
     required String authUserId,
     required String? tenantId,
     required ProfileUpdateInput input,
   });
 
-  Future<List<Reservation>> loadActiveReservations({
-    required String customerId,
+  /// Sube la imagen local al storage y la asigna como foto del staff logueado
+  /// (RPC update_my_avatar, ADR-0015). Solo aplica a perfiles de `profiles`.
+  Future<void> updateStaffAvatar({required String localImagePath});
+
+  /// Quita la foto de perfil del staff logueado.
+  Future<void> removeStaffAvatar();
+
+  /// Vincula el perfil del cliente con un codigo de acceso (TRF-XXXX) de una
+  /// reserva web (RPC claim_profile_by_ticket). Devuelve cuantas barberias se
+  /// vincularon. Idempotente: re-pegar el propio codigo no falla.
+  Future<int> claimProfileByTicket({required String accessCode});
+
+  /// Referidos (por barberia). El codigo se crea la 1a vez si no existe.
+  Future<ReferralStats> getReferralStats({required String tenantId});
+  Future<String> generateReferralCode({required String tenantId});
+
+  /// Aplica el codigo de un amigo. Devuelve el mensaje del backend.
+  Future<String> applyReferralCode({
+    required String tenantId,
+    required String code,
   });
 
-  Future<List<PastAppointment>> loadAppointmentHistory({
-    required String customerId,
-    int limit = 50,
+  /// Citas del cliente (proximas + historial) via RPC get_my_reservations.
+  Future<MyReservationsResult> loadMyReservations({
+    required String tenantId,
   });
 
   Future<List<CustomerCoupon>> loadCustomerCoupons({
-    required String customerId,
+    required String tenantId,
   });
 }

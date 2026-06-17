@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:core/core.dart';
+import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 
 part 'reservation_state.freezed.dart';
 
@@ -21,5 +22,9 @@ abstract class ReservationState with _$ReservationState {
     String? effectiveBarberId,
     String? idempotencyKey,
     String? errorMessage,
+    @Default(<CustomerCoupon>[]) List<CustomerCoupon> availableCoupons,
+    CustomerCoupon? selectedCoupon,
+    @Default(0) double couponDiscount,
+    double? finalPrice,
   }) = _ReservationState;
 }

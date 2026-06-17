@@ -21,6 +21,24 @@ class AuthService {
     );
   }
 
+  /// Envia un codigo OTP de un solo uso al correo (login sin contrasena).
+  Future<void> sendEmailOtp(String email) async {
+    await _supabase.auth.signInWithOtp(email: email);
+  }
+
+  /// Verifica el codigo OTP. Al validar, Supabase abre la sesion y
+  /// onAuthStateChange notifica el login (lo maneja AppModeBloc).
+  Future<void> verifyEmailOtp({
+    required String email,
+    required String token,
+  }) async {
+    await _supabase.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.email,
+    );
+  }
+
   Future<void> signOut() async {
     await _supabase.auth.signOut(scope: SignOutScope.global);
   }

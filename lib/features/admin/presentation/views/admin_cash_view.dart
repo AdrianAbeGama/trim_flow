@@ -7,6 +7,7 @@ import 'package:trim_flow/features/admin/domain/models/admin_reports.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_cash_adjust_sheet.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_visuals.dart';
 
 enum _CashPeriod { today, yesterday, week }
 
@@ -96,38 +97,36 @@ class _AdminCashViewState extends State<AdminCashView> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: PremiumPressable(
-                onTap: _openAdjust,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF111111),
-                    borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.add_rounded,
-                          color: context.primaryGold, size: 18),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Registrar ajuste de caja',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Column(
+                children: [
+                  const AdminHairline(),
+                  PremiumPressable(
+                    onTap: _openAdjust,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      child: Row(
+                        children: [
+                          Icon(Icons.add_rounded,
+                              color: context.primaryGold, size: 18),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Registrar ajuste de caja',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          Icon(Icons.chevron_right_rounded,
+                              color: context.primaryGold, size: 20),
+                        ],
                       ),
-                      Icon(Icons.chevron_right_rounded,
-                          color: context.primaryGold, size: 20),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             Expanded(
@@ -166,84 +165,43 @@ class _CashBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = context.primaryGold;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
       physics: const BouncingScrollPhysics(),
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111111),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: gold.withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'TOTAL COBRADO',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white.withValues(alpha: 0.45),
-                  letterSpacing: 1.4,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                adminMoney(data.revenueTotal),
-                style: GoogleFonts.inter(
-                  fontSize: 38,
-                  fontWeight: FontWeight.w900,
-                  color: gold,
-                  letterSpacing: -1.5,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '${data.serviceCount} ${data.serviceCount == 1 ? 'servicio cobrado' : 'servicios cobrados'}',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
+        AdminHeroMetric(
+          label: 'Total cobrado',
+          value: adminMoney(data.revenueTotal),
+          caption:
+              '${data.serviceCount} ${data.serviceCount == 1 ? 'servicio cobrado' : 'servicios cobrados'}',
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: AdminStatTile(
-                label: 'Descuentos',
-                value: adminMoney(data.discountTotal),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: AdminStatTile(
-                label: 'Balance neto',
-                value: adminMoney(data.netBalance),
-              ),
-            ),
+        const SizedBox(height: 22),
+        AdminStatStrip(
+          stats: [
+            AdminStat(
+                label: 'Descuentos', value: adminMoney(data.discountTotal)),
+            AdminStat(
+                label: 'Balance neto', value: adminMoney(data.netBalance)),
           ],
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 22),
+        const AdminHairline(),
+        const SizedBox(height: 20),
         const PremiumSectionLabel('Por método de pago'),
-        const SizedBox(height: 12),
-        if (data.byPayment.isEmpty)
-          const AdminEmptyHint(text: 'Sin cobros en este periodo')
-        else
-          for (final m in data.byPayment)
-            AdminBreakdownRow(
-              title: m.label,
-              amount: adminMoney(m.total),
-              note: '${m.count} ${m.count == 1 ? 'cobro' : 'cobros'}',
-            ),
+        const SizedBox(height: 16),
+        AdminSeriesChart(
+          segments: [
+            for (final m in data.byPayment)
+              ChartSeg(
+                label: m.label,
+                value: m.total,
+                color: adminPaymentColor(m.method),
+                note: '${m.count}',
+              ),
+          ],
+          formatValue: adminMoney,
+          centerTop: 'COBROS',
+        ),
       ],
     );
   }

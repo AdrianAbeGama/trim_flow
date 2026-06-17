@@ -1,4 +1,5 @@
-import 'package:core/core.dart';
+import 'dart:io';
+
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/features/profile/data/mappers/coupon_mappers.dart';
@@ -6,8 +7,6 @@ import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
 import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
-
-const List<String> _kActiveReservationStatuses = ['pending', 'confirmed'];
 
 class CustomerRowMissingException implements Exception {
   final String message;
@@ -35,22 +34,26 @@ class ProfileSupabaseRepository implements ProfileRepository {
     required String fallbackTenantId,
   }) async {
     final user = _client.auth.currentUser;
-    if (user == null) return null;
+    if (user == null || fallbackTenantId.isEmpty) return null;
 
-    final row = await _client
-        .from('customers')
-        .select('id, tenant_id, full_name, whatsapp, email, birth_date, points, client_code, is_app_user, last_visit_at')
-        .eq('auth_user_id', authUserId)
-        .eq('tenant_id', fallbackTenantId)
-        .maybeSingle();
-
-    if (row == null) return null;
-
-    return CustomerProfileMapper.fromRow(
-      row: row,
-      authUser: user,
-      fallbackTenantId: fallbackTenantId,
-    );
+    // RPC del backend (resuelve por auth.uid() + tenant). Reemplaza la lectura
+    // directa de customers.
+    try {
+      final json = await _client.rpc(
+        'get_my_profile',
+        params: {'p_tenant_id': fallbackTenantId},
+      );
+      if (json is! Map<String, dynamic>) return null;
+      return CustomerProfileMapper.fromMyProfile(
+        json: json,
+        authUser: user,
+        tenantId: fallbackTenantId,
+      );
+    } on PostgrestException catch (e) {
+      // Cliente sin ficha en esta barberia → sin perfil aqui (no es error).
+      if (e.message.contains('customer_not_linked')) return null;
+      rethrow;
+    }
   }
 
   @override
@@ -89,47 +92,27 @@ class ProfileSupabaseRepository implements ProfileRepository {
       );
     }
     final fullName = '${input.firstName} ${input.lastName}'.trim();
-    // Mutacion via RPC SECURITY DEFINER (ADR-0015): no escribimos la tabla directo.
-    await _client.rpc(
-      'bootstrap_customer_self',
-      params: {
+    final whatsapp = input.phone.isEmpty ? null : '+51${input.phone}';
+    final birth = input.birthDate.isEmpty ? null : input.birthDate;
+    // Editar via update_customer_profile (contrato B2C: protege campos sensibles
+    // y hace inmutable la fecha de nacimiento). Si aun no hay ficha en este
+    // tenant, la crea con bootstrap_customer_self (tenant-scoped). ADR-0015.
+    try {
+      await _client.rpc('update_customer_profile', params: {
+        'p_full_name': fullName,
+        'p_whatsapp': whatsapp,
+        'p_email': null,
+        'p_birth_date': birth,
+      });
+    } on PostgrestException catch (e) {
+      if (!e.message.contains('customer_not_found')) rethrow;
+      await _client.rpc('bootstrap_customer_self', params: {
         'p_tenant_id': tenantId,
         'p_full_name': fullName,
-        'p_whatsapp': input.phone.isEmpty ? null : '+51${input.phone}',
-        'p_birth_date': input.birthDate.isEmpty ? null : input.birthDate,
-      },
-    );
-  }
-
-  @override
-  Future<ProfileUpdateInput?> loadKnownCustomerInfo({
-    required String authUserId,
-  }) async {
-    final rows = await _client
-        .from('customers')
-        .select('full_name, whatsapp, birth_date')
-        .eq('auth_user_id', authUserId)
-        .not('birth_date', 'is', null)
-        .not('whatsapp', 'is', null)
-        .limit(1);
-    final list = rows as List;
-    if (list.isEmpty) return null;
-    final row = list.first as Map<String, dynamic>;
-    final whatsapp = (row['whatsapp'] as String?) ?? '';
-    final phone = whatsapp.startsWith('+51') ? whatsapp.substring(3) : whatsapp;
-    final birthDate = (row['birth_date'] as String?) ?? '';
-    if (phone.isEmpty || birthDate.isEmpty) return null;
-    final fullName = ((row['full_name'] as String?) ?? '').trim();
-    final spaceIdx = fullName.indexOf(' ');
-    final firstName =
-        spaceIdx == -1 ? fullName : fullName.substring(0, spaceIdx);
-    final lastName = spaceIdx == -1 ? '' : fullName.substring(spaceIdx + 1).trim();
-    return ProfileUpdateInput(
-      firstName: firstName.isEmpty ? 'Cliente' : firstName,
-      lastName: lastName,
-      phone: phone,
-      birthDate: birthDate,
-    );
+        'p_whatsapp': whatsapp,
+        'p_birth_date': birth,
+      });
+    }
   }
 
   @override
@@ -150,75 +133,133 @@ class ProfileSupabaseRepository implements ProfileRepository {
   }
 
   @override
-  Future<List<Reservation>> loadActiveReservations({
-    required String customerId,
-  }) async {
-    final nowIso = DateTime.now().toUtc().toIso8601String();
-    final rows = await _client
-        .from('reservations')
-        .select(
-          'id, tenant_id, branch_id, service_id, barber_id, '
-          'start_time, end_time, status, price_at_booking, '
-          'service:services!service_id(id, name, duration_minutes, price_pen, category_id), '
-          'branch:branches!branch_id(id, name, address_line), '
-          'barber:profiles!barber_id(id, full_name, avatar_url, specialty)',
-        )
-        .eq('customer_id', customerId)
-        .inFilter('status', _kActiveReservationStatuses)
-        .filter('deleted_at', 'is', null)
-        .gte('start_time', nowIso)
-        .order('start_time', ascending: true);
+  Future<void> updateStaffAvatar({required String localImagePath}) async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) throw const StaffRowMissingException('unauthenticated');
 
-    return (rows as List)
-        .whereType<Map<String, dynamic>>()
-        .map(ReservationMapper.fromRow)
-        .toList();
+    final bytes = await File(localImagePath).readAsBytes();
+    final ext = _imageExt(localImagePath);
+    // Ruta permitida por la policy de storage para staff: media/staff/<uid>/...
+    final path = 'staff/$uid/avatar_${DateTime.now().microsecondsSinceEpoch}.$ext';
+    await _client.storage.from('media').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: _imageMime(ext), upsert: true),
+        );
+    final url = _client.storage.from('media').getPublicUrl(path);
+    await _client.rpc('update_my_avatar', params: {'p_avatar_url': url});
   }
 
   @override
-  Future<List<PastAppointment>> loadAppointmentHistory({
-    required String customerId,
-    int limit = 50,
-  }) async {
-    // Leemos desde las reservas propias del cliente (RLS lo permite), no desde
-    // ledger_entries (solo legible por staff). Citas terminadas/canceladas.
-    final rows = await _client
-        .from('reservations')
-        .select(
-          'id, status, start_time, price_at_booking, cancellation_reason, '
-          'service:services!service_id(name), '
-          'branch:branches!branch_id(name), '
-          'barber:profiles!barber_id(full_name)',
-        )
-        .eq('customer_id', customerId)
-        .inFilter('status', ['completed', 'cancelled', 'no_show'])
-        .filter('deleted_at', 'is', null)
-        .order('start_time', ascending: false)
-        .limit(limit);
+  Future<void> removeStaffAvatar() async {
+    await _client.rpc('update_my_avatar', params: {'p_avatar_url': null});
+  }
 
-    return (rows as List)
+  // El bucket `media` solo admite jpeg/png/webp; todo lo demas se sube como jpeg
+  // (el recorte ya entrega JPEG).
+  String _imageExt(String path) {
+    final dot = path.lastIndexOf('.');
+    if (dot < 0 || dot == path.length - 1) return 'jpg';
+    final ext = path.substring(dot + 1).toLowerCase();
+    return (ext == 'png' || ext == 'webp') ? ext : 'jpg';
+  }
+
+  String _imageMime(String ext) {
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  @override
+  Future<int> claimProfileByTicket({required String accessCode}) async {
+    final res = await _client.rpc(
+      'claim_profile_by_ticket',
+      params: {'p_access_code': accessCode},
+    );
+    if (res is Map) {
+      final count = res['count'];
+      if (count is int) return count;
+      final ids = res['linkedTenantIds'];
+      if (ids is List) return ids.length;
+    }
+    return 0;
+  }
+
+  @override
+  Future<ReferralStats> getReferralStats({required String tenantId}) async {
+    final res = await _client
+        .rpc('get_my_referral_stats', params: {'p_tenant_id': tenantId});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return ReferralStats(
+      code: m['code'] as String?,
+      usesCount: (m['usesCount'] as num?)?.toInt() ?? 0,
+      maxUses: (m['maxUses'] as num?)?.toInt() ?? 0,
+      referredCount: (m['referredCount'] as num?)?.toInt() ?? 0,
+      totalEarned: (m['totalEarned'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  @override
+  Future<String> generateReferralCode({required String tenantId}) async {
+    final res = await _client
+        .rpc('generate_referral_code', params: {'p_tenant_id': tenantId});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return (m['code'] as String?) ?? '';
+  }
+
+  @override
+  Future<String> applyReferralCode({
+    required String tenantId,
+    required String code,
+  }) async {
+    final res = await _client.rpc('apply_referral_code',
+        params: {'p_tenant_id': tenantId, 'p_code': code});
+    final m = (res is Map) ? res.cast<String, dynamic>() : const {};
+    return (m['message'] as String?) ?? 'Código aplicado.';
+  }
+
+  @override
+  Future<MyReservationsResult> loadMyReservations({
+    required String tenantId,
+  }) async {
+    final json = await _client.rpc(
+      'get_my_reservations',
+      params: {'p_tenant_id': tenantId},
+    );
+    if (json is! Map<String, dynamic>) return const MyReservationsResult();
+    final upcoming = (json['upcoming'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
-        .map(PastAppointmentMapper.fromReservationRow)
+        .map((r) => ReservationMapper.fromMyReservation(r, tenantId))
+        .toList();
+    final recent = (json['recent'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(PastAppointmentMapper.fromMyReservation)
         .whereType<PastAppointment>()
         .toList();
+    return MyReservationsResult(
+      upcoming: upcoming,
+      recent: recent,
+      recentHasMore: (json['recentHasMore'] as bool?) ?? false,
+    );
   }
 
   @override
   Future<List<CustomerCoupon>> loadCustomerCoupons({
-    required String customerId,
+    required String tenantId,
   }) async {
-    final rows = await _client
-        .from('customer_coupons')
-        .select(
-          'id, unique_code, redeemed_at, valid_until, '
-          'promotion:promotions!promotion_id(name, discount_type, discount_value, is_active)',
-        )
-        .eq('customer_id', customerId)
-        .order('created_at', ascending: false);
-
-    return (rows as List)
+    final json = await _client.rpc(
+      'get_my_coupons',
+      params: {'p_tenant_id': tenantId},
+    );
+    final list = (json as List?) ?? const [];
+    return list
         .whereType<Map<String, dynamic>>()
-        .map(CouponMapper.fromRow)
+        .map(CouponMapper.fromMyCoupon)
         .whereType<CustomerCoupon>()
         .toList();
   }

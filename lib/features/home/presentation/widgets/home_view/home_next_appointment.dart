@@ -68,8 +68,8 @@ class _ScheduledCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
-    final dateStr = reservation.date != null
-        ? DateFormat("EEE d 'de' MMM", 'es').format(reservation.date!).toUpperCase()
+    final dateShort = reservation.date != null
+        ? DateFormat("d MMM", 'es').format(reservation.date!).toUpperCase()
         : '—';
     final time = reservation.time ?? '—';
     final service = reservation.services.isNotEmpty
@@ -80,7 +80,7 @@ class _ScheduledCard extends StatelessWidget {
       onTap: onTap,
       pressedScale: 0.985,
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
           color: const Color(0xFF111111),
           borderRadius: BorderRadius.circular(20),
@@ -88,40 +88,36 @@ class _ScheduledCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Bloque hora
-            Container(
-              width: 64,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: gold.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    time,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: gold,
-                      letterSpacing: -0.4,
-                      height: 1,
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  time,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    color: gold,
+                    letterSpacing: -1,
+                    height: 1,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    dateStr.split(' ').take(2).join(' '),
-                    style: GoogleFonts.inter(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w800,
-                      color: gold.withValues(alpha: 0.7),
-                      letterSpacing: 1,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  dateShort,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    letterSpacing: 0.8,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
+            Container(
+                width: 1, height: 44, color: Colors.white.withValues(alpha: 0.08)),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,23 +134,23 @@ class _ScheduledCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'CONFIRMADA',
+                        'Confirmada',
                         style: GoogleFonts.inter(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
                           color: const Color(0xFF7BE38C),
-                          letterSpacing: 1.4,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   Text(
                     service,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
-                      fontSize: 15,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                       letterSpacing: -0.3,
@@ -168,7 +164,7 @@ class _ScheduledCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: Colors.white.withValues(alpha: 0.45),
                     ),
                   ),
                 ],
@@ -177,7 +173,7 @@ class _ScheduledCard extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(
               Icons.chevron_right_rounded,
-              color: Colors.white.withValues(alpha: 0.3),
+              color: gold.withValues(alpha: 0.5),
               size: 22,
             ),
           ],

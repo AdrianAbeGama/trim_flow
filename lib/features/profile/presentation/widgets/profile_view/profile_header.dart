@@ -330,13 +330,20 @@ class _HeaderIdBadge extends StatelessWidget {
   }
 }
 
-/// Barra de ancho completo para cambiar de negocio: a la izquierda la accion
-/// de cambio, a la derecha la barberia activa. Reemplaza la pildora pequena.
+/// Tarjeta para cambiar de negocio: avatar del negocio actual (su color) +
+/// label "TU NEGOCIO" + nombre completo + boton de cambio. Generico (no solo
+/// barberias). Abre la hoja horizontal de seleccion.
 class _TenantSwitcherBar extends StatelessWidget {
   const _TenantSwitcherBar({required this.name, required this.onTap});
 
   final String name;
   final VoidCallback onTap;
+
+  String get _initial {
+    final s = name.replaceFirst(RegExp(r'^[^\s]+\s+'), '').trim();
+    final base = s.isEmpty ? name : s;
+    return base.isNotEmpty ? base[0].toUpperCase() : '?';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -345,53 +352,73 @@ class _TenantSwitcherBar extends StatelessWidget {
       onTap: onTap,
       pressedScale: 0.98,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
         ),
         child: Row(
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: gold.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(9),
+                color: gold.withValues(alpha: 0.16),
+                shape: BoxShape.circle,
+                border: Border.all(color: gold.withValues(alpha: 0.45), width: 1.2),
               ),
-              child: Icon(Icons.swap_horiz_rounded, size: 17, color: gold),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Cambiar de negocio',
-              style: GoogleFonts.inter(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withValues(alpha: 0.85),
-                letterSpacing: -0.2,
-              ),
-            ),
-            const Spacer(),
-            Flexible(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: gold,
-                    letterSpacing: -0.2,
-                  ),
+              child: Text(
+                _initial,
+                style: GoogleFonts.inter(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: gold,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),
-            const SizedBox(width: 7),
-            Icon(Icons.unfold_more_rounded,
-                size: 15, color: gold.withValues(alpha: 0.7)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TU NEGOCIO',
+                    style: GoogleFonts.inter(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withValues(alpha: 0.4),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: gold.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.swap_vert_rounded, size: 19, color: gold),
+            ),
           ],
         ),
       ),

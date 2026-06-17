@@ -6,6 +6,7 @@ import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/utils/date_input_formatter.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
@@ -110,13 +111,8 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
       body: BlocListener<ProfileBloc, ProfileState>(
         listenWhen: (p, c) => p.status != c.status && c.status == ProfileStatus.error,
         listener: (context, state) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              backgroundColor: Color(0xFFCF6679),
-              behavior: SnackBarBehavior.floating,
-              content: Text('No se pudo guardar. Intenta de nuevo.'),
-            ),
-          );
+          AppToast.error(context, 'No se pudo guardar',
+              message: 'Revisa tus datos e intenta de nuevo.');
         },
         child: SafeArea(
           child: SingleChildScrollView(

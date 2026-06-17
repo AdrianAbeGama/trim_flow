@@ -10,11 +10,17 @@ import 'package:core/core.dart';
 class ReservationSuccessView extends StatefulWidget {
   final Reservation reservation;
   final VoidCallback onGoToProfile;
+  final String? couponName;
+  final double? couponDiscount;
+  final double? finalPrice;
 
   const ReservationSuccessView({
     super.key,
     required this.reservation,
     required this.onGoToProfile,
+    this.couponName,
+    this.couponDiscount,
+    this.finalPrice,
   });
 
   @override
@@ -28,7 +34,12 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
     try {
       // Captura un ticket SIN botones (limpio) para compartir.
       final image = await _screenshotController.captureFromWidget(
-        ReservationTicketCard(reservation: widget.reservation),
+        ReservationTicketCard(
+          reservation: widget.reservation,
+          couponName: widget.couponName,
+          couponDiscount: widget.couponDiscount,
+          finalPrice: widget.finalPrice,
+        ),
         context: context,
         pixelRatio: 3,
         delay: const Duration(milliseconds: 50),
@@ -94,6 +105,9 @@ class _ReservationSuccessViewState extends State<ReservationSuccessView> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: ReservationTicketCard(
               reservation: widget.reservation,
+              couponName: widget.couponName,
+              couponDiscount: widget.couponDiscount,
+              finalPrice: widget.finalPrice,
               onTapQr: () => _showZoomedQR(context),
               onViewAppointment: widget.onGoToProfile,
               onShare: () => _shareReservationImage(context),

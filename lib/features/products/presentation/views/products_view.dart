@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_quick_action_card.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
@@ -51,13 +52,7 @@ class _ProductsViewState extends State<ProductsView> {
     final requested = HomePage.requestedProductId.value;
     if (requested == null || !mounted) return;
     HomePage.requestedProductId.value = null;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Buscando: $requested'),
-        duration: const Duration(seconds: 2),
-        backgroundColor: context.primaryGold,
-      ),
-    );
+    AppToast.info(context, 'Buscando', message: requested);
     context.read<ProductBloc>().add(ProductEvent.searchChanged(requested));
   }
 

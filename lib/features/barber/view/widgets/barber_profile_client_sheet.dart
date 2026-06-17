@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_clients.dart';
 
 /// Sheet con detalle de un cliente agendado + acciones CANCELAR / COMPLETAR.
@@ -158,13 +159,10 @@ class _SheetBody extends StatelessWidget {
                   color: const Color(0xFFFF6B6B),
                   isPrimary: false,
                   onTap: () {
+                    final rootContext =
+                        Navigator.of(context, rootNavigator: true).context;
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Cita cancelada (simulado)'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    AppToast.cancel(rootContext, 'Cita cancelada');
                   },
                 ),
               ),
@@ -176,13 +174,10 @@ class _SheetBody extends StatelessWidget {
                   color: gold,
                   isPrimary: true,
                   onTap: () {
+                    final rootContext =
+                        Navigator.of(context, rootNavigator: true).context;
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Cita marcada como completada (simulado)'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
+                    AppToast.success(rootContext, 'Cita completada');
                   },
                 ),
               ),

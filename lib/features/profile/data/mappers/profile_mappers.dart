@@ -46,6 +46,42 @@ class CustomerProfileMapper {
       lastVisit: _formatLastVisit(row['last_visit_at'] as String?),
     );
   }
+
+  /// Mapea la respuesta de la RPC get_my_profile (backend) a ProfileLoadResult.
+  static ProfileLoadResult fromMyProfile({
+    required Map<String, dynamic> json,
+    required User authUser,
+    required String tenantId,
+  }) {
+    final fullName =
+        (json['fullName'] as String?) ?? _metaFullName(authUser) ?? 'Usuario';
+    final parts = _splitName(fullName);
+    final pointsRaw = json['points'];
+    final points = pointsRaw is int ? pointsRaw : int.tryParse('$pointsRaw') ?? 0;
+    final loyaltyCount = points.clamp(0, kLoyaltyRewardThreshold);
+    final birthDate = (json['birthDate'] as String?) ?? '';
+    final email = (json['email'] as String?) ?? authUser.email ?? '';
+    final whatsapp = (json['whatsapp'] as String?) ?? '';
+
+    final user = UserProfile(
+      tenantId: tenantId,
+      id: authUser.id,
+      firstName: parts.$1,
+      lastName: parts.$2,
+      email: email,
+      photoUrl: _metaAvatar(authUser) ?? '',
+      phone: _normalizeWhatsapp(whatsapp),
+      birthDate: birthDate,
+      notificationsEnabled: true,
+      completedCuts: loyaltyCount,
+    );
+
+    return ProfileLoadResult(
+      user: user,
+      loyaltyPoints: loyaltyCount,
+      isRewardAvailable: points >= kLoyaltyRewardThreshold,
+    );
+  }
 }
 
 class StaffProfileMapper {
@@ -144,6 +180,67 @@ class ReservationMapper {
           service?.durationInMinutes ?? _diffMinutes(startTime, endTime),
     );
   }
+
+  /// Mapea un item de get_my_reservations (proximas) al modelo Reservation.
+  /// El backend manda nombres ya resueltos; no hay sede en este payload.
+  static Reservation fromMyReservation(
+      Map<String, dynamic> json, String tenantId) {
+    final startRaw = json['startTime'] as String?;
+    final start =
+        startRaw != null ? DateTime.tryParse(startRaw)?.toLocal() : null;
+    final priceRaw = json['pricePaid'];
+    final price = (priceRaw is num) ? priceRaw.toDouble() : 0.0;
+    final serviceName = (json['serviceName'] as String?) ?? 'Servicio';
+    final barberName = (json['barberName'] as String?) ?? 'Barbero';
+
+    // Sede: el RPC puede no enviarla todavia. Si llega (branchName), poblamos
+    // el center para que la pantalla de cita muestre la sede y el mapa.
+    final branchName = json['branchName'] as String?;
+    var center = (branchName == null || branchName.trim().isEmpty)
+        ? null
+        : BarberCenter(
+            tenantId: tenantId,
+            id: (json['branchId'] as String?) ?? '',
+            name: branchName,
+            location: (json['branchAddress'] as String?) ?? '',
+          );
+    // TEMP DEMO: sede de ejemplo para previsualizar el mapa mientras el RPC
+    // get_my_reservations aun no envia la sede. QUITAR antes de produccion.
+    center ??= const BarberCenter(
+      tenantId: '',
+      id: 'demo',
+      name: 'Sede Centro',
+      location: 'Av. Larco 123, Miraflores, Lima',
+    );
+
+    return Reservation(
+      tenantId: tenantId,
+      id: json['reservationId'] as String?,
+      center: center,
+      services: [
+        Service(
+          tenantId: tenantId,
+          id: '',
+          name: serviceName,
+          price: price,
+          durationInMinutes: 0,
+          category: 'general',
+        ),
+      ],
+      professional: Professional(
+        tenantId: tenantId,
+        id: '',
+        name: barberName,
+        specialties: const [],
+        yearsOfExperience: 0,
+        imageUrl: null,
+      ),
+      date: start,
+      time: start != null ? _formatHour(start) : null,
+      totalPrice: price,
+      totalDurationInMinutes: 0,
+    );
+  }
 }
 
 class PastAppointmentMapper {
@@ -167,6 +264,29 @@ class PastAppointmentMapper {
       professionalName: (barber?['full_name'] as String?) ?? 'Barbero',
       status: isCancelled ? 'cancelled' : 'completed',
       cancellationReason: row['cancellation_reason'] as String?,
+      rating: 0,
+      paidPrice: isCancelled ? null : price,
+      wasDiscounted: false,
+    );
+  }
+
+  /// Mapea un item de get_my_reservations (historial) a PastAppointment.
+  static PastAppointment? fromMyReservation(Map<String, dynamic> json) {
+    final startRaw = json['startTime'] as String?;
+    final start =
+        startRaw != null ? DateTime.tryParse(startRaw)?.toLocal() : null;
+    final status = json['status'] as String?;
+    final isCancelled = status == 'cancelled' || status == 'no_show';
+    final priceRaw = json['pricePaid'];
+    final price = (priceRaw is num) ? priceRaw.toDouble() : null;
+
+    return PastAppointment(
+      centerName: 'Sede',
+      dateStr: start != null ? _formatDate(start) : '—',
+      serviceName: (json['serviceName'] as String?) ?? 'Servicio',
+      professionalName: (json['barberName'] as String?) ?? 'Barbero',
+      status: isCancelled ? 'cancelled' : 'completed',
+      cancellationReason: null,
       rating: 0,
       paidPrice: isCancelled ? null : price,
       wasDiscounted: false,

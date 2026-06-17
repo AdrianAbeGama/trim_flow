@@ -10,6 +10,7 @@ import 'package:trim_flow/core/widgets/premium/premium_time_picker.dart';
 import 'package:trim_flow/features/admin/domain/models/business_hour.dart';
 import 'package:trim_flow/features/admin/domain/repositories/admin_repository.dart';
 import 'package:trim_flow/features/admin/presentation/widgets/admin_primitives.dart';
+import 'package:trim_flow/features/admin/presentation/widgets/admin_visuals.dart';
 
 const List<String> _kDayNames = [
   'Lunes',
@@ -138,6 +139,96 @@ class _AdminHoursViewState extends State<AdminHoursView> {
     }
   }
 
+  ({bool open, String caption}) _liveStatus() {
+    final hours = _hours;
+    if (hours == null) return (open: false, caption: '');
+    int toMin(String? s) {
+      if (s == null || s.length < 5) return 0;
+      return (int.tryParse(s.substring(0, 2)) ?? 0) * 60 +
+          (int.tryParse(s.substring(3, 5)) ?? 0);
+    }
+
+    final now = DateTime.now();
+    final idx = now.weekday - 1;
+    final today = hours[idx];
+    final hm = now.hour * 60 + now.minute;
+    if (!today.isClosed) {
+      final o = toMin(today.open ?? '09:00');
+      final c = toMin(today.close ?? '18:00');
+      if (hm >= o && hm < c) {
+        return (open: true, caption: 'Abierto ahora · cierra ${today.close ?? '18:00'}');
+      }
+      if (hm < o) {
+        return (open: false, caption: 'Hoy abre a las ${today.open ?? '09:00'}');
+      }
+    }
+    for (var i = 1; i <= 7; i++) {
+      final d = hours[(idx + i) % 7];
+      if (!d.isClosed) {
+        final label = i == 1 ? 'mañana' : _kDayNames[d.dayOfWeek].toLowerCase();
+        return (open: false, caption: 'Cerrado · abre $label a las ${d.open ?? '09:00'}');
+      }
+    }
+    return (open: false, caption: 'Cerrado');
+  }
+
+  Widget _statusHeader() {
+    final gold = context.primaryGold;
+    final status = _liveStatus();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 12),
+      child: Row(
+        children: [
+          AdminAnalogClock(size: 76, open: status.open),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: status.open
+                            ? gold
+                            : Colors.white.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    const SizedBox(width: 7),
+                    Text(
+                      status.open ? 'ABIERTO' : 'CERRADO',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.4,
+                        color: status.open
+                            ? gold
+                            : Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  status.caption,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,9 +255,10 @@ class _AdminHoursViewState extends State<AdminHoursView> {
     }
     return Column(
       children: [
+        _statusHeader(),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             physics: const BouncingScrollPhysics(),
             itemCount: 7,
             itemBuilder: (_, i) => _dayCard(i),
@@ -177,18 +269,164 @@ class _AdminHoursViewState extends State<AdminHoursView> {
     );
   }
 
+  double _frac(String? s) {
+    if (s == null || s.length < 5) return 0;
+    final m = (int.tryParse(s.substring(0, 2)) ?? 0) * 60 +
+        (int.tryParse(s.substring(3, 5)) ?? 0);
+    return m / 1440.0;
+  }
+
+  Widget _timePill(String label, String value, VoidCallback onTap) {
+    final gold = context.primaryGold;
+    return PremiumPressable(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: gold.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: gold.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$label ',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.45),
+              ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: gold,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _hoursRibbon(int i, BusinessHour h) {
+    final gold = context.primaryGold;
+    final startF = _frac(h.open ?? '09:00').clamp(0.0, 1.0);
+    final endF = _frac(h.close ?? '18:00').clamp(0.0, 1.0);
+    final now = DateTime.now();
+    final isToday = i == now.weekday - 1;
+    final nowF = ((now.hour * 60 + now.minute) / 1440.0).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _timePill('Apertura', h.open ?? '09:00',
+                () => _pickTime(i, isOpen: true)),
+            const SizedBox(width: 10),
+            _timePill('Cierre', h.close ?? '18:00',
+                () => _pickTime(i, isOpen: false)),
+            const Spacer(),
+            if (isToday)
+              Text(
+                'AHORA',
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                  color: Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (_, c) {
+            final w = c.maxWidth;
+            return SizedBox(
+              height: 12,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: Align(
+                      child: Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                    ),
+                  ),
+                  for (final f in const [0.25, 0.5, 0.75])
+                    Positioned(
+                      left: f * w,
+                      top: 0,
+                      bottom: 0,
+                      child: Container(
+                          width: 1, color: Colors.white.withValues(alpha: 0.06)),
+                    ),
+                  Positioned(
+                    left: startF * w,
+                    top: 2,
+                    width: ((endF - startF).clamp(0.0, 1.0)) * w,
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: gold,
+                        borderRadius: BorderRadius.circular(99),
+                        boxShadow: [
+                          BoxShadow(
+                              color: gold.withValues(alpha: 0.35),
+                              blurRadius: 8),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (isToday)
+                    Positioned(
+                      left: (nowF * w).clamp(0.0, w - 1.5),
+                      top: -2,
+                      bottom: -2,
+                      child: Container(
+                          width: 1.5,
+                          color: Colors.white.withValues(alpha: 0.85)),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (final l in const ['12a', '6a', '12p', '6p', '12a'])
+              Text(
+                l,
+                style: GoogleFonts.inter(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.28),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _dayCard(int i) {
     final gold = context.primaryGold;
     final h = _hours![i];
     final open = !h.isClosed;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111111),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         children: [
           Row(
@@ -199,7 +437,7 @@ class _AdminHoursViewState extends State<AdminHoursView> {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: open ? Colors.white : Colors.white.withValues(alpha: 0.5),
                     letterSpacing: -0.2,
                   ),
                 ),
@@ -224,52 +462,12 @@ class _AdminHoursViewState extends State<AdminHoursView> {
             ],
           ),
           if (open) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(child: _timeChip('Abre', h.open ?? '09:00', () => _pickTime(i, isOpen: true))),
-                const SizedBox(width: 10),
-                Expanded(child: _timeChip('Cierra', h.close ?? '18:00', () => _pickTime(i, isOpen: false))),
-              ],
-            ),
+            const SizedBox(height: 12),
+            _hoursRibbon(i, h),
           ],
+          const SizedBox(height: 12),
+          const AdminHairline(),
         ],
-      ),
-    );
-  }
-
-  Widget _timeChip(String label, String value, VoidCallback onTap) {
-    return PremiumPressable(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.45),
-              ),
-            ),
-            Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: -0.3,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

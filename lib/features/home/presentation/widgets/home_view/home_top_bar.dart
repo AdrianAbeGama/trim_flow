@@ -8,6 +8,7 @@ import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart';
@@ -25,6 +26,8 @@ class HomeTopBar extends StatelessWidget {
     final tenantLabel = activeTenants.isEmpty
         ? 'TRIMFLOW PREMIUM'
         : activeTenants.first.name.toUpperCase();
+    final points = activeTenants.isEmpty ? 0 : activeTenants.first.points;
+    final hasTenant = activeTenants.isNotEmpty;
     return SliverToBoxAdapter(
       child: SafeArea(
         bottom: false,
@@ -71,23 +74,31 @@ class HomeTopBar extends StatelessWidget {
                       },
                     ),
                   ),
-                  // Edit toggle — SOLO visible en modo barbero
+                  // Edit toggle — solo en modo barbero y si tiene permiso
                   BlocBuilder<AppModeBloc, AppModeState>(
                     buildWhen: (a, b) => a.mode != b.mode,
                     builder: (_, appState) {
                       if (appState.mode != AppMode.barber) {
                         return const SizedBox.shrink();
                       }
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: BlocBuilder<HomeBloc, HomeState>(
-                          builder: (ctx, hs) => _EditToggleButton(
-                            isEditing: hs.isEditing,
-                            onTap: () => ctx
-                                .read<HomeBloc>()
-                                .add(const HomeEvent.toggleEditMode()),
-                          ),
-                        ),
+                      return ValueListenableBuilder<PreviewRole?>(
+                        valueListenable: PermissionsStore.instance.preview,
+                        builder: (context, _, _) {
+                          if (!PermissionsStore.instance.can('home_edit')) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: BlocBuilder<HomeBloc, HomeState>(
+                              builder: (ctx, hs) => _EditToggleButton(
+                                isEditing: hs.isEditing,
+                                onTap: () => ctx
+                                    .read<HomeBloc>()
+                                    .add(const HomeEvent.toggleEditMode()),
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -109,10 +120,14 @@ class HomeTopBar extends StatelessWidget {
                       : hour < 19
                           ? 'Buenas tardes'
                           : 'Buenas noches';
-                  return Column(
+                  return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                       Text(
                         g,
                         style: GoogleFonts.inter(
@@ -165,6 +180,13 @@ class HomeTopBar extends StatelessWidget {
                       )
                           .animate()
                           .fadeIn(delay: 320.ms, duration: 500.ms),
+                          ],
+                        ),
+                      ),
+                      if (hasTenant) ...[
+                        const SizedBox(width: 12),
+                        _PointsBadge(points: points, gold: gold),
+                      ],
                     ],
                   );
                 },
@@ -311,6 +333,61 @@ class _EditToggleButtonState extends State<_EditToggleButton> {
         ),
       ),
     );
+  }
+}
+
+/// Insignia de puntos del negocio activo (arriba a la derecha del saludo).
+class _PointsBadge extends StatelessWidget {
+  const _PointsBadge({required this.points, required this.gold});
+
+  final int points;
+  final Color gold;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: points.toDouble()),
+      duration: const Duration(milliseconds: 1100),
+      curve: Curves.easeOutCubic,
+      builder: (_, val, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _fmtN(val.round()),
+              style: GoogleFonts.inter(
+                color: gold,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1.2,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              'PUNTOS',
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.35),
+                fontSize: 8.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.6,
+              ),
+            ),
+          ],
+        );
+      },
+    ).animate().fadeIn(duration: 500.ms);
+  }
+
+  String _fmtN(int n) {
+    final s = n.toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+      b.write(s[i]);
+    }
+    return b.toString();
   }
 }
 

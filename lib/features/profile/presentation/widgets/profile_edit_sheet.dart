@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/utils/date_input_formatter.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:core/core.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
@@ -159,6 +160,8 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                     return ElevatedButton(
                       onPressed: isLoading ? null : () {
                         if (_formKey.currentState?.validate() ?? false) {
+                          final overlay =
+                              Overlay.of(context, rootOverlay: true);
                           context.read<ProfileBloc>().add(SaveProfileData(
                             firstName: _nameController.text,
                             lastName: _lastNameController.text,
@@ -166,6 +169,10 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                             birthDate: widget.isBarber ? '' : _birthDateController.text,
                           ));
                           Navigator.pop(context);
+                          AppToast.showOn(overlay,
+                              type: AppToastType.success,
+                              title: 'Perfil actualizado',
+                              message: 'Tus datos se guardaron.');
                         }
                       },
                       style: ElevatedButton.styleFrom(

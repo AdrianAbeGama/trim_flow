@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CatalogState {
 
- CatalogStatus get status; List<BarberCenter> get centers; List<Service> get services; List<TeamMember> get team;
+ CatalogStatus get status; List<BarberCenter> get centers; List<Service> get services; List<TeamMember> get team; String? get loadedTenantId;
 /// Create a copy of CatalogState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CatalogStateCopyWith<CatalogState> get copyWith => _$CatalogStateCopyWithImpl<C
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CatalogState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.centers, centers)&&const DeepCollectionEquality().equals(other.services, services)&&const DeepCollectionEquality().equals(other.team, team));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CatalogState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.centers, centers)&&const DeepCollectionEquality().equals(other.services, services)&&const DeepCollectionEquality().equals(other.team, team)&&(identical(other.loadedTenantId, loadedTenantId) || other.loadedTenantId == loadedTenantId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(centers),const DeepCollectionEquality().hash(services),const DeepCollectionEquality().hash(team));
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(centers),const DeepCollectionEquality().hash(services),const DeepCollectionEquality().hash(team),loadedTenantId);
 
 @override
 String toString() {
-  return 'CatalogState(status: $status, centers: $centers, services: $services, team: $team)';
+  return 'CatalogState(status: $status, centers: $centers, services: $services, team: $team, loadedTenantId: $loadedTenantId)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CatalogStateCopyWith<$Res>  {
   factory $CatalogStateCopyWith(CatalogState value, $Res Function(CatalogState) _then) = _$CatalogStateCopyWithImpl;
 @useResult
 $Res call({
- CatalogStatus status, List<BarberCenter> centers, List<Service> services, List<TeamMember> team
+ CatalogStatus status, List<BarberCenter> centers, List<Service> services, List<TeamMember> team, String? loadedTenantId
 });
 
 
@@ -62,13 +62,14 @@ class _$CatalogStateCopyWithImpl<$Res>
 
 /// Create a copy of CatalogState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? centers = null,Object? services = null,Object? team = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? centers = null,Object? services = null,Object? team = null,Object? loadedTenantId = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as CatalogStatus,centers: null == centers ? _self.centers : centers // ignore: cast_nullable_to_non_nullable
 as List<BarberCenter>,services: null == services ? _self.services : services // ignore: cast_nullable_to_non_nullable
 as List<Service>,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
-as List<TeamMember>,
+as List<TeamMember>,loadedTenantId: freezed == loadedTenantId ? _self.loadedTenantId : loadedTenantId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team,  String? loadedTenantId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CatalogState() when $default != null:
-return $default(_that.status,_that.centers,_that.services,_that.team);case _:
+return $default(_that.status,_that.centers,_that.services,_that.team,_that.loadedTenantId);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.status,_that.centers,_that.services,_that.team);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team,  String? loadedTenantId)  $default,) {final _that = this;
 switch (_that) {
 case _CatalogState():
-return $default(_that.status,_that.centers,_that.services,_that.team);case _:
+return $default(_that.status,_that.centers,_that.services,_that.team,_that.loadedTenantId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +195,10 @@ return $default(_that.status,_that.centers,_that.services,_that.team);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CatalogStatus status,  List<BarberCenter> centers,  List<Service> services,  List<TeamMember> team,  String? loadedTenantId)?  $default,) {final _that = this;
 switch (_that) {
 case _CatalogState() when $default != null:
-return $default(_that.status,_that.centers,_that.services,_that.team);case _:
+return $default(_that.status,_that.centers,_that.services,_that.team,_that.loadedTenantId);case _:
   return null;
 
 }
@@ -209,7 +210,7 @@ return $default(_that.status,_that.centers,_that.services,_that.team);case _:
 
 
 class _CatalogState implements CatalogState {
-  const _CatalogState({this.status = CatalogStatus.initial, final  List<BarberCenter> centers = const <BarberCenter>[], final  List<Service> services = const <Service>[], final  List<TeamMember> team = const <TeamMember>[]}): _centers = centers,_services = services,_team = team;
+  const _CatalogState({this.status = CatalogStatus.initial, final  List<BarberCenter> centers = const <BarberCenter>[], final  List<Service> services = const <Service>[], final  List<TeamMember> team = const <TeamMember>[], this.loadedTenantId}): _centers = centers,_services = services,_team = team;
   
 
 @override@JsonKey() final  CatalogStatus status;
@@ -234,6 +235,7 @@ class _CatalogState implements CatalogState {
   return EqualUnmodifiableListView(_team);
 }
 
+@override final  String? loadedTenantId;
 
 /// Create a copy of CatalogState
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +247,16 @@ _$CatalogStateCopyWith<_CatalogState> get copyWith => __$CatalogStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CatalogState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._centers, _centers)&&const DeepCollectionEquality().equals(other._services, _services)&&const DeepCollectionEquality().equals(other._team, _team));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CatalogState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._centers, _centers)&&const DeepCollectionEquality().equals(other._services, _services)&&const DeepCollectionEquality().equals(other._team, _team)&&(identical(other.loadedTenantId, loadedTenantId) || other.loadedTenantId == loadedTenantId));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_centers),const DeepCollectionEquality().hash(_services),const DeepCollectionEquality().hash(_team));
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_centers),const DeepCollectionEquality().hash(_services),const DeepCollectionEquality().hash(_team),loadedTenantId);
 
 @override
 String toString() {
-  return 'CatalogState(status: $status, centers: $centers, services: $services, team: $team)';
+  return 'CatalogState(status: $status, centers: $centers, services: $services, team: $team, loadedTenantId: $loadedTenantId)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$CatalogStateCopyWith<$Res> implements $CatalogStateCopyWi
   factory _$CatalogStateCopyWith(_CatalogState value, $Res Function(_CatalogState) _then) = __$CatalogStateCopyWithImpl;
 @override @useResult
 $Res call({
- CatalogStatus status, List<BarberCenter> centers, List<Service> services, List<TeamMember> team
+ CatalogStatus status, List<BarberCenter> centers, List<Service> services, List<TeamMember> team, String? loadedTenantId
 });
 
 
@@ -282,13 +284,14 @@ class __$CatalogStateCopyWithImpl<$Res>
 
 /// Create a copy of CatalogState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? centers = null,Object? services = null,Object? team = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? centers = null,Object? services = null,Object? team = null,Object? loadedTenantId = freezed,}) {
   return _then(_CatalogState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as CatalogStatus,centers: null == centers ? _self._centers : centers // ignore: cast_nullable_to_non_nullable
 as List<BarberCenter>,services: null == services ? _self._services : services // ignore: cast_nullable_to_non_nullable
 as List<Service>,team: null == team ? _self._team : team // ignore: cast_nullable_to_non_nullable
-as List<TeamMember>,
+as List<TeamMember>,loadedTenantId: freezed == loadedTenantId ? _self.loadedTenantId : loadedTenantId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
