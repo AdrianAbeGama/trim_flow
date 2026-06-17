@@ -246,7 +246,9 @@ class _AppState extends State<App> {
       providers: [
         BlocProvider(create: (_) => getIt<TenantThemeBloc>()),
         BlocProvider(create: (_) => getIt<AppModeBloc>()),
-        BlocProvider(create: (_) => getIt<ProfileBloc>()..add(const LoadProfileEvent())),
+        // No re-disparamos load aqui: loading_app ya cargo el perfil (y el
+        // constructor del bloc lo bootstrapea). Evita una recarga redundante.
+        BlocProvider(create: (_) => getIt<ProfileBloc>()),
         BlocProvider(create: (_) => getIt<HomeBloc>()..add(const HomeEvent.load())),
         BlocProvider(create: (_) => CartBloc()..add(const CartEvent.started())),
         BlocProvider(create: (_) => OrdersBloc()..add(const OrdersEvent.started())),

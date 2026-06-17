@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/image_cache_size.dart';
 
 class AvatarPremium extends StatelessWidget {
   const AvatarPremium({
@@ -48,6 +49,7 @@ class AvatarPremium extends StatelessWidget {
             ? CachedNetworkImage(
                 imageUrl: photoUrl!,
                 fit: BoxFit.cover,
+                memCacheWidth: targetCacheWidth(context, size),
                 placeholder: (context, url) => _InitialsBlock(initials: _initials, gold: gold),
                 errorWidget: (context, url, error) =>
                     _InitialsBlock(initials: _initials, gold: gold),

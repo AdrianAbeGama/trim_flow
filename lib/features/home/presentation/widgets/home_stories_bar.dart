@@ -112,7 +112,9 @@ class HomeStoriesBar extends StatelessWidget {
                       backgroundImage: isVideo
                           ? null
                           : (story['image']!.startsWith('http')
-                              ? CachedNetworkImageProvider(story['image']!)
+                              ? ResizeImage(
+                                  CachedNetworkImageProvider(story['image']!),
+                                  width: 200)
                               : FileImage(File(story['image']!)) as ImageProvider),
                       child: isVideo
                           ? Icon(Icons.play_circle_fill_rounded, color: context.primaryGold, size: 40)

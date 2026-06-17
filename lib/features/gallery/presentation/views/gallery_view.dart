@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,13 +57,27 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
   bool _byBarber = false;
   String? _service;
   String? _barber;
+  Timer? _searchDebounce;
+  // Claves ya animadas: la animacion de entrada corre una sola vez por foto,
+  // no cada vez que la celda reaparece al hacer scroll.
+  final Set<String> _animatedKeys = <String>{};
 
   static const List<double> _heights = [252, 320, 224, 296, 240, 312];
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  // Espera a que el usuario deje de teclear antes de refiltrar (evita refiltrar
+  // y reconstruir la cuadricula en cada pulsacion).
+  void _onQueryChanged(String v) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 220), () {
+      if (mounted) setState(() => _query = v);
+    });
   }
 
   Future<void> _onRefresh() async {
@@ -180,7 +196,7 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
       SliverToBoxAdapter(
         child: _FilterArea(
           controller: _searchCtrl,
-          onQuery: (v) => setState(() => _query = v),
+          onQuery: _onQueryChanged,
           byBarber: _byBarber,
           onMode: (b) => setState(() {
             _byBarber = b;
@@ -217,25 +233,35 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
             mainAxisSpacing: 14,
             crossAxisSpacing: 14,
             childCount: items.length,
-            itemBuilder: (context, i) => SizedBox(
-              height: _heights[i % _heights.length],
-              child: _WorkCard(
-                item: items[i],
-                editing: editing,
-                onTap: () => _openFullscreen(context, items, i),
-                onDelete: items[i].id == null
-                    ? null
-                    : () => _delete(context, items[i].id!),
-              ),
-            ).animate().fadeIn(
-                  delay: (45 * (i % 8)).ms,
-                  duration: 380.ms,
-                ).slideY(
-                  begin: 0.12,
-                  end: 0,
-                  duration: 420.ms,
-                  curve: Curves.easeOutCubic,
+            itemBuilder: (context, i) {
+              final card = SizedBox(
+                height: _heights[i % _heights.length],
+                child: _WorkCard(
+                  item: items[i],
+                  editing: editing,
+                  onTap: () => _openFullscreen(context, items, i),
+                  onDelete: items[i].id == null
+                      ? null
+                      : () => _delete(context, items[i].id!),
                 ),
+              );
+              // Solo anima la primera vez que aparece esta foto (no en cada
+              // scroll-in), para que no parpadee al desplazar la cuadricula.
+              final key = items[i].externalId.isNotEmpty
+                  ? items[i].externalId
+                  : 'idx_$i';
+              if (_animatedKeys.contains(key)) return card;
+              _animatedKeys.add(key);
+              return card
+                  .animate()
+                  .fadeIn(delay: (45 * (i % 8)).ms, duration: 380.ms)
+                  .slideY(
+                    begin: 0.12,
+                    end: 0,
+                    duration: 420.ms,
+                    curve: Curves.easeOutCubic,
+                  );
+            },
           ),
         ),
     ];

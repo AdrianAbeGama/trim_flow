@@ -164,14 +164,29 @@ class AgendaSupabaseRepository implements AgendaRepository {
     final startLocal = DateTime(now.year, now.month, now.day);
     final endLocal = startLocal.add(const Duration(days: 1));
 
-    final completedRows = await _client
-        .from('reservations')
-        .select('price_at_booking')
-        .eq('barber_id', barberId)
-        .eq('status', 'completed')
-        .filter('deleted_at', 'is', null)
-        .gte('start_time', startLocal.toUtc().toIso8601String())
-        .lt('start_time', endLocal.toUtc().toIso8601String());
+    // Las 2 lecturas (cortes de hoy + proxima cita) son independientes: en
+    // paralelo responde mas rapido tras cada accion del barbero.
+    final results = await Future.wait([
+      _client
+          .from('reservations')
+          .select('price_at_booking')
+          .eq('barber_id', barberId)
+          .eq('status', 'completed')
+          .filter('deleted_at', 'is', null)
+          .gte('start_time', startLocal.toUtc().toIso8601String())
+          .lt('start_time', endLocal.toUtc().toIso8601String()),
+      _client
+          .from('reservations')
+          .select('start_time')
+          .eq('barber_id', barberId)
+          .inFilter('status', ['pending', 'confirmed'])
+          .filter('deleted_at', 'is', null)
+          .gte('start_time', now.toUtc().toIso8601String())
+          .order('start_time', ascending: true)
+          .limit(1),
+    ]);
+    final completedRows = results[0];
+    final nextRows = results[1];
 
     var cuts = 0;
     var revenue = 0.0;
@@ -182,16 +197,6 @@ class AgendaSupabaseRepository implements AgendaRepository {
         if (p is num) revenue += p.toDouble();
       }
     }
-
-    final nextRows = await _client
-        .from('reservations')
-        .select('start_time')
-        .eq('barber_id', barberId)
-        .inFilter('status', ['pending', 'confirmed'])
-        .filter('deleted_at', 'is', null)
-        .gte('start_time', now.toUtc().toIso8601String())
-        .order('start_time', ascending: true)
-        .limit(1);
 
     DateTime? nextStart;
     final nList = nextRows as List;

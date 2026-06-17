@@ -163,8 +163,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
 
       if (mode == AppMode.client) {
-        final reservations = await _safeLoadReservations(tenantId);
-        final coupons = await _safeLoadCoupons(tenantId);
+        // Reservas y cupones son independientes: en paralelo carga en la mitad
+        // de tiempo. Ambos helpers ya capturan sus errores, asi que Future.wait
+        // no aborta si uno falla.
+        final results = await Future.wait([
+          _safeLoadReservations(tenantId),
+          _safeLoadCoupons(tenantId),
+        ]);
+        final reservations = results[0] as MyReservationsResult;
+        final coupons = results[1] as List<CustomerCoupon>;
         emit(state.copyWith(
           status: ProfileStatus.loaded,
           user: result.user,

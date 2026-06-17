@@ -42,7 +42,9 @@ class HomeHeroSection extends StatelessWidget {
                   color: Colors.black,
                   image: DecorationImage(
                     image: content.heroImageUrl.startsWith('http')
-                        ? CachedNetworkImageProvider(content.heroImageUrl)
+                        ? ResizeImage(
+                            CachedNetworkImageProvider(content.heroImageUrl),
+                            width: 1080)
                         : FileImage(File(content.heroImageUrl)) as ImageProvider,
                     fit: BoxFit.cover,
                     colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.35), BlendMode.darken),

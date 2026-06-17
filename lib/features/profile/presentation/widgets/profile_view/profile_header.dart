@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/image_cache_size.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
 
 class ProfileViewHeader extends StatelessWidget {
@@ -78,6 +79,7 @@ class ProfileViewHeader extends StatelessWidget {
                         : CachedNetworkImage(
                             imageUrl: user.photoUrl,
                             fit: BoxFit.cover,
+                            memCacheWidth: targetCacheWidth(context, 48),
                             errorWidget: (_, _, _) =>
                                 _initialsFallback(initials, gold),
                             placeholder: (_, _) =>
