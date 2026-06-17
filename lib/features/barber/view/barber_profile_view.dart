@@ -6,16 +6,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/di/injection.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
+import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/orders/barber_orders_view.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_avatar_sheet.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_roles_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_data.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_profile_edit_sheet.dart';
@@ -77,6 +83,100 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
       ),
       builder: (_) => BarberProfileEditSheet(user: user),
     );
+  }
+
+  void _openAvatarSheet(UserProfile user) {
+    // Leemos del context con read (estamos en un tap, no en build; primaryGold
+    // usa watch y solo vale en build). Las acciones se disparan al instante.
+    final gold = context.read<TenantThemeBloc>().state.colors.primaryGold;
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final profileBloc = context.read<ProfileBloc>();
+    BarberAvatarSheet.show(
+      context,
+      user: user,
+      onGallery: () => _changeAvatar(ImageSource.gallery, gold, overlay, profileBloc),
+      onCamera: () => _changeAvatar(ImageSource.camera, gold, overlay, profileBloc),
+      onRemove: () => _removeAvatar(overlay, profileBloc),
+      onEditData: () => _editProfile(user),
+    );
+  }
+
+  /// Elegir/recortar/subir la foto desde la pantalla de Perfil. NO usa `context`
+  /// (todo viene por parametro) para no romper tras los gaps async del selector.
+  Future<void> _changeAvatar(
+    ImageSource source,
+    Color gold,
+    OverlayState overlay,
+    ProfileBloc profileBloc,
+  ) async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1024,
+        requestFullMetadata: false,
+      );
+      if (picked == null) return;
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        compressQuality: 80,
+        maxWidth: 720,
+        maxHeight: 720,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Recortar foto',
+            toolbarColor: const Color(0xFF0A0A0A),
+            toolbarWidgetColor: Colors.white,
+            backgroundColor: const Color(0xFF0A0A0A),
+            activeControlsWidgetColor: gold,
+          ),
+          IOSUiSettings(
+            title: 'Recortar',
+            doneButtonTitle: 'Listo',
+            cancelButtonTitle: 'Cancelar',
+          ),
+        ],
+      );
+      if (cropped == null) return;
+      AppToast.showOn(overlay,
+          type: AppToastType.info, title: 'Subiendo foto…');
+      await getIt<ProfileRepository>()
+          .updateStaffAvatar(localImagePath: cropped.path);
+      profileBloc.add(const ProfileEvent.load());
+      AppToast.showOn(overlay,
+          type: AppToastType.success,
+          title: 'Foto actualizada',
+          message: 'Tu nueva foto ya está lista.');
+    } catch (e) {
+      final raw = e.toString();
+      AppToast.showOn(overlay,
+          type: AppToastType.error,
+          title: 'No se pudo subir',
+          message: raw.length > 140 ? '${raw.substring(0, 140)}…' : raw);
+    }
+  }
+
+  Future<void> _removeAvatar(
+      OverlayState overlay, ProfileBloc profileBloc) async {
+    if (!mounted) return;
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Quitar foto',
+      message: '¿Seguro que quieres quitar tu foto de perfil?',
+      confirmLabel: 'QUITAR',
+      icon: Icons.person_off_rounded,
+    );
+    if (!ok) return;
+    try {
+      await getIt<ProfileRepository>().removeStaffAvatar();
+      profileBloc.add(const ProfileEvent.load());
+      AppToast.showOn(overlay,
+          type: AppToastType.success, title: 'Foto quitada');
+    } catch (_) {
+      AppToast.showOn(overlay,
+          type: AppToastType.error, title: 'No se pudo quitar');
+    }
   }
 
   void _openOrders() {
@@ -235,7 +335,7 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                 ),
                 BarberProfileHeader(
                   user: user,
-                  onAvatarTap: () => _editProfile(user),
+                  onAvatarTap: () => _openAvatarSheet(user),
                   onSettingsTap: () => _openSettings(user),
                   onOrdersTap: _openOrders,
                 ),
