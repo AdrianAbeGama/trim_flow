@@ -87,6 +87,13 @@ abstract class ProfileRepository {
     required ProfileUpdateInput input,
   });
 
+  /// Sube la imagen local al storage y la asigna como foto del staff logueado
+  /// (RPC update_my_avatar, ADR-0015). Solo aplica a perfiles de `profiles`.
+  Future<void> updateStaffAvatar({required String localImagePath});
+
+  /// Quita la foto de perfil del staff logueado.
+  Future<void> removeStaffAvatar();
+
   /// Vincula el perfil del cliente con un codigo de acceso (TRF-XXXX) de una
   /// reserva web (RPC claim_profile_by_ticket). Devuelve cuantas barberias se
   /// vincularon. Idempotente: re-pegar el propio codigo no falla.

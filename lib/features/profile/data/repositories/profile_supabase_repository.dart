@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/features/profile/data/mappers/coupon_mappers.dart';
@@ -128,6 +130,49 @@ class ProfileSupabaseRepository implements ProfileRepository {
         'p_phone': input.phone.isEmpty ? null : input.phone,
       },
     );
+  }
+
+  @override
+  Future<void> updateStaffAvatar({required String localImagePath}) async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) throw const StaffRowMissingException('unauthenticated');
+
+    final bytes = await File(localImagePath).readAsBytes();
+    final ext = _imageExt(localImagePath);
+    // Ruta permitida por la policy de storage para staff: media/staff/<uid>/...
+    final path = 'staff/$uid/avatar_${DateTime.now().microsecondsSinceEpoch}.$ext';
+    await _client.storage.from('media').uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: _imageMime(ext), upsert: true),
+        );
+    final url = _client.storage.from('media').getPublicUrl(path);
+    await _client.rpc('update_my_avatar', params: {'p_avatar_url': url});
+  }
+
+  @override
+  Future<void> removeStaffAvatar() async {
+    await _client.rpc('update_my_avatar', params: {'p_avatar_url': null});
+  }
+
+  // El bucket `media` solo admite jpeg/png/webp; todo lo demas se sube como jpeg
+  // (el recorte ya entrega JPEG).
+  String _imageExt(String path) {
+    final dot = path.lastIndexOf('.');
+    if (dot < 0 || dot == path.length - 1) return 'jpg';
+    final ext = path.substring(dot + 1).toLowerCase();
+    return (ext == 'png' || ext == 'webp') ? ext : 'jpg';
+  }
+
+  String _imageMime(String ext) {
+    switch (ext) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg';
+    }
   }
 
   @override
