@@ -184,12 +184,12 @@ class _ToastWidgetState extends State<_ToastWidget> {
   @override
   Widget build(BuildContext context) {
     final p = _palettes[widget.type]!;
-    final bottom = MediaQuery.of(context).viewPadding.bottom + 96;
+    final top = MediaQuery.of(context).viewPadding.top + 12;
 
     return Positioned(
       left: 16,
       right: 16,
-      bottom: bottom,
+      top: top,
       child: IgnorePointer(
         child: AnimatedSlide(
           offset: _offset,
