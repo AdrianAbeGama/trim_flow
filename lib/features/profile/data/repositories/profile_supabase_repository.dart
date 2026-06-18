@@ -99,6 +99,9 @@ class ProfileSupabaseRepository implements ProfileRepository {
     // tenant, la crea con bootstrap_customer_self (tenant-scoped). ADR-0015.
     try {
       await _client.rpc('update_customer_profile', params: {
+        // Requerido por el backend (hotfix tenant_scope): sin esto, un cliente
+        // con ficha en varias barberias recibe 'tenant_id_required'.
+        'p_tenant_id': tenantId,
         'p_full_name': fullName,
         'p_whatsapp': whatsapp,
         'p_email': null,
