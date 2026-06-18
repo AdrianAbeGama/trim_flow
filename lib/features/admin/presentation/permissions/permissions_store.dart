@@ -35,6 +35,8 @@ const List<PermCap> kPermCaps = [
   PermCap('admin_customers', 'Clientes', 'Administración', Icons.groups_rounded),
   PermCap('admin_business', 'Mi barbería', 'Administración',
       Icons.storefront_rounded),
+  PermCap('admin_staff', 'Gestionar barberos', 'Administración',
+      Icons.badge_outlined),
 ];
 
 class PreviewRole {

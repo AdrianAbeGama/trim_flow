@@ -22,6 +22,7 @@ import 'package:trim_flow/features/barber/orders/barber_orders_view.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_admin_section.dart';
 import 'package:trim_flow/features/barber/view/widgets/barber_avatar_sheet.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_staff_section.dart';
 // OCULTO por ahora (a pedido del socio): seccion "Roles y permisos". El archivo
 // se conserva; reactivar descomentando este import y el sliver de mas abajo.
 // import 'package:trim_flow/features/barber/view/widgets/barber_roles_section.dart';
@@ -368,6 +369,10 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                 if (isAdmin)
                   SliverToBoxAdapter(
                     child: BarberAdminSection(tenantId: user.tenantId),
+                  ),
+                if (isAdmin)
+                  SliverToBoxAdapter(
+                    child: BarberStaffSection(tenantId: user.tenantId),
                   ),
                 // OCULTO (a pedido del socio, por ahora): la gestion "Roles y
                 // permisos" no se muestra. No se elimina: el codigo queda en
