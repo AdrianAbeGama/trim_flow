@@ -5,7 +5,6 @@ import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/trimflow_logo.dart';
-import 'package:trim_flow/features/auth/presentation/widgets/email_otp_sheet.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key, required this.onLoginSuccess});
@@ -97,42 +96,6 @@ class LoginView extends StatelessWidget {
                 .animate()
                 .fadeIn(delay: 420.ms, duration: 500.ms)
                 .slideY(begin: 0.3, end: 0, delay: 420.ms, duration: 500.ms, curve: Curves.easeOutCubic),
-
-            const SizedBox(height: 12),
-
-            // Botón correo (OTP) — alternativa a Google
-            GestureDetector(
-              onTap: () => EmailOtpSheet.show(context),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.mail_outline_rounded,
-                        color: Colors.white.withValues(alpha: 0.85), size: 22),
-                    const SizedBox(width: 14),
-                    Text(
-                      'CONTINUAR CON CORREO',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-                .animate()
-                .fadeIn(delay: 500.ms, duration: 500.ms)
-                .slideY(begin: 0.3, end: 0, delay: 500.ms, duration: 500.ms, curve: Curves.easeOutCubic),
 
             const SizedBox(height: 20),
 
