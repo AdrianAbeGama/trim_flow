@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
@@ -56,7 +57,10 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
 
   Future<void> _cropPath(String path,
       {bool isNew = false, int? replaceIndex}) async {
-    final gold = context.primaryGold;
+    if (!mounted) return;
+    // read (no watch): esto corre tras elegir la foto (fuera de build), y
+    // context.primaryGold usa watch que solo vale en build.
+    final gold = context.read<TenantThemeBloc>().state.colors.primaryGold;
     final cropped = await ImageCropper().cropImage(
       sourcePath: path,
       compressQuality: 88,
@@ -75,6 +79,7 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
         ),
       ],
     );
+    if (!mounted) return;
     if (cropped == null) {
       if (isNew) {
         setState(() => _shots.add(PendingShot(path: path, isLocal: true)));
