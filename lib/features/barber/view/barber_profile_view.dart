@@ -6,14 +6,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/di/injection.dart';
-import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
+import 'package:trim_flow/core/widgets/premium/premium_crop_view.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
@@ -89,26 +88,22 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
   }
 
   void _openAvatarSheet(UserProfile user) {
-    // Leemos del context con read (estamos en un tap, no en build; primaryGold
-    // usa watch y solo vale en build). Las acciones se disparan al instante.
-    final gold = context.read<TenantThemeBloc>().state.colors.primaryGold;
     final overlay = Overlay.of(context, rootOverlay: true);
     final profileBloc = context.read<ProfileBloc>();
     BarberAvatarSheet.show(
       context,
       user: user,
-      onGallery: () => _changeAvatar(ImageSource.gallery, gold, overlay, profileBloc),
-      onCamera: () => _changeAvatar(ImageSource.camera, gold, overlay, profileBloc),
+      onGallery: () => _changeAvatar(ImageSource.gallery, overlay, profileBloc),
+      onCamera: () => _changeAvatar(ImageSource.camera, overlay, profileBloc),
       onRemove: () => _removeAvatar(overlay, profileBloc),
       onEditData: () => _editProfile(user),
     );
   }
 
-  /// Elegir/recortar/subir la foto desde la pantalla de Perfil. NO usa `context`
-  /// (todo viene por parametro) para no romper tras los gaps async del selector.
+  /// Elegir foto → recortador premium (cuadrado) → subir, desde la pantalla de
+  /// Perfil (sigue viva aunque el selector recree la activity).
   Future<void> _changeAvatar(
     ImageSource source,
-    Color gold,
     OverlayState overlay,
     ProfileBloc profileBloc,
   ) async {
@@ -119,33 +114,17 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
         maxWidth: 1024,
         requestFullMetadata: false,
       );
-      if (picked == null) return;
-      final cropped = await ImageCropper().cropImage(
+      if (picked == null || !mounted) return;
+      final croppedPath = await PremiumCropView.show(
+        context,
         sourcePath: picked.path,
-        compressQuality: 80,
-        maxWidth: 720,
-        maxHeight: 720,
-        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Recortar foto',
-            toolbarColor: const Color(0xFF0A0A0A),
-            toolbarWidgetColor: Colors.white,
-            backgroundColor: const Color(0xFF0A0A0A),
-            activeControlsWidgetColor: gold,
-          ),
-          IOSUiSettings(
-            title: 'Recortar',
-            doneButtonTitle: 'Listo',
-            cancelButtonTitle: 'Cancelar',
-          ),
-        ],
+        initialAspect: 1.0,
       );
-      if (cropped == null) return;
+      if (croppedPath == null) return;
       AppToast.showOn(overlay,
           type: AppToastType.info, title: 'Subiendo foto…');
       await getIt<ProfileRepository>()
-          .updateStaffAvatar(localImagePath: cropped.path);
+          .updateStaffAvatar(localImagePath: croppedPath);
       profileBloc.add(const ProfileEvent.load());
       AppToast.showOn(overlay,
           type: AppToastType.success,

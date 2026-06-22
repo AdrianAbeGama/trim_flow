@@ -29,13 +29,15 @@ abstract class GalleryState with _$GalleryState {
     for (final item in allItems) {
       final name = item.barberFullName;
       if (name == null || name.trim().isEmpty) continue;
+      final avatar = item.barberAvatarUrl;
+      final hasAvatar = avatar != null && avatar.isNotEmpty;
       byName.putIfAbsent(
         name,
         () => GalleryBarberSummary(
           name: name,
           specialty: item.barberSpecialty,
-          avatarHint: item.imageUrl,
-          isLocalAvatar: item.isLocalAsset,
+          avatarHint: hasAvatar ? avatar : item.imageUrl,
+          isLocalAvatar: hasAvatar ? false : item.isLocalAsset,
           itemCount: 0,
         ),
       );

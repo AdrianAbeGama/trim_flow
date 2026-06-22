@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
+import 'package:trim_flow/core/widgets/premium/premium_crop_view.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/domain/repositories/gallery_repository.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
@@ -43,7 +42,7 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       imageQuality: 88,
-      maxWidth: 2000,
+      maxWidth: 1280,
     );
     if (picked == null) return;
     await _cropPath(picked.path, isNew: true);
@@ -58,36 +57,22 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
   Future<void> _cropPath(String path,
       {bool isNew = false, int? replaceIndex}) async {
     if (!mounted) return;
-    // read (no watch): esto corre tras elegir la foto (fuera de build), y
-    // context.primaryGold usa watch que solo vale en build.
-    final gold = context.read<TenantThemeBloc>().state.colors.primaryGold;
-    final cropped = await ImageCropper().cropImage(
+    // Recortador premium dentro de la app (estilo IG): marco fijo + arrastrar
+    // y hacer zoom. Por defecto vertical (4:5), que luce mejor en el portafolio.
+    final croppedPath = await PremiumCropView.show(
+      context,
       sourcePath: path,
-      compressQuality: 88,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Recortar foto',
-          toolbarColor: const Color(0xFF0A0A0A),
-          toolbarWidgetColor: Colors.white,
-          backgroundColor: const Color(0xFF0A0A0A),
-          activeControlsWidgetColor: gold,
-        ),
-        IOSUiSettings(
-          title: 'Recortar',
-          doneButtonTitle: 'Listo',
-          cancelButtonTitle: 'Cancelar',
-        ),
-      ],
+      initialAspect: 4 / 5,
     );
     if (!mounted) return;
-    if (cropped == null) {
+    if (croppedPath == null) {
       if (isNew) {
         setState(() => _shots.add(PendingShot(path: path, isLocal: true)));
       }
       return;
     }
     setState(() {
-      final newShot = PendingShot(path: cropped.path, isLocal: true);
+      final newShot = PendingShot(path: croppedPath, isLocal: true);
       if (replaceIndex != null) {
         _shots[replaceIndex] = newShot;
       } else {

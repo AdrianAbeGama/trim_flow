@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
@@ -70,6 +71,14 @@ class GallerySupabaseRepository implements GalleryRepository {
       self ??= await _selfAsTeamMember(authUid, tenantId);
     }
     final isStaff = self != null;
+
+    // Cliente: vitrina del tenant (RPC get_tenant_gallery) con avatar del
+    // barbero, solo barberos activos y paginada. Sin slug o si falla, cae a la
+    // lectura directa de abajo (mismo contenido, sin avatares).
+    if (!isStaff) {
+      final vitrina = await _loadClientVitrina(catalog, tenantId);
+      if (vitrina != null) return vitrina;
+    }
 
     final serviceName = {for (final s in catalog.services) s.id: s.name};
     final servicePrice = {for (final s in catalog.services) s.id: s.price};
@@ -146,6 +155,86 @@ class GallerySupabaseRepository implements GalleryRepository {
         specialty: row['specialty'] as String?,
       );
     } catch (_) {
+      return null;
+    }
+  }
+
+  String? _slugFor(String tenantId) {
+    if (tenantId.isEmpty || tenantId == kDefaultTenantId) return null;
+    for (final t in _tenantTheme.state.availableTenants) {
+      if (t.id == tenantId) {
+        final s = t.slug.trim();
+        return s.isEmpty ? null : s;
+      }
+    }
+    return null;
+  }
+
+  /// Vitrina del tenant: junta el portafolio de todos los barberos activos via
+  /// RPC paginada `get_tenant_gallery` (trae avatar del barbero). Devuelve null
+  /// si no hay slug o la RPC falla, para que [loadAll] caiga a la lectura directa.
+  Future<List<GalleryItem>?> _loadClientVitrina(
+      TenantCatalog catalog, String tenantId) async {
+    final slug = _slugFor(tenantId);
+    if (slug == null) return null;
+
+    final serviceName = {for (final s in catalog.services) s.id: s.name};
+    final servicePrice = {for (final s in catalog.services) s.id: s.price};
+    final barberById = {for (final b in catalog.team) b.id: b};
+
+    try {
+      final items = <GalleryItem>[];
+      Map<String, dynamic>? cursor;
+      for (var page = 0; page < 8; page++) {
+        final res = await _client.rpc('get_tenant_gallery', params: {
+          'p_tenant_slug': slug,
+          'p_cursor': cursor,
+          'p_limit': 24,
+        });
+        final map = (res as Map?)?.cast<String, dynamic>();
+        if (map == null) break;
+        for (final raw in (map['items'] as List?) ?? const []) {
+          if (raw is! Map) continue;
+          final r = raw.cast<String, dynamic>();
+          final remoteId = r['id'] as String? ?? '';
+          if (remoteId.isEmpty) continue;
+          final barberId = r['barberId'] as String?;
+          final b = barberId == null ? null : barberById[barberId];
+          final svcId = r['serviceId'] as String?;
+          final caption = (r['caption'] as String?)?.trim();
+          final label = (svcId != null ? serviceName[svcId] : null) ??
+              (caption != null && caption.isNotEmpty ? caption : 'Corte');
+          final imagePath = r['imagePath'] as String? ?? '';
+          final idx = items.length;
+          _idToRemote[idx] = remoteId;
+          items.add(GalleryItem(
+            id: idx,
+            externalId: remoteId,
+            imageUrl: imagePath.isEmpty
+                ? ''
+                : _client.storage.from(_bucket).getPublicUrl(imagePath),
+            categorySlug: svcId ?? '',
+            categoryLabel: label,
+            description: caption,
+            barberProfileId: barberId,
+            barberFullName:
+                (r['barberName'] as String?) ?? b?.fullName ?? 'Estilista',
+            barberSpecialty: b?.specialty,
+            barberAvatarUrl: r['barberAvatarUrl'] as String?,
+            createdAt: DateTime.tryParse(r['createdAt'] as String? ?? '') ??
+                DateTime.now(),
+            displayOrder: idx,
+            isFeatured: r['isFeatured'] as bool? ?? false,
+            price: svcId != null ? servicePrice[svcId] : null,
+          ));
+        }
+        final next = map['nextCursor'];
+        if (next is! Map) break;
+        cursor = next.cast<String, dynamic>();
+      }
+      return items;
+    } catch (e) {
+      debugPrint('GallerySupabaseRepository.vitrina error: $e');
       return null;
     }
   }
