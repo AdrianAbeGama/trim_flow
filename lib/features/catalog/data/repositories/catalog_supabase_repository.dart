@@ -30,11 +30,16 @@ class CatalogSupabaseRepository implements CatalogRepository {
           .filter('deleted_at', 'is', null)
           .order('is_featured', ascending: false)
           .order('display_order', ascending: true),
+      // Barberos de planta (role='barber') Y admins que tambien atienden
+      // (is_acting_barber) — mismo predicado que get_public_barbers del backend.
+      // NOTA: agendar a un acting barber requiere que el socio actualice
+      // _finalize_booking (ver PENDIENTE_BACKEND_ACTING_BARBER.md); hasta
+      // entonces reservarlo devuelve 'barber_not_in_branch'.
       _client
           .from('profiles')
           .select('id, full_name, avatar_url, branch_id, specialty, hired_at')
           .eq('tenant_id', tenantId)
-          .eq('role', 'barber')
+          .or('role.eq.barber,is_acting_barber.eq.true')
           .eq('is_active', true)
           .filter('deleted_at', 'is', null)
           .order('full_name', ascending: true),
