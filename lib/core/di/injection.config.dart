@@ -58,6 +58,10 @@ import 'package:trim_flow/features/reservations/domain/repositories/reservation_
     as _i224;
 import 'package:trim_flow/features/reservations/presentation/bloc/reservation_bloc.dart'
     as _i316;
+import 'package:trim_flow/features/reviews/data/repositories/reviews_supabase_repository.dart'
+    as _i71;
+import 'package:trim_flow/features/reviews/domain/repositories/reviews_repository.dart'
+    as _i218;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -79,6 +83,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i434.AgendaRepository>(
       () => _i781.AgendaSupabaseRepository(gh<_i454.SupabaseClient>()),
+    );
+    gh.lazySingleton<_i218.ReviewsRepository>(
+      () => _i71.ReviewsSupabaseRepository(gh<_i454.SupabaseClient>()),
     );
     gh.lazySingleton<_i812.CatalogRepository>(
       () => _i681.CatalogSupabaseRepository(gh<_i454.SupabaseClient>()),

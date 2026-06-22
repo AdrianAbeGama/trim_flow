@@ -8,6 +8,7 @@ import 'package:core/core.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
+import 'package:trim_flow/features/reviews/presentation/widgets/review_prompt_card.dart';
 
 import '../../domain/models/home_content.dart';
 import '../bloc/home_bloc.dart';
@@ -173,6 +174,8 @@ class _HomeViewState extends State<HomeView> {
                   HomeNextAppointmentWidget(
                     onTap: widget.onNavigateToAppointments,
                   ),
+                if (!widget.isBarberMode)
+                  const SliverToBoxAdapter(child: ReviewPromptCard()),
                 HomeInfiniteServicesSection(
                   items: () {
                     final catalogServices =
