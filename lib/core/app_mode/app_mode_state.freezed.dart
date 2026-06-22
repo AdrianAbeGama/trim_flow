@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AppModeState {
 
- AppMode? get mode; String? get accessCode; bool get isLoggedIn; bool get isInitialized;
+ AppMode? get mode; String? get accessCode; bool get isLoggedIn; bool get isInitialized; bool get isPasswordRecovery;
 /// Create a copy of AppModeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $AppModeStateCopyWith<AppModeState> get copyWith => _$AppModeStateCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppModeState&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.accessCode, accessCode) || other.accessCode == accessCode)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppModeState&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.accessCode, accessCode) || other.accessCode == accessCode)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized)&&(identical(other.isPasswordRecovery, isPasswordRecovery) || other.isPasswordRecovery == isPasswordRecovery));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,accessCode,isLoggedIn,isInitialized);
+int get hashCode => Object.hash(runtimeType,mode,accessCode,isLoggedIn,isInitialized,isPasswordRecovery);
 
 @override
 String toString() {
-  return 'AppModeState(mode: $mode, accessCode: $accessCode, isLoggedIn: $isLoggedIn, isInitialized: $isInitialized)';
+  return 'AppModeState(mode: $mode, accessCode: $accessCode, isLoggedIn: $isLoggedIn, isInitialized: $isInitialized, isPasswordRecovery: $isPasswordRecovery)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $AppModeStateCopyWith<$Res>  {
   factory $AppModeStateCopyWith(AppModeState value, $Res Function(AppModeState) _then) = _$AppModeStateCopyWithImpl;
 @useResult
 $Res call({
- AppMode? mode, String? accessCode, bool isLoggedIn, bool isInitialized
+ AppMode? mode, String? accessCode, bool isLoggedIn, bool isInitialized, bool isPasswordRecovery
 });
 
 
@@ -62,12 +62,13 @@ class _$AppModeStateCopyWithImpl<$Res>
 
 /// Create a copy of AppModeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mode = freezed,Object? accessCode = freezed,Object? isLoggedIn = null,Object? isInitialized = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? mode = freezed,Object? accessCode = freezed,Object? isLoggedIn = null,Object? isInitialized = null,Object? isPasswordRecovery = null,}) {
   return _then(_self.copyWith(
 mode: freezed == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as AppMode?,accessCode: freezed == accessCode ? _self.accessCode : accessCode // ignore: cast_nullable_to_non_nullable
 as String?,isLoggedIn: null == isLoggedIn ? _self.isLoggedIn : isLoggedIn // ignore: cast_nullable_to_non_nullable
 as bool,isInitialized: null == isInitialized ? _self.isInitialized : isInitialized // ignore: cast_nullable_to_non_nullable
+as bool,isPasswordRecovery: null == isPasswordRecovery ? _self.isPasswordRecovery : isPasswordRecovery // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -153,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized,  bool isPasswordRecovery)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppModeState() when $default != null:
-return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized);case _:
+return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized,_that.isPasswordRecovery);case _:
   return orElse();
 
 }
@@ -174,10 +175,10 @@ return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized,  bool isPasswordRecovery)  $default,) {final _that = this;
 switch (_that) {
 case _AppModeState():
-return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized);case _:
+return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized,_that.isPasswordRecovery);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +195,10 @@ return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( AppMode? mode,  String? accessCode,  bool isLoggedIn,  bool isInitialized,  bool isPasswordRecovery)?  $default,) {final _that = this;
 switch (_that) {
 case _AppModeState() when $default != null:
-return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized);case _:
+return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized,_that.isPasswordRecovery);case _:
   return null;
 
 }
@@ -209,13 +210,14 @@ return $default(_that.mode,_that.accessCode,_that.isLoggedIn,_that.isInitialized
 
 
 class _AppModeState implements AppModeState {
-  const _AppModeState({this.mode, this.accessCode, this.isLoggedIn = false, this.isInitialized = false});
+  const _AppModeState({this.mode, this.accessCode, this.isLoggedIn = false, this.isInitialized = false, this.isPasswordRecovery = false});
   
 
 @override final  AppMode? mode;
 @override final  String? accessCode;
 @override@JsonKey() final  bool isLoggedIn;
 @override@JsonKey() final  bool isInitialized;
+@override@JsonKey() final  bool isPasswordRecovery;
 
 /// Create a copy of AppModeState
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +229,16 @@ _$AppModeStateCopyWith<_AppModeState> get copyWith => __$AppModeStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppModeState&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.accessCode, accessCode) || other.accessCode == accessCode)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppModeState&&(identical(other.mode, mode) || other.mode == mode)&&(identical(other.accessCode, accessCode) || other.accessCode == accessCode)&&(identical(other.isLoggedIn, isLoggedIn) || other.isLoggedIn == isLoggedIn)&&(identical(other.isInitialized, isInitialized) || other.isInitialized == isInitialized)&&(identical(other.isPasswordRecovery, isPasswordRecovery) || other.isPasswordRecovery == isPasswordRecovery));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,mode,accessCode,isLoggedIn,isInitialized);
+int get hashCode => Object.hash(runtimeType,mode,accessCode,isLoggedIn,isInitialized,isPasswordRecovery);
 
 @override
 String toString() {
-  return 'AppModeState(mode: $mode, accessCode: $accessCode, isLoggedIn: $isLoggedIn, isInitialized: $isInitialized)';
+  return 'AppModeState(mode: $mode, accessCode: $accessCode, isLoggedIn: $isLoggedIn, isInitialized: $isInitialized, isPasswordRecovery: $isPasswordRecovery)';
 }
 
 
@@ -247,7 +249,7 @@ abstract mixin class _$AppModeStateCopyWith<$Res> implements $AppModeStateCopyWi
   factory _$AppModeStateCopyWith(_AppModeState value, $Res Function(_AppModeState) _then) = __$AppModeStateCopyWithImpl;
 @override @useResult
 $Res call({
- AppMode? mode, String? accessCode, bool isLoggedIn, bool isInitialized
+ AppMode? mode, String? accessCode, bool isLoggedIn, bool isInitialized, bool isPasswordRecovery
 });
 
 
@@ -264,12 +266,13 @@ class __$AppModeStateCopyWithImpl<$Res>
 
 /// Create a copy of AppModeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mode = freezed,Object? accessCode = freezed,Object? isLoggedIn = null,Object? isInitialized = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? mode = freezed,Object? accessCode = freezed,Object? isLoggedIn = null,Object? isInitialized = null,Object? isPasswordRecovery = null,}) {
   return _then(_AppModeState(
 mode: freezed == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as AppMode?,accessCode: freezed == accessCode ? _self.accessCode : accessCode // ignore: cast_nullable_to_non_nullable
 as String?,isLoggedIn: null == isLoggedIn ? _self.isLoggedIn : isLoggedIn // ignore: cast_nullable_to_non_nullable
 as bool,isInitialized: null == isInitialized ? _self.isInitialized : isInitialized // ignore: cast_nullable_to_non_nullable
+as bool,isPasswordRecovery: null == isPasswordRecovery ? _self.isPasswordRecovery : isPasswordRecovery // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

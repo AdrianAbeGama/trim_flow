@@ -20,6 +20,7 @@ import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred as barber;
 import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
+import 'package:trim_flow/features/auth/presentation/views/set_new_password_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/cart_event.dart';
@@ -336,6 +337,10 @@ class _AppState extends State<App> {
                         ),
                       ),
                     );
+                  }
+
+                  if (state.isPasswordRecovery) {
+                    return const SetNewPasswordView();
                   }
 
                   if (!state.isLoggedIn) {

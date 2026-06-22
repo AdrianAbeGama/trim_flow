@@ -10,5 +10,6 @@ abstract class AppModeState with _$AppModeState {
     String? accessCode,
     @Default(false) bool isLoggedIn,
     @Default(false) bool isInitialized,
+    @Default(false) bool isPasswordRecovery,
   }) = _AppModeState;
 }

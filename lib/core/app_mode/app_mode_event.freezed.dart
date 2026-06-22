@@ -55,7 +55,7 @@ extension AppModeEventPatterns on AppModeEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( Initialize value)?  initialize,TResult Function( ChangeMode value)?  changeMode,TResult Function( SetAccessCode value)?  setAccessCode,TResult Function( LoginWithGoogle value)?  loginWithGoogle,TResult Function( Login value)?  login,TResult Function( RequestLogout value)?  requestLogout,TResult Function( Logout value)?  logout,TResult Function( Reset value)?  reset,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( Initialize value)?  initialize,TResult Function( ChangeMode value)?  changeMode,TResult Function( SetAccessCode value)?  setAccessCode,TResult Function( LoginWithGoogle value)?  loginWithGoogle,TResult Function( Login value)?  login,TResult Function( PasswordRecoveryStarted value)?  passwordRecoveryStarted,TResult Function( PasswordRecoveryFinished value)?  passwordRecoveryFinished,TResult Function( RequestLogout value)?  requestLogout,TResult Function( Logout value)?  logout,TResult Function( Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case Initialize() when initialize != null:
@@ -63,7 +63,9 @@ return initialize(_that);case ChangeMode() when changeMode != null:
 return changeMode(_that);case SetAccessCode() when setAccessCode != null:
 return setAccessCode(_that);case LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that);case Login() when login != null:
-return login(_that);case RequestLogout() when requestLogout != null:
+return login(_that);case PasswordRecoveryStarted() when passwordRecoveryStarted != null:
+return passwordRecoveryStarted(_that);case PasswordRecoveryFinished() when passwordRecoveryFinished != null:
+return passwordRecoveryFinished(_that);case RequestLogout() when requestLogout != null:
 return requestLogout(_that);case Logout() when logout != null:
 return logout(_that);case Reset() when reset != null:
 return reset(_that);case _:
@@ -84,7 +86,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( Initialize value)  initialize,required TResult Function( ChangeMode value)  changeMode,required TResult Function( SetAccessCode value)  setAccessCode,required TResult Function( LoginWithGoogle value)  loginWithGoogle,required TResult Function( Login value)  login,required TResult Function( RequestLogout value)  requestLogout,required TResult Function( Logout value)  logout,required TResult Function( Reset value)  reset,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( Initialize value)  initialize,required TResult Function( ChangeMode value)  changeMode,required TResult Function( SetAccessCode value)  setAccessCode,required TResult Function( LoginWithGoogle value)  loginWithGoogle,required TResult Function( Login value)  login,required TResult Function( PasswordRecoveryStarted value)  passwordRecoveryStarted,required TResult Function( PasswordRecoveryFinished value)  passwordRecoveryFinished,required TResult Function( RequestLogout value)  requestLogout,required TResult Function( Logout value)  logout,required TResult Function( Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case Initialize():
@@ -92,7 +94,9 @@ return initialize(_that);case ChangeMode():
 return changeMode(_that);case SetAccessCode():
 return setAccessCode(_that);case LoginWithGoogle():
 return loginWithGoogle(_that);case Login():
-return login(_that);case RequestLogout():
+return login(_that);case PasswordRecoveryStarted():
+return passwordRecoveryStarted(_that);case PasswordRecoveryFinished():
+return passwordRecoveryFinished(_that);case RequestLogout():
 return requestLogout(_that);case Logout():
 return logout(_that);case Reset():
 return reset(_that);case _:
@@ -112,7 +116,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( Initialize value)?  initialize,TResult? Function( ChangeMode value)?  changeMode,TResult? Function( SetAccessCode value)?  setAccessCode,TResult? Function( LoginWithGoogle value)?  loginWithGoogle,TResult? Function( Login value)?  login,TResult? Function( RequestLogout value)?  requestLogout,TResult? Function( Logout value)?  logout,TResult? Function( Reset value)?  reset,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( Initialize value)?  initialize,TResult? Function( ChangeMode value)?  changeMode,TResult? Function( SetAccessCode value)?  setAccessCode,TResult? Function( LoginWithGoogle value)?  loginWithGoogle,TResult? Function( Login value)?  login,TResult? Function( PasswordRecoveryStarted value)?  passwordRecoveryStarted,TResult? Function( PasswordRecoveryFinished value)?  passwordRecoveryFinished,TResult? Function( RequestLogout value)?  requestLogout,TResult? Function( Logout value)?  logout,TResult? Function( Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case Initialize() when initialize != null:
@@ -120,7 +124,9 @@ return initialize(_that);case ChangeMode() when changeMode != null:
 return changeMode(_that);case SetAccessCode() when setAccessCode != null:
 return setAccessCode(_that);case LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle(_that);case Login() when login != null:
-return login(_that);case RequestLogout() when requestLogout != null:
+return login(_that);case PasswordRecoveryStarted() when passwordRecoveryStarted != null:
+return passwordRecoveryStarted(_that);case PasswordRecoveryFinished() when passwordRecoveryFinished != null:
+return passwordRecoveryFinished(_that);case RequestLogout() when requestLogout != null:
 return requestLogout(_that);case Logout() when logout != null:
 return logout(_that);case Reset() when reset != null:
 return reset(_that);case _:
@@ -140,14 +146,16 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initialize,TResult Function( AppMode mode)?  changeMode,TResult Function( String code)?  setAccessCode,TResult Function()?  loginWithGoogle,TResult Function()?  login,TResult Function()?  requestLogout,TResult Function()?  logout,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initialize,TResult Function( AppMode mode)?  changeMode,TResult Function( String code)?  setAccessCode,TResult Function()?  loginWithGoogle,TResult Function()?  login,TResult Function()?  passwordRecoveryStarted,TResult Function()?  passwordRecoveryFinished,TResult Function()?  requestLogout,TResult Function()?  logout,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case Initialize() when initialize != null:
 return initialize();case ChangeMode() when changeMode != null:
 return changeMode(_that.mode);case SetAccessCode() when setAccessCode != null:
 return setAccessCode(_that.code);case LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle();case Login() when login != null:
-return login();case RequestLogout() when requestLogout != null:
+return login();case PasswordRecoveryStarted() when passwordRecoveryStarted != null:
+return passwordRecoveryStarted();case PasswordRecoveryFinished() when passwordRecoveryFinished != null:
+return passwordRecoveryFinished();case RequestLogout() when requestLogout != null:
 return requestLogout();case Logout() when logout != null:
 return logout();case Reset() when reset != null:
 return reset();case _:
@@ -168,14 +176,16 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initialize,required TResult Function( AppMode mode)  changeMode,required TResult Function( String code)  setAccessCode,required TResult Function()  loginWithGoogle,required TResult Function()  login,required TResult Function()  requestLogout,required TResult Function()  logout,required TResult Function()  reset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initialize,required TResult Function( AppMode mode)  changeMode,required TResult Function( String code)  setAccessCode,required TResult Function()  loginWithGoogle,required TResult Function()  login,required TResult Function()  passwordRecoveryStarted,required TResult Function()  passwordRecoveryFinished,required TResult Function()  requestLogout,required TResult Function()  logout,required TResult Function()  reset,}) {final _that = this;
 switch (_that) {
 case Initialize():
 return initialize();case ChangeMode():
 return changeMode(_that.mode);case SetAccessCode():
 return setAccessCode(_that.code);case LoginWithGoogle():
 return loginWithGoogle();case Login():
-return login();case RequestLogout():
+return login();case PasswordRecoveryStarted():
+return passwordRecoveryStarted();case PasswordRecoveryFinished():
+return passwordRecoveryFinished();case RequestLogout():
 return requestLogout();case Logout():
 return logout();case Reset():
 return reset();case _:
@@ -195,14 +205,16 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initialize,TResult? Function( AppMode mode)?  changeMode,TResult? Function( String code)?  setAccessCode,TResult? Function()?  loginWithGoogle,TResult? Function()?  login,TResult? Function()?  requestLogout,TResult? Function()?  logout,TResult? Function()?  reset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initialize,TResult? Function( AppMode mode)?  changeMode,TResult? Function( String code)?  setAccessCode,TResult? Function()?  loginWithGoogle,TResult? Function()?  login,TResult? Function()?  passwordRecoveryStarted,TResult? Function()?  passwordRecoveryFinished,TResult? Function()?  requestLogout,TResult? Function()?  logout,TResult? Function()?  reset,}) {final _that = this;
 switch (_that) {
 case Initialize() when initialize != null:
 return initialize();case ChangeMode() when changeMode != null:
 return changeMode(_that.mode);case SetAccessCode() when setAccessCode != null:
 return setAccessCode(_that.code);case LoginWithGoogle() when loginWithGoogle != null:
 return loginWithGoogle();case Login() when login != null:
-return login();case RequestLogout() when requestLogout != null:
+return login();case PasswordRecoveryStarted() when passwordRecoveryStarted != null:
+return passwordRecoveryStarted();case PasswordRecoveryFinished() when passwordRecoveryFinished != null:
+return passwordRecoveryFinished();case RequestLogout() when requestLogout != null:
 return requestLogout();case Logout() when logout != null:
 return logout();case Reset() when reset != null:
 return reset();case _:
@@ -433,6 +445,70 @@ int get hashCode => runtimeType.hashCode;
 @override
 String toString() {
   return 'AppModeEvent.login()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class PasswordRecoveryStarted implements AppModeEvent {
+  const PasswordRecoveryStarted();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasswordRecoveryStarted);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AppModeEvent.passwordRecoveryStarted()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class PasswordRecoveryFinished implements AppModeEvent {
+  const PasswordRecoveryFinished();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PasswordRecoveryFinished);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'AppModeEvent.passwordRecoveryFinished()';
 }
 
 

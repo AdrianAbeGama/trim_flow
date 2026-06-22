@@ -33,9 +33,18 @@ class AuthService {
     );
   }
 
-  /// Envia el correo para restablecer la contrasena (barbero).
+  /// Envia el correo para restablecer la contrasena (barbero). El link abre la
+  /// app via deep link y dispara un evento de recovery (no depende de web).
   Future<void> sendPasswordReset(String email) async {
-    await _supabase.auth.resetPasswordForEmail(email.trim());
+    await _supabase.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: currentBootstrapMode.oauthRedirectUrl,
+    );
+  }
+
+  /// Cambia la contrasena del usuario ya autenticado (tras el link de recovery).
+  Future<void> updatePassword(String newPassword) async {
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   /// Envia un codigo OTP de un solo uso al correo (login sin contrasena).
