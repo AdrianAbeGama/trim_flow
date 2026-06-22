@@ -159,6 +159,21 @@ class AgendaSupabaseRepository implements AgendaRepository {
   }
 
   @override
+  Future<void> cancelReservation({
+    required String reservationId,
+    required String reasonCode,
+    String? note,
+  }) async {
+    // p_idempotency_key (uuid) se omite: la RPC ya es idempotente por status y
+    // la notificacion se deduplica por reservation_id.
+    await _client.rpc('cancel_reservation_blindada', params: {
+      'p_reservation_id': reservationId,
+      'p_reason_code': reasonCode,
+      'p_note': note,
+    });
+  }
+
+  @override
   Future<AgendaTodaySummary> fetchTodaySummary({required String barberId}) async {
     final now = DateTime.now();
     final startLocal = DateTime(now.year, now.month, now.day);

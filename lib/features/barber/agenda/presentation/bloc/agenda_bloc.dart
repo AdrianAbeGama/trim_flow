@@ -29,6 +29,7 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
     on<AgendaResolveRefsRequested>(_onResolveRefs);
     on<AgendaStatusChanged>(_onStatusChanged);
     on<AgendaCompleteRequested>(_onCompleteRequested);
+    on<AgendaCancelRequested>(_onCancelRequested);
   }
 
   Future<void> _onStarted(AgendaStarted event, Emitter<AgendaUiState> emit) async {
@@ -175,6 +176,29 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
     }
   }
 
+  Future<void> _onCancelRequested(
+      AgendaCancelRequested event, Emitter<AgendaUiState> emit) async {
+    emit(state.copyWith(isBusy: true, errorMessage: null));
+    try {
+      await _repository.cancelReservation(
+        reservationId: event.appointmentId,
+        reasonCode: event.reasonCode,
+        note: event.note,
+      );
+      await _fetchAndEmit(emit, isFirstLoad: false);
+      await _loadMarkedDays(emit);
+      await _loadSummary(emit);
+      emit(state.copyWith(isBusy: false));
+    } catch (e, stack) {
+      debugPrint('AgendaBloc.cancel error: $e\n$stack');
+      emit(state.copyWith(
+        isBusy: false,
+        status: AgendaStatusUi.error,
+        errorMessage: _friendlyError(e),
+      ));
+    }
+  }
+
   Future<void> _onStatusChanged(
       AgendaStatusChanged event, Emitter<AgendaUiState> emit) async {
     // No asistio: se persiste via RPC SECURITY DEFINER (ADR-0015).
@@ -226,6 +250,13 @@ class AgendaBloc extends Bloc<AgendaEvent, AgendaUiState> {
       return 'Esta cita ya cambió de estado. Refresca la agenda.';
     }
     if (s.contains('reservation_not_found')) return 'No se encontró la cita.';
+    if (s.contains('reason_note_required')) {
+      return 'Escribe el motivo para "Otro".';
+    }
+    if (s.contains('invalid_reason')) return 'Motivo no válido.';
+    if (s.contains('forbidden')) {
+      return 'No puedes cancelar esta cita.';
+    }
     return 'No se pudo guardar el cambio. Intenta de nuevo.';
   }
 
