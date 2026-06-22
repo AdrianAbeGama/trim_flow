@@ -38,6 +38,11 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="${deepLinkScheme}" android:host="login-callback" />
             </intent-filter>
+
+            <!-- home_widget: abrir la app al tocar un widget -->
+            <intent-filter>
+                <action android:name="es.antonborri.home_widget.action.LAUNCH" />
+            </intent-filter>
         </activity>
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
@@ -53,6 +58,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Los widgets de home_widget se declaran por flavor (src/client y
+             src/business) para que cada app muestre SOLO su widget. -->
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

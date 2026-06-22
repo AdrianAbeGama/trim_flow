@@ -10,6 +10,9 @@ import 'package:trim_flow/features/barber/agenda/presentation/views/barber_agend
 import 'package:trim_flow/features/barber/view/barber_profile_view.dart';
 import 'package:trim_flow/features/gallery/presentation/views/gallery_view.dart';
 import 'package:trim_flow/features/products/presentation/views/products_view.dart';
+import 'dart:async';
+import 'package:home_widget/home_widget.dart';
+import 'package:trim_flow/core/widgets/home_screen/widget_launch.dart';
 
 class BarberHomePage extends StatefulWidget {
   const BarberHomePage({super.key});
@@ -25,6 +28,7 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
   late TabController tabController;
   final BottomBarController _barController = BottomBarController();
   bool _barVisible = true;
+  StreamSubscription<Uri?>? _widgetClickSub;
 
   @override
   void initState() {
@@ -44,11 +48,30 @@ class _BarberHomePageState extends State<BarberHomePage> with SingleTickerProvid
         });
       }
     });
+    _initWidgetLaunch();
     super.initState();
+  }
+
+  Future<void> _initWidgetLaunch() async {
+    try {
+      _handleWidgetUri(await HomeWidget.initiallyLaunchedFromHomeWidget());
+    } catch (_) {}
+    _widgetClickSub = HomeWidget.widgetClicked.listen(_handleWidgetUri);
+  }
+
+  // El widget "Resumen de hoy" (boton Walk-in) abre la app con este deep link;
+  // saltamos a la pestana Agenda y la vista de agenda abre el sheet de walk-in.
+  void _handleWidgetUri(Uri? uri) {
+    if (uri == null || !mounted) return;
+    final isWalkIn = uri.host == 'widget' && uri.path.contains('walk-in');
+    if (!isWalkIn) return;
+    walkInPending.value = true;
+    tabController.animateTo(2);
   }
 
   @override
   void dispose() {
+    _widgetClickSub?.cancel();
     tabController.dispose();
     _barController.dispose();
     super.dispose();

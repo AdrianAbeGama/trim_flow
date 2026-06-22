@@ -12,6 +12,7 @@ import 'package:trim_flow/core/notifications/appointment_reminders.dart';
 import 'package:trim_flow/core/notifications/notifications.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
+import 'package:trim_flow/core/widgets/home_screen/client_widget_service.dart';
 import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
 import 'package:trim_flow/features/profile/domain/models/customer_coupon.dart';
 import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
@@ -185,6 +186,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           lastVisit: result.lastVisit,
           branchName: result.branchName,
         ));
+        _pushClientWidget();
       } else {
         emit(state.copyWith(
           status: ProfileStatus.loaded,
@@ -224,6 +226,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       debugPrint('ProfileBloc.loadCustomerCoupons error: $e');
       return const [];
     }
+  }
+
+  /// Empuja la proxima cita (entre TODAS las barberias del cliente) al widget
+  /// de Android. Fire-and-forget: no bloquea la carga del perfil.
+  void _pushClientWidget() {
+    final tenants = _tenantThemeBloc.state.availableTenants
+        .map((t) => TenantRef(id: t.id, name: t.name))
+        .toList();
+    if (tenants.isEmpty) return;
+    unawaited(const ClientWidgetService().refresh(
+      repository: _repository,
+      tenants: tenants,
+      loyaltyHave: state.completedCuts,
+      loyaltyNeed: kLoyaltyRewardThreshold,
+    ));
   }
 
   Future<void> _onSaveProfileData(SaveProfileData event, Emitter<ProfileState> emit) async {

@@ -1,0 +1,46 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Widgets del CLIENTE — OCULTOS por ahora (android:enabled="false").
+             No aparecen en el selector de widgets ni se pueden colocar.
+             Para REACTIVARLOS: poner android:enabled="true" en los 3 receivers.
+             Documentacion completa: WIDGETS_ANDROID.md (raiz del repo). -->
+        <receiver
+            android:name=".widgets.ClientCountdownWidget"
+            android:exported="true"
+            android:enabled="false"
+            android:label="Cuenta regresiva">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/client_countdown_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widgets.ClientLoyaltyWidget"
+            android:exported="true"
+            android:enabled="false"
+            android:label="Fidelidad">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/client_loyalty_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widgets.ClientDateBlockWidget"
+            android:exported="true"
+            android:enabled="false"
+            android:label="Bloque de fecha">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/client_date_block_info" />
+        </receiver>
+    </application>
+</manifest>
