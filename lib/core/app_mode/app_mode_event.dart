@@ -10,6 +10,8 @@ abstract class AppModeEvent with _$AppModeEvent {
   const factory AppModeEvent.setAccessCode(String code) = SetAccessCode;
   const factory AppModeEvent.loginWithGoogle() = LoginWithGoogle;
   const factory AppModeEvent.login() = Login;
+  const factory AppModeEvent.passwordRecoveryStarted() = PasswordRecoveryStarted;
+  const factory AppModeEvent.passwordRecoveryFinished() = PasswordRecoveryFinished;
   const factory AppModeEvent.requestLogout() = RequestLogout;
   const factory AppModeEvent.logout() = Logout;
   const factory AppModeEvent.reset() = Reset;

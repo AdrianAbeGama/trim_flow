@@ -9,6 +9,7 @@ class GalleryItem {
   final String? barberProfileId;
   final String? barberFullName;
   final String? barberSpecialty;
+  final String? barberAvatarUrl;
   final DateTime createdAt;
   final int displayOrder;
   final bool isFeatured;
@@ -25,6 +26,7 @@ class GalleryItem {
     this.barberProfileId,
     this.barberFullName,
     this.barberSpecialty,
+    this.barberAvatarUrl,
     required this.createdAt,
     this.displayOrder = 0,
     this.isFeatured = false,
@@ -40,6 +42,7 @@ class GalleryItem {
     String? barberProfileId,
     String? barberFullName,
     String? barberSpecialty,
+    String? barberAvatarUrl,
     double? price,
   }) {
     return GalleryItem(
@@ -53,6 +56,7 @@ class GalleryItem {
       barberProfileId: barberProfileId ?? this.barberProfileId,
       barberFullName: barberFullName ?? this.barberFullName,
       barberSpecialty: barberSpecialty ?? this.barberSpecialty,
+      barberAvatarUrl: barberAvatarUrl ?? this.barberAvatarUrl,
       createdAt: createdAt,
       displayOrder: displayOrder ?? this.displayOrder,
       isFeatured: isFeatured ?? this.isFeatured,
@@ -71,6 +75,7 @@ class GalleryItem {
       'barberProfileId': barberProfileId,
       'barberFullName': barberFullName,
       'barberSpecialty': barberSpecialty,
+      'barberAvatarUrl': barberAvatarUrl,
       'createdAt': createdAt.toIso8601String(),
       'displayOrder': displayOrder,
       'isFeatured': isFeatured,
@@ -91,6 +96,7 @@ class GalleryItem {
       barberProfileId: map['barberProfileId'] as String?,
       barberFullName: map['barberFullName'] as String?,
       barberSpecialty: map['barberSpecialty'] as String?,
+      barberAvatarUrl: map['barberAvatarUrl'] as String?,
       createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
       displayOrder: map['displayOrder'] as int? ?? 0,
       isFeatured: map['isFeatured'] as bool? ?? false,

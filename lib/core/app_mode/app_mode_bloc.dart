@@ -29,6 +29,8 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     on<ChangeMode>(_onChangeMode);
     on<SetAccessCode>(_onSetAccessCode);
     on<Login>(_onLogin);
+    on<PasswordRecoveryStarted>(_onPasswordRecoveryStarted);
+    on<PasswordRecoveryFinished>(_onPasswordRecoveryFinished);
     on<RequestLogout>(_onRequestLogout);
     on<Logout>(_onLogout);
     on<Reset>(_onReset);
@@ -37,6 +39,14 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
   }
 
   void _onAuthChanged(supa.AuthState data) {
+    // Link de "olvide mi contrasena": la app se abre con un evento de recovery.
+    // Mostramos la pantalla de nueva clave en vez de entrar directo.
+    if (data.event == supa.AuthChangeEvent.passwordRecovery) {
+      _lastKnownUserId = data.session?.user.id;
+      add(const AppModeEvent.passwordRecoveryStarted());
+      return;
+    }
+
     final newUserId = data.session?.user.id;
     final previous = _lastKnownUserId;
     _lastKnownUserId = newUserId;
@@ -128,6 +138,17 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     } else {
       emit(state.copyWith(isLoggedIn: true, isInitialized: true));
     }
+  }
+
+  void _onPasswordRecoveryStarted(
+      PasswordRecoveryStarted event, Emitter<AppModeState> emit) {
+    emit(state.copyWith(isPasswordRecovery: true, isInitialized: true));
+  }
+
+  Future<void> _onPasswordRecoveryFinished(
+      PasswordRecoveryFinished event, Emitter<AppModeState> emit) async {
+    emit(state.copyWith(isPasswordRecovery: false));
+    add(const AppModeEvent.login());
   }
 
   Future<void> _onRequestLogout(RequestLogout event, Emitter<AppModeState> emit) async {

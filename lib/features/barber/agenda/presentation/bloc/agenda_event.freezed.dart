@@ -55,7 +55,7 @@ extension AgendaEventPatterns on AgendaEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AgendaStarted value)?  started,TResult Function( AgendaRefreshRequested value)?  refreshRequested,TResult Function( AgendaDaySelected value)?  daySelected,TResult Function( AgendaViewModeChanged value)?  viewModeChanged,TResult Function( AgendaRealtimeTicked value)?  realtimeTicked,TResult Function( AgendaWalkInRequested value)?  walkInRequested,TResult Function( AgendaResolveRefsRequested value)?  resolveRefsRequested,TResult Function( AgendaStatusChanged value)?  statusChanged,TResult Function( AgendaCompleteRequested value)?  completeRequested,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( AgendaStarted value)?  started,TResult Function( AgendaRefreshRequested value)?  refreshRequested,TResult Function( AgendaDaySelected value)?  daySelected,TResult Function( AgendaViewModeChanged value)?  viewModeChanged,TResult Function( AgendaRealtimeTicked value)?  realtimeTicked,TResult Function( AgendaWalkInRequested value)?  walkInRequested,TResult Function( AgendaResolveRefsRequested value)?  resolveRefsRequested,TResult Function( AgendaStatusChanged value)?  statusChanged,TResult Function( AgendaCompleteRequested value)?  completeRequested,TResult Function( AgendaCancelRequested value)?  cancelRequested,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
@@ -67,7 +67,8 @@ return realtimeTicked(_that);case AgendaWalkInRequested() when walkInRequested !
 return walkInRequested(_that);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested(_that);case AgendaStatusChanged() when statusChanged != null:
 return statusChanged(_that);case AgendaCompleteRequested() when completeRequested != null:
-return completeRequested(_that);case _:
+return completeRequested(_that);case AgendaCancelRequested() when cancelRequested != null:
+return cancelRequested(_that);case _:
   return orElse();
 
 }
@@ -85,7 +86,7 @@ return completeRequested(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AgendaStarted value)  started,required TResult Function( AgendaRefreshRequested value)  refreshRequested,required TResult Function( AgendaDaySelected value)  daySelected,required TResult Function( AgendaViewModeChanged value)  viewModeChanged,required TResult Function( AgendaRealtimeTicked value)  realtimeTicked,required TResult Function( AgendaWalkInRequested value)  walkInRequested,required TResult Function( AgendaResolveRefsRequested value)  resolveRefsRequested,required TResult Function( AgendaStatusChanged value)  statusChanged,required TResult Function( AgendaCompleteRequested value)  completeRequested,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( AgendaStarted value)  started,required TResult Function( AgendaRefreshRequested value)  refreshRequested,required TResult Function( AgendaDaySelected value)  daySelected,required TResult Function( AgendaViewModeChanged value)  viewModeChanged,required TResult Function( AgendaRealtimeTicked value)  realtimeTicked,required TResult Function( AgendaWalkInRequested value)  walkInRequested,required TResult Function( AgendaResolveRefsRequested value)  resolveRefsRequested,required TResult Function( AgendaStatusChanged value)  statusChanged,required TResult Function( AgendaCompleteRequested value)  completeRequested,required TResult Function( AgendaCancelRequested value)  cancelRequested,}){
 final _that = this;
 switch (_that) {
 case AgendaStarted():
@@ -97,7 +98,8 @@ return realtimeTicked(_that);case AgendaWalkInRequested():
 return walkInRequested(_that);case AgendaResolveRefsRequested():
 return resolveRefsRequested(_that);case AgendaStatusChanged():
 return statusChanged(_that);case AgendaCompleteRequested():
-return completeRequested(_that);case _:
+return completeRequested(_that);case AgendaCancelRequested():
+return cancelRequested(_that);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -114,7 +116,7 @@ return completeRequested(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AgendaStarted value)?  started,TResult? Function( AgendaRefreshRequested value)?  refreshRequested,TResult? Function( AgendaDaySelected value)?  daySelected,TResult? Function( AgendaViewModeChanged value)?  viewModeChanged,TResult? Function( AgendaRealtimeTicked value)?  realtimeTicked,TResult? Function( AgendaWalkInRequested value)?  walkInRequested,TResult? Function( AgendaResolveRefsRequested value)?  resolveRefsRequested,TResult? Function( AgendaStatusChanged value)?  statusChanged,TResult? Function( AgendaCompleteRequested value)?  completeRequested,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( AgendaStarted value)?  started,TResult? Function( AgendaRefreshRequested value)?  refreshRequested,TResult? Function( AgendaDaySelected value)?  daySelected,TResult? Function( AgendaViewModeChanged value)?  viewModeChanged,TResult? Function( AgendaRealtimeTicked value)?  realtimeTicked,TResult? Function( AgendaWalkInRequested value)?  walkInRequested,TResult? Function( AgendaResolveRefsRequested value)?  resolveRefsRequested,TResult? Function( AgendaStatusChanged value)?  statusChanged,TResult? Function( AgendaCompleteRequested value)?  completeRequested,TResult? Function( AgendaCancelRequested value)?  cancelRequested,}){
 final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
@@ -126,7 +128,8 @@ return realtimeTicked(_that);case AgendaWalkInRequested() when walkInRequested !
 return walkInRequested(_that);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested(_that);case AgendaStatusChanged() when statusChanged != null:
 return statusChanged(_that);case AgendaCompleteRequested() when completeRequested != null:
-return completeRequested(_that);case _:
+return completeRequested(_that);case AgendaCancelRequested() when cancelRequested != null:
+return cancelRequested(_that);case _:
   return null;
 
 }
@@ -143,7 +146,7 @@ return completeRequested(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  refreshRequested,TResult Function( DateTime day)?  daySelected,TResult Function( AgendaViewMode mode)?  viewModeChanged,TResult Function()?  realtimeTicked,TResult Function( WalkInRequest request)?  walkInRequested,TResult Function()?  resolveRefsRequested,TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,TResult Function( String appointmentId,  double amount,  String? couponCode)?  completeRequested,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  started,TResult Function()?  refreshRequested,TResult Function( DateTime day)?  daySelected,TResult Function( AgendaViewMode mode)?  viewModeChanged,TResult Function()?  realtimeTicked,TResult Function( WalkInRequest request)?  walkInRequested,TResult Function()?  resolveRefsRequested,TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,TResult Function( String appointmentId,  double amount,  String? couponCode)?  completeRequested,TResult Function( String appointmentId,  String reasonCode,  String? note)?  cancelRequested,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
 return started();case AgendaRefreshRequested() when refreshRequested != null:
@@ -154,7 +157,8 @@ return realtimeTicked();case AgendaWalkInRequested() when walkInRequested != nul
 return walkInRequested(_that.request);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested();case AgendaStatusChanged() when statusChanged != null:
 return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case AgendaCompleteRequested() when completeRequested != null:
-return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case _:
+return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case AgendaCancelRequested() when cancelRequested != null:
+return cancelRequested(_that.appointmentId,_that.reasonCode,_that.note);case _:
   return orElse();
 
 }
@@ -172,7 +176,7 @@ return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  refreshRequested,required TResult Function( DateTime day)  daySelected,required TResult Function( AgendaViewMode mode)  viewModeChanged,required TResult Function()  realtimeTicked,required TResult Function( WalkInRequest request)  walkInRequested,required TResult Function()  resolveRefsRequested,required TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)  statusChanged,required TResult Function( String appointmentId,  double amount,  String? couponCode)  completeRequested,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  started,required TResult Function()  refreshRequested,required TResult Function( DateTime day)  daySelected,required TResult Function( AgendaViewMode mode)  viewModeChanged,required TResult Function()  realtimeTicked,required TResult Function( WalkInRequest request)  walkInRequested,required TResult Function()  resolveRefsRequested,required TResult Function( String appointmentId,  AgendaStatus newStatus,  String? reason)  statusChanged,required TResult Function( String appointmentId,  double amount,  String? couponCode)  completeRequested,required TResult Function( String appointmentId,  String reasonCode,  String? note)  cancelRequested,}) {final _that = this;
 switch (_that) {
 case AgendaStarted():
 return started();case AgendaRefreshRequested():
@@ -183,7 +187,8 @@ return realtimeTicked();case AgendaWalkInRequested():
 return walkInRequested(_that.request);case AgendaResolveRefsRequested():
 return resolveRefsRequested();case AgendaStatusChanged():
 return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case AgendaCompleteRequested():
-return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case _:
+return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case AgendaCancelRequested():
+return cancelRequested(_that.appointmentId,_that.reasonCode,_that.note);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,7 +205,7 @@ return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  refreshRequested,TResult? Function( DateTime day)?  daySelected,TResult? Function( AgendaViewMode mode)?  viewModeChanged,TResult? Function()?  realtimeTicked,TResult? Function( WalkInRequest request)?  walkInRequested,TResult? Function()?  resolveRefsRequested,TResult? Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,TResult? Function( String appointmentId,  double amount,  String? couponCode)?  completeRequested,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  started,TResult? Function()?  refreshRequested,TResult? Function( DateTime day)?  daySelected,TResult? Function( AgendaViewMode mode)?  viewModeChanged,TResult? Function()?  realtimeTicked,TResult? Function( WalkInRequest request)?  walkInRequested,TResult? Function()?  resolveRefsRequested,TResult? Function( String appointmentId,  AgendaStatus newStatus,  String? reason)?  statusChanged,TResult? Function( String appointmentId,  double amount,  String? couponCode)?  completeRequested,TResult? Function( String appointmentId,  String reasonCode,  String? note)?  cancelRequested,}) {final _that = this;
 switch (_that) {
 case AgendaStarted() when started != null:
 return started();case AgendaRefreshRequested() when refreshRequested != null:
@@ -211,7 +216,8 @@ return realtimeTicked();case AgendaWalkInRequested() when walkInRequested != nul
 return walkInRequested(_that.request);case AgendaResolveRefsRequested() when resolveRefsRequested != null:
 return resolveRefsRequested();case AgendaStatusChanged() when statusChanged != null:
 return statusChanged(_that.appointmentId,_that.newStatus,_that.reason);case AgendaCompleteRequested() when completeRequested != null:
-return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case _:
+return completeRequested(_that.appointmentId,_that.amount,_that.couponCode);case AgendaCancelRequested() when cancelRequested != null:
+return cancelRequested(_that.appointmentId,_that.reasonCode,_that.note);case _:
   return null;
 
 }
@@ -687,6 +693,76 @@ class _$AgendaCompleteRequestedCopyWithImpl<$Res>
 null == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
 as String,null == amount ? _self.amount : amount // ignore: cast_nullable_to_non_nullable
 as double,couponCode: freezed == couponCode ? _self.couponCode : couponCode // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class AgendaCancelRequested implements AgendaEvent {
+  const AgendaCancelRequested(this.appointmentId, this.reasonCode, {this.note});
+  
+
+ final  String appointmentId;
+ final  String reasonCode;
+ final  String? note;
+
+/// Create a copy of AgendaEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AgendaCancelRequestedCopyWith<AgendaCancelRequested> get copyWith => _$AgendaCancelRequestedCopyWithImpl<AgendaCancelRequested>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AgendaCancelRequested&&(identical(other.appointmentId, appointmentId) || other.appointmentId == appointmentId)&&(identical(other.reasonCode, reasonCode) || other.reasonCode == reasonCode)&&(identical(other.note, note) || other.note == note));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,appointmentId,reasonCode,note);
+
+@override
+String toString() {
+  return 'AgendaEvent.cancelRequested(appointmentId: $appointmentId, reasonCode: $reasonCode, note: $note)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AgendaCancelRequestedCopyWith<$Res> implements $AgendaEventCopyWith<$Res> {
+  factory $AgendaCancelRequestedCopyWith(AgendaCancelRequested value, $Res Function(AgendaCancelRequested) _then) = _$AgendaCancelRequestedCopyWithImpl;
+@useResult
+$Res call({
+ String appointmentId, String reasonCode, String? note
+});
+
+
+
+
+}
+/// @nodoc
+class _$AgendaCancelRequestedCopyWithImpl<$Res>
+    implements $AgendaCancelRequestedCopyWith<$Res> {
+  _$AgendaCancelRequestedCopyWithImpl(this._self, this._then);
+
+  final AgendaCancelRequested _self;
+  final $Res Function(AgendaCancelRequested) _then;
+
+/// Create a copy of AgendaEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? appointmentId = null,Object? reasonCode = null,Object? note = freezed,}) {
+  return _then(AgendaCancelRequested(
+null == appointmentId ? _self.appointmentId : appointmentId // ignore: cast_nullable_to_non_nullable
+as String,null == reasonCode ? _self.reasonCode : reasonCode // ignore: cast_nullable_to_non_nullable
+as String,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

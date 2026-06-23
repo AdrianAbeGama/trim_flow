@@ -12,6 +12,8 @@ import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/avatar_premium.dart';
+import 'package:trim_flow/core/widgets/home_screen/barber_widget_service.dart';
+import 'package:trim_flow/core/widgets/home_screen/widget_launch.dart';
 import 'package:trim_flow/core/widgets/premium/smart_calendar.dart';
 import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_bloc.dart';
@@ -46,8 +48,48 @@ class BarberAgendaView extends StatelessWidget {
   }
 }
 
-class _AgendaScaffold extends StatelessWidget {
+class _AgendaScaffold extends StatefulWidget {
   const _AgendaScaffold();
+
+  @override
+  State<_AgendaScaffold> createState() => _AgendaScaffoldState();
+}
+
+class _AgendaScaffoldState extends State<_AgendaScaffold> {
+  bool _pendingWalkIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    walkInPending.addListener(_onWalkInSignal);
+    if (walkInPending.value) _onWalkInSignal();
+  }
+
+  @override
+  void dispose() {
+    walkInPending.removeListener(_onWalkInSignal);
+    super.dispose();
+  }
+
+  void _onWalkInSignal() {
+    if (!mounted || !walkInPending.value) return;
+    walkInPending.value = false;
+    _pendingWalkIn = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryOpenWalkIn());
+  }
+
+  // Abre el walk-in si la config (refs) ya cargo; si no, la pide y reintenta
+  // cuando llegue (via el BlocListener de abajo).
+  void _tryOpenWalkIn() {
+    if (!mounted || !_pendingWalkIn) return;
+    final refs = context.read<AgendaBloc>().state.lookupRefs;
+    if (refs == null) {
+      context.read<AgendaBloc>().add(const AgendaEvent.resolveRefsRequested());
+      return;
+    }
+    _pendingWalkIn = false;
+    _openWalkIn(context);
+  }
 
   Future<void> _openWalkIn(BuildContext context) async {
     final bloc = context.read<AgendaBloc>();
@@ -94,7 +136,22 @@ class _AgendaScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AgendaBloc, AgendaUiState>(
+    return BlocListener<AgendaBloc, AgendaUiState>(
+      listenWhen: (p, c) =>
+          p.todayCuts != c.todayCuts ||
+          p.todayRevenue != c.todayRevenue ||
+          p.nextStart != c.nextStart ||
+          (c.status == AgendaStatusUi.loaded && p.status != c.status) ||
+          (p.lookupRefs == null && c.lookupRefs != null),
+      listener: (context, state) {
+        const BarberWidgetService().push(
+          cuts: state.todayCuts,
+          revenue: state.todayRevenue,
+          nextStart: state.nextStart,
+        );
+        if (_pendingWalkIn && state.lookupRefs != null) _tryOpenWalkIn();
+      },
+      child: BlocConsumer<AgendaBloc, AgendaUiState>(
       listenWhen: (prev, curr) =>
           prev.errorMessage != curr.errorMessage && curr.errorMessage != null,
       listener: (context, state) {
@@ -125,6 +182,7 @@ class _AgendaScaffold extends StatelessWidget {
           ),
         );
       },
+    ),
     );
   }
 

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/loyalty_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_background"
+    android:padding="18dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="FIDELIDAD"
+        android:textColor="#73FFFFFF"
+        android:textSize="10sp"
+        android:letterSpacing="0.14"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/loyalty_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="12dp"
+        android:max="5"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_progress_gold" />
+
+    <TextView
+        android:id="@+id/loyalty_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginTop="13dp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/loyalty_sub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#73FFFFFF"
+        android:textSize="12sp"
+        android:layout_marginTop="1dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#12FFFFFF"
+        android:layout_marginTop="13dp"
+        android:layout_marginBottom="13dp" />
+
+    <TextView
+        android:id="@+id/loyalty_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#8CFFFFFF"
+        android:textSize="12sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+</LinearLayout>

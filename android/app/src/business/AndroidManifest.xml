@@ -1,0 +1,19 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Widget del BARBERO — OCULTO por ahora (android:enabled="false").
+             Para REACTIVARLO: poner android:enabled="true".
+             Documentacion completa: WIDGETS_ANDROID.md (raiz del repo). -->
+        <receiver
+            android:name=".widgets.BarberTodayWidget"
+            android:exported="true"
+            android:enabled="false"
+            android:label="Resumen de hoy">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/barber_widget_info" />
+        </receiver>
+    </application>
+</manifest>

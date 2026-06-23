@@ -12,6 +12,7 @@ import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_bloc.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/bloc/agenda_event.dart';
+import 'package:trim_flow/features/barber/agenda/presentation/widgets/cancel_reason_sheet.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/widgets/complete_cut_sheet.dart';
 import 'package:trim_flow/features/barber/agenda/presentation/widgets/status_badge.dart';
 
@@ -114,21 +115,29 @@ class AppointmentActionSheet extends StatelessWidget {
             _ClientStrip(appointment: appointment),
             const SizedBox(height: 22),
             if (appointment.status == AgendaStatus.pending) ...[
-              // Cita por confirmar: aceptarla.
+              // Cita por confirmar: aceptarla o cancelarla con motivo.
               _PrimaryAction(
                 label: 'CONFIRMAR CITA',
                 icon: Icons.check_circle_rounded,
                 onTap: () => _handleConfirm(context),
               ),
+              const SizedBox(height: 10),
+              SizedBox(width: double.infinity, child: _GhostAction(label: 'CANCELAR CITA', onTap: () => _handleCancel(context))),
             ] else if (appointment.status == AgendaStatus.confirmed) ...[
-              // Cita confirmada: completar el corte o marcar que no asistio.
+              // Cita confirmada: completar, no asistio o cancelar con motivo.
               _PrimaryAction(
                 label: 'COMPLETAR CORTE',
                 icon: Icons.content_cut_rounded,
                 onTap: () => _handleComplete(context),
               ),
               const SizedBox(height: 10),
-              SizedBox(width: double.infinity, child: _GhostAction(label: 'NO ASISTIÓ', onTap: () => _handleNoShow(context))),
+              Row(
+                children: [
+                  Expanded(child: _GhostAction(label: 'NO ASISTIÓ', onTap: () => _handleNoShow(context))),
+                  const SizedBox(width: 10),
+                  Expanded(child: _GhostAction(label: 'CANCELAR', onTap: () => _handleCancel(context))),
+                ],
+              ),
             ] else
               Center(
                 child: Text(
@@ -189,6 +198,32 @@ class AppointmentActionSheet extends StatelessWidget {
         message: 'La cita se marcó como no asistida.');
   }
 
+  Future<void> _handleCancel(BuildContext context) async {
+    HapticFeedback.mediumImpact();
+    final bloc = context.read<AgendaBloc>();
+    final navigator = Navigator.of(context);
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    final result = await showModalBottomSheet<CancelResult>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => const CancelReasonSheet(),
+    );
+    if (result == null) return;
+
+    bloc.add(AgendaEvent.cancelRequested(
+      appointment.id,
+      result.reasonCode,
+      note: result.note,
+    ));
+    AppointmentReminders.cancel(appointment.id);
+    navigator.pop();
+    AppToast.showOn(overlay,
+        type: AppToastType.cancel,
+        title: 'Cita cancelada',
+        message: 'Se liberó el horario.');
+  }
 }
 
 class _ClientStrip extends StatelessWidget {

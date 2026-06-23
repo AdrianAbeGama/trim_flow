@@ -92,6 +92,15 @@ abstract class AgendaRepository {
   /// Marca no asistio (status confirmed -> no_show) via RPC atomica.
   Future<void> markNoShow({required String reservationId});
 
+  /// Cancela la cita (pending/confirmed -> cancelled) via RPC SECURITY DEFINER
+  /// con motivo obligatorio. [note] solo es requerido cuando reasonCode es
+  /// 'other'. El backend audita y avisa al cliente por WhatsApp.
+  Future<void> cancelReservation({
+    required String reservationId,
+    required String reasonCode,
+    String? note,
+  });
+
   /// Metricas de HOY (cortes completados + ingresos) y proxima cita futura.
   Future<AgendaTodaySummary> fetchTodaySummary({required String barberId});
 
