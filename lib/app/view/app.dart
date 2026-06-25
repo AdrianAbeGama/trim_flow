@@ -20,6 +20,7 @@ import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
 import 'package:trim_flow/core/app_mode/claim_intent.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred as barber;
 import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
+import 'package:trim_flow/features/profile/presentation/views/complete_profile_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/set_new_password_view.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
@@ -184,6 +185,13 @@ class _PostLoginTransition extends StatelessWidget {
   }
 }
 
+/// Un cliente debe tener apellido, WhatsApp y fecha de nacimiento para operar.
+bool _clientProfileIncomplete(UserProfile user) {
+  return user.lastName.trim().isEmpty ||
+      user.phone.trim().isEmpty ||
+      user.birthDate.trim().isEmpty;
+}
+
 /// Gate del cliente: si el perfil esta incompleto (cuenta nueva) obliga a
 /// completar datos antes de entrar a la app. Si esta completo, muestra Home.
 class _ClientGate extends StatelessWidget {
@@ -215,6 +223,9 @@ class _ClientGate extends StatelessWidget {
                 }
               }
               return _PostLoginTransition(label: switchingName);
+            }
+            if (_clientProfileIncomplete(user)) {
+              return CompleteProfileView(user: user);
             }
             return const HomePage();
           },

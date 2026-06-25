@@ -84,47 +84,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   AppMode _currentMode() => _appModeBloc.state.mode ?? AppMode.client;
   String _currentTenantId() => _tenantThemeBloc.state.tenantId;
 
-  // Historial demo (visible mientras el backend no devuelve histórico real).
-  static final List<PastAppointment> _demoHistory = [
-    const PastAppointment(
-      centerName: 'Cercado - Principal',
-      dateStr: 'Hace 3 días',
-      serviceName: 'Corte Clásico',
-      professionalName: 'Carlos Mendoza',
-      status: 'completed',
-      rating: 5,
-      paidPrice: 35,
-    ),
-    const PastAppointment(
-      centerName: 'Cercado - Principal',
-      dateStr: 'Hace 1 semana',
-      serviceName: 'Corte + Barba',
-      professionalName: 'Miguel Soto',
-      status: 'completed',
-      rating: 5,
-      paidPrice: 30,
-      wasDiscounted: true,
-    ),
-    const PastAppointment(
-      centerName: 'Cercado - Sucursal',
-      dateStr: 'Hace 2 semanas',
-      serviceName: 'Barba Premium',
-      professionalName: 'Carlos Mendoza',
-      status: 'cancelled',
-      cancellationReason: 'Imprevisto del cliente',
-      rating: 0,
-    ),
-    const PastAppointment(
-      centerName: 'Cercado - Principal',
-      dateStr: 'Hace 1 mes',
-      serviceName: 'Corte Degradado',
-      professionalName: 'Luis Gómez',
-      status: 'completed',
-      rating: 4,
-      paidPrice: 40,
-    ),
-  ];
-
   Future<void> _onLoadProfile(LoadProfileEvent event, Emitter<ProfileState> emit) async {
     final authUser = _authService.currentUser;
     if (authUser == null) {
@@ -179,8 +138,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           completedCuts: result.loyaltyPoints,
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: reservations.upcoming,
-          appointmentHistory:
-              reservations.recent.isEmpty ? _demoHistory : reservations.recent,
+          appointmentHistory: reservations.recent,
           coupons: coupons,
           clientCode: result.clientCode,
           lastVisit: result.lastVisit,

@@ -33,14 +33,6 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
   String? _error;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
-    });
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
@@ -58,6 +50,33 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
       _code = value;
       _error = null;
     });
+  }
+
+  void _syncController() {
+    _controller.value = TextEditingValue(
+      text: _code,
+      selection: TextSelection.collapsed(offset: _code.length),
+    );
+  }
+
+  void _appendDigit(String digit) {
+    if (_loading || _code.length >= 8) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _code = '$_code$digit';
+      _error = null;
+    });
+    _syncController();
+  }
+
+  void _backspace() {
+    if (_loading || _code.isEmpty) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _code = _code.substring(0, _code.length - 1);
+      _error = null;
+    });
+    _syncController();
   }
 
   String _mapError(String message) {
@@ -207,7 +226,6 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
                     controller: _controller,
                     focusNode: _focusNode,
                     enabled: !_loading,
-                    autofocus: true,
                     showCursor: false,
                     keyboardType: TextInputType.visiblePassword,
                     textCapitalization: TextCapitalization.characters,
@@ -222,6 +240,10 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
                   ),
                 ),
                 const Spacer(),
+                _buildKeyboardToggle(gold),
+                const SizedBox(height: 12),
+                _buildKeypad(gold),
+                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(40, 12, 40, 24),
                   child: Row(
@@ -352,6 +374,75 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
         ),
       );
     });
+  }
+
+  Widget _buildKeyboardToggle(Color gold) {
+    return PremiumPressable(
+      pressedScale: 0.95,
+      onTap: _loading ? null : _focusNode.requestFocus,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.keyboard_alt_outlined, color: gold, size: 16),
+          const SizedBox(width: 7),
+          Text(
+            'Abrir teclado',
+            style: GoogleFonts.inter(color: gold, fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeypad(Color gold) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        children: [
+          for (final row in const [
+            ['1', '2', '3'],
+            ['4', '5', '6'],
+            ['7', '8', '9'],
+            ['', '0', 'back'],
+          ])
+            Row(
+              children: [
+                for (final key in row) Expanded(child: _buildKey(key, gold)),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKey(String key, Color gold) {
+    if (key.isEmpty) return const SizedBox(height: 56);
+    final isBack = key == 'back';
+    return Padding(
+      padding: const EdgeInsets.all(5),
+      child: PremiumPressable(
+        pressedScale: 0.93,
+        onTap: isBack ? _backspace : () => _appendDigit(key),
+        child: Container(
+          height: 56,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: isBack
+              ? Icon(Icons.backspace_outlined, color: Colors.white.withValues(alpha: 0.85), size: 20)
+              : Text(
+                  key,
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 
   String _topRightLabel(bool canPop) {
