@@ -1,3 +1,15 @@
+# ✅ RESUELTO — Galería del tenant
+
+> **Estado: RESUELTO por el backend. Verificado en la BD real
+> (`uqhszqujcsmlmubeynfp`) el 2026-06-24.** La RPC `get_tenant_gallery(p_tenant_slug,
+> p_cursor, p_limit)` ya existe y devuelve `barberName` + `barberAvatarUrl`
+> (resuelve el autor en el servidor), así que el nombre ya **no** cae a
+> "Estilista". La app ya la consume (`_loadClientVitrina` en
+> `gallery_supabase_repository.dart`). No se requiere acción adicional. El texto
+> de abajo se conserva como historial.
+
+---
+
 # Galería — 2 pendientes del backend (para el socio)
 
 > Documento de handoff. Verificado contra la BD real (proyecto Supabase

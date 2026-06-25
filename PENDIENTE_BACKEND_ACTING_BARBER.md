@@ -1,3 +1,13 @@
+# ✅ RESUELTO — soporte de "acting barber" en el booking
+
+> **Estado: RESUELTO por el backend. Verificado en la BD real
+> (`uqhszqujcsmlmubeynfp`) el 2026-06-24.** `_finalize_booking` ya incluye el
+> predicado `(p.role='barber' OR p.is_acting_barber=true)` en el STEP 1, así que
+> agendar/walk-in de un acting barber ya **no** lanza `barber_not_in_branch`.
+> No se requiere acción adicional. El texto de abajo se conserva como historial.
+
+---
+
 # Pendiente backend: completar soporte de "acting barber" en el booking
 
 > Contexto para la IA/dev del backend. Proyecto Supabase `uqhszqujcsmlmubeynfp`.
