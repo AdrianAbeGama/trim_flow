@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
 import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
+import 'package:trim_flow/core/app_mode/claim_intent.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/services/auth_service.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -71,7 +72,10 @@ class _ClientLoginView extends StatelessWidget {
             ).animate().fadeIn(delay: 280.ms, duration: 500.ms),
             const Spacer(flex: 2),
             GestureDetector(
-              onTap: () => context.read<AppModeBloc>().add(const AppModeEvent.loginWithGoogle()),
+              onTap: () {
+                claimAnotherIntent.value = false;
+                context.read<AppModeBloc>().add(const AppModeEvent.loginWithGoogle());
+              },
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -116,6 +120,44 @@ class _ClientLoginView extends StatelessWidget {
                 letterSpacing: 1,
               ),
             ).animate().fadeIn(delay: 560.ms, duration: 500.ms),
+            const SizedBox(height: 8),
+            Text(
+              '¿Primera vez? Entra y luego pon el código de tu reserva.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.3),
+                fontSize: 11.5,
+                letterSpacing: 0.2,
+                height: 1.4,
+              ),
+            ).animate().fadeIn(delay: 640.ms, duration: 500.ms),
+            const SizedBox(height: 18),
+            PremiumPressable(
+              pressedScale: 0.97,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                claimAnotherIntent.value = true;
+                context.read<AppModeBloc>().add(const AppModeEvent.loginWithGoogle());
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: context.primaryGold.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  '¿Tienes un código de otra barbería?',
+                  style: TextStyle(
+                    color: context.primaryGold,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ).animate().fadeIn(delay: 720.ms, duration: 500.ms),
             const Spacer(flex: 1),
           ],
         ),

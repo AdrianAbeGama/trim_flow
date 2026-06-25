@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/core/app_mode/claim_intent.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -25,28 +26,38 @@ class ClaimProfileView extends StatefulWidget {
 }
 
 class _ClaimProfileViewState extends State<ClaimProfileView> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   String _code = '';
   bool _loading = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   String get _fullCode {
     if (_code.length <= 4) return 'TRF-$_code';
     return 'TRF-${_code.substring(0, 4)}-${_code.substring(4)}';
   }
 
-  void _onNumberPressed(String number) {
-    if (_loading || _code.length >= 8) return;
+  void _onCodeChanged(String value) {
     HapticFeedback.selectionClick();
     setState(() {
-      _code += number;
+      _code = value;
       _error = null;
     });
-  }
-
-  void _onDelete() {
-    if (_loading || _code.isEmpty) return;
-    HapticFeedback.selectionClick();
-    setState(() => _code = _code.substring(0, _code.length - 1));
   }
 
   String _mapError(String message) {
@@ -85,6 +96,7 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
       await getIt<TenantThemeBloc>().refreshFromAuth();
       if (!mounted) return;
       HapticFeedback.mediumImpact();
+      claimAnotherIntent.value = false;
       if (Navigator.canPop(context)) Navigator.pop(context);
     } on PostgrestException catch (e) {
       if (mounted) {
@@ -149,7 +161,11 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
                   ],
                 ).animate().fadeIn(delay: 220.ms, duration: 500.ms),
                 const SizedBox(height: 40),
-                _buildCodeDisplay(),
+                PremiumPressable(
+                  pressedScale: 1,
+                  onTap: _loading ? null : _focusNode.requestFocus,
+                  child: _buildCodeDisplay(),
+                ),
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(40, 16, 40, 0),
@@ -184,25 +200,28 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
                       .animate()
                       .fadeIn(duration: 220.ms)
                       .shakeX(amount: 3, hz: 4, duration: 360.ms),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 16),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.4,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      ...['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((n) => _buildKey(n)),
-                      const SizedBox.shrink(),
-                      _buildKey('0'),
-                      _buildKey('back', isIcon: true),
+                SizedBox(
+                  width: 0,
+                  height: 0,
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: !_loading,
+                    autofocus: true,
+                    showCursor: false,
+                    keyboardType: TextInputType.visiblePassword,
+                    textCapitalization: TextCapitalization.characters,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    inputFormatters: [
+                      const _UpperCaseFormatter(),
+                      FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
+                      LengthLimitingTextInputFormatter(8),
                     ],
+                    onChanged: _onCodeChanged,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const Spacer(),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(40, 12, 40, 24),
                   child: Row(
@@ -267,7 +286,7 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
               right: 12,
               child: PremiumPressable(
                 pressedScale: 0.95,
-                onTap: _loading ? null : (canPop ? () => Navigator.pop(context) : _logout),
+                onTap: _loading ? null : _onTopRightTap,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                   decoration: BoxDecoration(
@@ -276,7 +295,7 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
                     border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
                   ),
                   child: Text(
-                    canPop ? 'Cerrar' : 'Cerrar sesión',
+                    _topRightLabel(canPop),
                     style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -335,22 +354,30 @@ class _ClaimProfileViewState extends State<ClaimProfileView> {
     });
   }
 
-  Widget _buildKey(String label, {bool isIcon = false}) {
-    return PremiumPressable(
-      pressedScale: 0.92,
-      onTap: () => isIcon ? _onDelete() : _onNumberPressed(label),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Center(
-          child: isIcon
-              ? Icon(Icons.backspace_outlined, color: Colors.white.withValues(alpha: 0.4), size: 19)
-              : Text(label, style: GoogleFonts.inter(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w400)),
-        ),
-      ),
-    );
+  String _topRightLabel(bool canPop) {
+    if (claimAnotherIntent.value) return 'Volver';
+    return canPop ? 'Cerrar' : 'Cerrar sesión';
+  }
+
+  void _onTopRightTap() {
+    if (claimAnotherIntent.value) {
+      claimAnotherIntent.value = false;
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      return;
+    }
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    _logout();
+  }
+}
+
+class _UpperCaseFormatter extends TextInputFormatter {
+  const _UpperCaseFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return newValue.copyWith(text: newValue.text.toUpperCase());
   }
 }

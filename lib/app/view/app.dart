@@ -17,6 +17,7 @@ import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:trim_flow/core/app_mode/bootstrap_mode.dart';
+import 'package:trim_flow/core/app_mode/claim_intent.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart' deferred as barber;
 import 'package:trim_flow/features/auth/presentation/views/claim_profile_view.dart';
 import 'package:trim_flow/features/auth/presentation/views/login_view.dart';
@@ -191,27 +192,33 @@ class _ClientGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<TenantThemeBloc>().state;
-    // Cold start: cliente logueado sin barberias vinculadas → pegar codigo.
-    if (themeState.isResolved && themeState.availableTenants.isEmpty) {
-      return const ClaimProfileView();
-    }
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      builder: (context, state) {
-        final user = state.user;
-        if (user == null) {
-          if (state.status == ProfileStatus.error) return const HomePage();
-          String? switchingName;
-          if (themeState.isSwitching) {
-            for (final t in themeState.availableTenants) {
-              if (t.id == themeState.tenantId) {
-                switchingName = t.name;
-                break;
-              }
-            }
-          }
-          return _PostLoginTransition(label: switchingName);
+    return ValueListenableBuilder<bool>(
+      valueListenable: claimAnotherIntent,
+      builder: (context, wantsClaim, _) {
+        // Cold start (sin barberias) o intent de agregar otra → pegar codigo.
+        if (themeState.isResolved &&
+            (themeState.availableTenants.isEmpty || wantsClaim)) {
+          return const ClaimProfileView();
         }
-        return const HomePage();
+        return BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            final user = state.user;
+            if (user == null) {
+              if (state.status == ProfileStatus.error) return const HomePage();
+              String? switchingName;
+              if (themeState.isSwitching) {
+                for (final t in themeState.availableTenants) {
+                  if (t.id == themeState.tenantId) {
+                    switchingName = t.name;
+                    break;
+                  }
+                }
+              }
+              return _PostLoginTransition(label: switchingName);
+            }
+            return const HomePage();
+          },
+        );
       },
     );
   }
