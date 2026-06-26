@@ -492,7 +492,7 @@ return $default(_that.tenantId,_that.id,_that.firstName,_that.lastName,_that.ema
 @JsonSerializable()
 
 class _UserProfile implements UserProfile {
-  const _UserProfile({required this.tenantId, required this.id, required this.firstName, required this.lastName, required this.email, required this.photoUrl, required this.phone, required this.birthDate, required this.notificationsEnabled, this.customerId, this.barberId, this.branchId, this.role, this.completedCuts = 2, final  List<CuttingRecord> history = const []}): _history = history;
+  const _UserProfile({required this.tenantId, required this.id, required this.firstName, required this.lastName, required this.email, required this.photoUrl, required this.phone, required this.birthDate, required this.notificationsEnabled, this.customerId, this.barberId, this.branchId, this.role, this.completedCuts = 0, final  List<CuttingRecord> history = const []}): _history = history;
   factory _UserProfile.fromJson(Map<String, dynamic> json) => _$UserProfileFromJson(json);
 
 @override final  String tenantId;

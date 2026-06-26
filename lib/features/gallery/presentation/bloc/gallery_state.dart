@@ -22,6 +22,7 @@ abstract class GalleryState with _$GalleryState {
     @Default(GalleryFilterMode.styles) GalleryFilterMode filterMode,
     String? selectedBarberName,
     String? errorMessage,
+    String? actionError,
   }) = _GalleryState;
 
   List<GalleryBarberSummary> get availableBarbers {

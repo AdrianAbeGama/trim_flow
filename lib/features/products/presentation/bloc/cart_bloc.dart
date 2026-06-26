@@ -11,12 +11,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         addItem: (product) {
           final items = List<CartItem>.from(state.items);
           final index = items.indexWhere((i) => i.product.id == product.id);
-          
+
           if (index >= 0) {
-            // SI YA ESTÁ, LO ELIMINAMOS (TOGGLE REVERTIR)
-            items.removeAt(index);
+            final current = items[index];
+            final nextQty = _clampToStock(current.quantity + 1, product.stock);
+            items[index] = current.copyWith(quantity: nextQty);
           } else {
-            // SI NO ESTÁ, LO AGREGAMOS
             items.add(CartItem(product: product, quantity: 1));
           }
           emit(state.copyWith(items: items));
@@ -28,13 +28,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         updateQuantity: (productId, delta) {
           final items = List<CartItem>.from(state.items);
           final index = items.indexWhere((i) => i.product.id == productId);
-          
+
           if (index >= 0) {
             final newQty = items[index].quantity + delta;
             if (newQty <= 0) {
               items.removeAt(index);
             } else {
-              items[index] = items[index].copyWith(quantity: newQty);
+              final clamped = _clampToStock(newQty, items[index].product.stock);
+              items[index] = items[index].copyWith(quantity: clamped);
             }
             emit(state.copyWith(items: items));
           }
@@ -42,5 +43,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         clear: () => emit(const CartState()),
       );
     });
+  }
+
+  int _clampToStock(int quantity, int stock) {
+    if (stock > 0 && quantity > stock) {
+      return stock;
+    }
+    return quantity;
   }
 }

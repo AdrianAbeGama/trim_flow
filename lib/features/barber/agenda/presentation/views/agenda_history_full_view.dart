@@ -160,10 +160,7 @@ class _RevenueChartCard extends StatelessWidget {
         .where((a) => a.status == AgendaStatus.completed)
         .fold<double>(0, (s, a) => s + (a.priceAtBooking ?? 0));
 
-    // Serie demo de los últimos 7 días (el backend aún no da histórico
-    // multi-día). El último día usa el ingreso real de hoy.
-    const demo = [120.0, 90.0, 165.0, 70.0, 210.0, 140.0];
-    final values = <double>[...demo, realToday];
+    final values = <double>[0, 0, 0, 0, 0, 0, realToday];
     final labels = List.generate(7, (i) {
       final day = now.subtract(Duration(days: 6 - i));
       return DateFormat('E', 'es').format(day).substring(0, 1).toUpperCase();
@@ -187,7 +184,7 @@ class _RevenueChartCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                'demo',
+                'solo hoy',
                 style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.25), fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.5),
               ),
             ],

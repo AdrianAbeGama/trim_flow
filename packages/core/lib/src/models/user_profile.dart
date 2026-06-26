@@ -31,7 +31,7 @@ abstract class UserProfile with _$UserProfile {
     String? barberId,
     String? branchId,
     String? role,
-    @Default(2) int completedCuts,
+    @Default(0) int completedCuts,
     @Default([]) List<CuttingRecord> history,
   }) = _UserProfile;
 

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/home/domain/models/home_content.dart';
 import 'package:trim_flow/features/home/presentation/bloc/home_bloc.dart';
@@ -195,6 +196,23 @@ class _LocationCardState extends State<_LocationCard> {
   bool _expanded = false;
   bool _pressed = false;
 
+  /// Abre la sede en Google Maps. Usa el link guardado si existe; si no, lo
+  /// arma desde la direccion (busqueda por texto), igual que la web.
+  Future<void> _openMaps() async {
+    HapticFeedback.lightImpact();
+    final mapUrl = (widget.location['mapUrl'] ?? '').trim();
+    final address = (widget.location['address'] ?? '').trim();
+    final raw = mapUrl.isNotEmpty
+        ? mapUrl
+        : address.isNotEmpty
+            ? 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}'
+            : '';
+    if (raw.isEmpty) return;
+    try {
+      await launchUrl(Uri.parse(raw), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
@@ -318,7 +336,7 @@ class _LocationCardState extends State<_LocationCard> {
                         child: _LocationActionBtn(
                           label: 'ABRIR EN MAPAS',
                           isPrimary: false,
-                          onTap: () => HapticFeedback.lightImpact(),
+                          onTap: _openMaps,
                         ),
                       ),
                       const SizedBox(width: 8),

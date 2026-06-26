@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/gallery/data/gallery_favorites_store.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
@@ -15,9 +16,21 @@ import 'package:trim_flow/features/gallery/presentation/widgets/gallery_primitiv
 /// Vista de favoritos a pantalla completa — design language Profile/Home.
 /// Misma estructura que la GalleryView principal pero filtrada a favoritos.
 class GalleryFavoritesFullView extends StatelessWidget {
-  const GalleryFavoritesFullView({super.key});
+  const GalleryFavoritesFullView({super.key, this.isBarberMode = false});
 
-  static const List<double> _heights = [280, 220, 260, 240, 290, 230, 270, 210, 250];
+  final bool isBarberMode;
+
+  static const List<double> _heights = [
+    280,
+    220,
+    260,
+    240,
+    290,
+    230,
+    270,
+    210,
+    250,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -27,79 +40,115 @@ class GalleryFavoritesFullView extends StatelessWidget {
         backgroundColor: const Color(0xFF0A0A0A),
         body: BlocBuilder<GalleryBloc, GalleryState>(
           builder: (context, state) {
-            final favorites = state.allItems.where((it) => it.isFeatured).toList();
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _Header(count: favorites.length),
-                if (favorites.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyState(),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverMasonryGrid.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childCount: favorites.length,
-                      itemBuilder: (context, index) {
-                        final item = favorites[index];
-                        final h = _heights[index % _heights.length];
-                        return _FavMosaicCard(
-                          item: item,
-                          height: h,
-                          onTap: () => _openFullscreen(context, favorites, index),
-                          onRemove: () {
-                            if (item.id == null) return;
-                            HapticFeedback.lightImpact();
-                            context
-                                .read<GalleryBloc>()
-                                .add(GalleryEvent.itemToggledFeatured(item.id!));
-                          },
-                        ).animate().fadeIn(
-                              delay: (40 * index).clamp(0, 500).ms,
-                              duration: 450.ms,
-                              curve: Curves.easeOutCubic,
-                            ).slideY(
-                              begin: 0.08,
-                              end: 0,
-                              delay: (40 * index).clamp(0, 500).ms,
-                              duration: 500.ms,
-                              curve: Curves.easeOutCubic,
-                            );
-                      },
-                    ),
-                  ),
-                const SliverToBoxAdapter(child: SizedBox(height: 60)),
-              ],
-            );
+            if (!isBarberMode) {
+              return ValueListenableBuilder<Set<String>>(
+                valueListenable: GalleryFavoritesStore.instance.favorites,
+                builder: (context, favs, _) {
+                  final favorites = state.allItems
+                      .where((it) => favs.contains(galleryFavoriteId(it)))
+                      .toList();
+                  return _buildScroll(context, favorites);
+                },
+              );
+            }
+            final favorites = state.allItems
+                .where((it) => it.isFeatured)
+                .toList();
+            return _buildScroll(context, favorites);
           },
         ),
       ),
     );
   }
 
-  void _openFullscreen(BuildContext context, List<GalleryItem> items, int index) {
+  Widget _buildScroll(BuildContext context, List<GalleryItem> favorites) {
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        _Header(count: favorites.length, isBarberMode: isBarberMode),
+        if (favorites.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _EmptyState(isBarberMode: isBarberMode),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverMasonryGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childCount: favorites.length,
+              itemBuilder: (context, index) {
+                final item = favorites[index];
+                final h = _heights[index % _heights.length];
+                return _FavMosaicCard(
+                      item: item,
+                      height: h,
+                      showRemove: isBarberMode,
+                      onTap: () => _openFullscreen(context, favorites, index),
+                      onRemove: () {
+                        if (item.id == null) return;
+                        HapticFeedback.lightImpact();
+                        context.read<GalleryBloc>().add(
+                          GalleryEvent.itemToggledFeatured(item.id!),
+                        );
+                      },
+                    )
+                    .animate()
+                    .fadeIn(
+                      delay: (40 * index).clamp(0, 500).ms,
+                      duration: 450.ms,
+                      curve: Curves.easeOutCubic,
+                    )
+                    .slideY(
+                      begin: 0.08,
+                      end: 0,
+                      delay: (40 * index).clamp(0, 500).ms,
+                      duration: 500.ms,
+                      curve: Curves.easeOutCubic,
+                    );
+              },
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 60)),
+      ],
+    );
+  }
+
+  void _openFullscreen(
+    BuildContext context,
+    List<GalleryItem> items,
+    int index,
+  ) {
     final bloc = context.read<GalleryBloc>();
-    Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => BlocProvider.value(
-        value: bloc,
-        child: GalleryFullscreenViewer(items: items, initialIndex: index),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: GalleryFullscreenViewer(
+            items: items,
+            initialIndex: index,
+            isBarberMode: isBarberMode,
+          ),
+        ),
       ),
-    ));
+    );
   }
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.count});
+  const _Header({required this.count, this.isBarberMode = false});
   final int count;
+  final bool isBarberMode;
 
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
+    final pillNoun = isBarberMode
+        ? (count == 1 ? 'DESTACADO' : 'DESTACADOS')
+        : (count == 1 ? 'FAVORITO' : 'FAVORITOS');
+    final bigTitle = isBarberMode ? 'Destacados' : 'Favoritos';
     return SliverToBoxAdapter(
       child: SafeArea(
         bottom: false,
@@ -110,71 +159,101 @@ class _Header extends StatelessWidget {
             children: [
               // Top row: back + pill counter
               Row(
-                children: [
-                  GalleryBackButton(onTap: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.pop(context);
-                  }),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: context.primaryGold.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: context.primaryGold.withValues(alpha: 0.55)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star_rounded, color: Color(0xFFFFC93C), size: 13),
-                        const SizedBox(width: 5),
-                        Text(
-                          '$count ${count == 1 ? "DESTACADO" : "DESTACADOS"}',
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            color: context.primaryGold,
-                            letterSpacing: 1.5,
+                    children: [
+                      GalleryBackButton(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.primaryGold.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: context.primaryGold.withValues(alpha: 0.55),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isBarberMode
+                                  ? Icons.star_rounded
+                                  : Icons.bookmark_rounded,
+                              color: const Color(0xFFFFC93C),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '$count $pillNoun',
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: context.primaryGold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
                   .animate()
                   .fadeIn(duration: 400.ms)
-                  .slideY(begin: -0.4, end: 0, duration: 500.ms, curve: Curves.easeOutCubic),
+                  .slideY(
+                    begin: -0.4,
+                    end: 0,
+                    duration: 500.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
               const SizedBox(height: 22),
               // Greeting BIG
               Text(
-                'Mis',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  letterSpacing: -0.2,
-                ),
-              )
+                    'Mis',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.55),
+                      letterSpacing: -0.2,
+                    ),
+                  )
                   .animate()
                   .fadeIn(delay: 120.ms, duration: 500.ms)
-                  .slideY(begin: 0.3, end: 0, delay: 120.ms, duration: 500.ms, curve: Curves.easeOutCubic),
+                  .slideY(
+                    begin: 0.3,
+                    end: 0,
+                    delay: 120.ms,
+                    duration: 500.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
               const SizedBox(height: 4),
               Text(
-                'Destacados',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1.6,
-                  height: 1.05,
-                ),
-              )
+                    bigTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -1.6,
+                      height: 1.05,
+                    ),
+                  )
                   .animate()
                   .fadeIn(delay: 200.ms, duration: 600.ms)
-                  .slideY(begin: 0.2, end: 0, delay: 200.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+                  .slideY(
+                    begin: 0.2,
+                    end: 0,
+                    delay: 200.ms,
+                    duration: 600.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -192,9 +271,7 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                 ],
-              )
-                  .animate()
-                  .fadeIn(delay: 320.ms, duration: 500.ms),
+              ).animate().fadeIn(delay: 320.ms, duration: 500.ms),
               const SizedBox(height: 14),
             ],
           ),
@@ -204,8 +281,10 @@ class _Header extends StatelessWidget {
   }
 }
 
-
 class _EmptyState extends StatelessWidget {
+  const _EmptyState({this.isBarberMode = false});
+  final bool isBarberMode;
+
   @override
   Widget build(BuildContext context) {
     final gold = context.primaryGold;
@@ -215,21 +294,24 @@ class _EmptyState extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 100, height: 100,
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
               color: gold.withValues(alpha: 0.06),
               shape: BoxShape.circle,
               border: Border.all(color: gold.withValues(alpha: 0.2)),
             ),
             child: Icon(
-              Icons.star_outline_rounded,
+              isBarberMode
+                  ? Icons.star_outline_rounded
+                  : Icons.bookmark_border_rounded,
               color: gold.withValues(alpha: 0.75),
               size: 44,
             ),
           ),
           const SizedBox(height: 22),
           Text(
-            'Sin destacados aún',
+            isBarberMode ? 'Sin destacados aún' : 'Sin favoritos aún',
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -239,7 +321,9 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Toca la estrella en cualquier foto del portafolio para guardarla aquí.',
+            isBarberMode
+                ? 'Toca la estrella en cualquier foto del portafolio para guardarla aquí.'
+                : 'Toca el marcador en cualquier foto para guardarla aquí.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 13,
@@ -260,12 +344,14 @@ class _FavMosaicCard extends StatelessWidget {
     required this.height,
     required this.onTap,
     required this.onRemove,
+    this.showRemove = false,
   });
 
   final GalleryItem item;
   final double height;
   final VoidCallback onTap;
   final VoidCallback onRemove;
+  final bool showRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -285,13 +371,18 @@ class _FavMosaicCard extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.0),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      width: 1.0,
+                    ),
                   ),
                 ),
               ),
               // Gradient bottom
               Positioned(
-                left: 0, right: 0, bottom: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 child: Container(
                   height: 110,
                   decoration: BoxDecoration(
@@ -309,7 +400,9 @@ class _FavMosaicCard extends StatelessWidget {
               ),
               // Info bottom
               Positioned(
-                left: 12, right: 12, bottom: 12,
+                left: 12,
+                right: 12,
+                bottom: 12,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -344,11 +437,13 @@ class _FavMosaicCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Remove fav button (top right)
-              Positioned(
-                top: 8, right: 8,
-                child: _RemoveFavButton(onTap: onRemove),
-              ),
+              // Remove fav button (top right) — solo gestion del barbero
+              if (showRemove)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _RemoveFavButton(onTap: onRemove),
+                ),
             ],
           ),
         ),
@@ -380,16 +475,23 @@ class _RemoveFavButtonState extends State<_RemoveFavButton> {
         scale: _pressed ? 0.82 : 1,
         duration: const Duration(milliseconds: 140),
         child: Container(
-          width: 32, height: 32,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.65),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.45), width: 1.2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.45),
+              width: 1.2,
+            ),
           ),
-          child: const Icon(Icons.star_rounded, size: 17, color: Color(0xFFFFC93C)),
+          child: const Icon(
+            Icons.star_rounded,
+            size: 17,
+            color: Color(0xFFFFC93C),
+          ),
         ),
       ),
     );
   }
 }
-

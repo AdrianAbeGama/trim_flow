@@ -17,10 +17,12 @@ class GalleryFullscreenBottomInfo extends StatelessWidget {
     super.key,
     required this.item,
     required this.onReserve,
+    this.isBarberMode = false,
   });
 
   final GalleryItem item;
   final VoidCallback onReserve;
+  final bool isBarberMode;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,12 @@ class GalleryFullscreenBottomInfo extends StatelessWidget {
           (it) => it.id == item.id,
           orElse: () => item,
         );
-        return _Layout(item: fresh, gold: gold, onReserve: onReserve);
+        return _Layout(
+          item: fresh,
+          gold: gold,
+          onReserve: onReserve,
+          isBarberMode: isBarberMode,
+        );
       },
     );
   }
@@ -43,11 +50,13 @@ class _Layout extends StatelessWidget {
     required this.item,
     required this.gold,
     required this.onReserve,
+    required this.isBarberMode,
   });
 
   final GalleryItem item;
   final Color gold;
   final VoidCallback onReserve;
+  final bool isBarberMode;
 
   @override
   Widget build(BuildContext context) {
@@ -123,8 +132,10 @@ class _Layout extends StatelessWidget {
           ).animate(key: ValueKey('spec-${item.imageUrl}')).fadeIn(
               delay: 160.ms, duration: 380.ms),
         ],
-        const SizedBox(height: 22),
-        _ReserveButton(gold: gold, onTap: onReserve),
+        if (!isBarberMode) ...[
+          const SizedBox(height: 22),
+          _ReserveButton(gold: gold, onTap: onReserve),
+        ],
       ],
     );
   }

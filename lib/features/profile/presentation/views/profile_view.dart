@@ -225,7 +225,10 @@ class _ProfileBodyState extends State<_ProfileBody> {
                 ProfileCouponsSection(coupons: state.coupons),
 
                 // 5. HISTORIAL TIMELINE — siempre visible (con empty state)
-                ProfileHistoryTimeline(history: state.appointmentHistory),
+                ProfileHistoryTimeline(
+                  history: state.appointmentHistory,
+                  hasMore: state.recentHasMore,
+                ),
 
                 // 6. INVITA A UN AMIGO + referidos/puntos
                 Builder(

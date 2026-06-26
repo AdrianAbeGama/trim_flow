@@ -7,15 +7,11 @@ part of 'home_content.dart';
 // **************************************************************************
 
 _HomeContent _$HomeContentFromJson(Map<String, dynamic> json) => _HomeContent(
-  heroTitle: json['heroTitle'] as String? ?? 'TrimFlow Premium Studio',
-  heroSubtitle:
-      json['heroSubtitle'] as String? ??
-      'Donde el estilo se encuentra con la precisión.',
-  heroImageUrl:
-      json['heroImageUrl'] as String? ??
-      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
-  heroTag1: json['heroTag1'] as String? ?? 'DREAM FLOW ELITE',
-  heroTag2: json['heroTag2'] as String? ?? 'PREMIUM STUDIO',
+  heroTitle: json['heroTitle'] as String? ?? '',
+  heroSubtitle: json['heroSubtitle'] as String? ?? '',
+  heroImageUrl: json['heroImageUrl'] as String? ?? '',
+  heroTag1: json['heroTag1'] as String? ?? '',
+  heroTag2: json['heroTag2'] as String? ?? '',
   stories:
       (json['stories'] as List<dynamic>?)
           ?.map((e) => Map<String, String>.from(e as Map))
@@ -31,13 +27,9 @@ _HomeContent _$HomeContentFromJson(Map<String, dynamic> json) => _HomeContent(
           ?.map((e) => Map<String, String>.from(e as Map))
           .toList() ??
       const [],
-  aboutUsTitle: json['aboutUsTitle'] as String? ?? 'Sobre Nosotros',
-  aboutUsText:
-      json['aboutUsText'] as String? ??
-      'Pasión por el detalle, respeto por la tradición y compromiso con tu estilo. Bienvenido a la experiencia Trimflow.',
-  aboutUsImageUrl:
-      json['aboutUsImageUrl'] as String? ??
-      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
+  aboutUsTitle: json['aboutUsTitle'] as String? ?? '',
+  aboutUsText: json['aboutUsText'] as String? ?? '',
+  aboutUsImageUrl: json['aboutUsImageUrl'] as String? ?? '',
   aboutUsVideoUrl: json['aboutUsVideoUrl'] as String? ?? '',
   socialLinks:
       (json['socialLinks'] as Map<String, dynamic>?)?.map(
@@ -48,18 +40,7 @@ _HomeContent _$HomeContentFromJson(Map<String, dynamic> json) => _HomeContent(
       (json['locations'] as List<dynamic>?)
           ?.map((e) => Map<String, String>.from(e as Map))
           .toList() ??
-      const [
-        {
-          'label': 'Sede Central',
-          'address': 'CALLE PRINCIPAL 123, AREQUIPA',
-          'mapUrl': 'https://maps.google.com',
-        },
-        {
-          'label': 'Sede Yanahuara',
-          'address': 'AV. EJÉRCITO 456, AREQUIPA',
-          'mapUrl': 'https://maps.google.com',
-        },
-      ],
+      const [],
 );
 
 Map<String, dynamic> _$HomeContentToJson(_HomeContent instance) =>

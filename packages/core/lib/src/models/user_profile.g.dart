@@ -34,7 +34,7 @@ _UserProfile _$UserProfileFromJson(Map<String, dynamic> json) => _UserProfile(
   barberId: json['barberId'] as String?,
   branchId: json['branchId'] as String?,
   role: json['role'] as String?,
-  completedCuts: (json['completedCuts'] as num?)?.toInt() ?? 2,
+  completedCuts: (json['completedCuts'] as num?)?.toInt() ?? 0,
   history:
       (json['history'] as List<dynamic>?)
           ?.map((e) => CuttingRecord.fromJson(e as Map<String, dynamic>))

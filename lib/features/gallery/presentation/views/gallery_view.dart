@@ -12,6 +12,7 @@ import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/core/widgets/safe_image.dart';
+import 'package:trim_flow/features/gallery/data/gallery_favorites_store.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
@@ -65,6 +66,12 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
   static const List<double> _heights = [252, 320, 224, 296, 240, 312];
 
   @override
+  void initState() {
+    super.initState();
+    GalleryFavoritesStore.instance.load();
+  }
+
+  @override
   void dispose() {
     _searchDebounce?.cancel();
     _searchCtrl.dispose();
@@ -87,19 +94,24 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
   }
 
   void _openFullscreen(
-      BuildContext context, List<GalleryItem> items, int index) {
+    BuildContext context,
+    List<GalleryItem> items,
+    int index,
+  ) {
     HapticFeedback.lightImpact();
     final bloc = context.read<GalleryBloc>();
-    Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => BlocProvider.value(
-        value: bloc,
-        child: GalleryFullscreenViewer(
-          items: items,
-          initialIndex: index,
-          isBarberMode: widget.isBarberMode,
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: GalleryFullscreenViewer(
+            items: items,
+            initialIndex: index,
+            isBarberMode: widget.isBarberMode,
+          ),
         ),
       ),
-    ));
+    );
   }
 
   Future<void> _delete(BuildContext context, int boxKey) async {
@@ -112,8 +124,11 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
     );
     if (ok) {
       bloc.add(GalleryEvent.itemDeleted(boxKey));
-      AppToast.showOn(overlay,
-          type: AppToastType.success, title: 'Foto eliminada');
+      AppToast.showOn(
+        overlay,
+        type: AppToastType.success,
+        title: 'Foto eliminada',
+      );
     }
   }
 
@@ -121,7 +136,16 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF0A0A0A),
-      child: BlocBuilder<GalleryBloc, GalleryState>(
+      child: BlocConsumer<GalleryBloc, GalleryState>(
+        listenWhen: (prev, curr) =>
+            curr.actionError != null && curr.actionError != prev.actionError,
+        listener: (context, state) {
+          AppToast.showOn(
+            Overlay.of(context, rootOverlay: true),
+            type: AppToastType.error,
+            title: 'No se pudo completar la acción',
+          );
+        },
         builder: (context, state) {
           return RefreshIndicator(
             onRefresh: _onRefresh,
@@ -154,7 +178,9 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
             height: 280,
             child: Center(
               child: CupertinoActivityIndicator(
-                  color: context.primaryGold, radius: 14),
+                color: context.primaryGold,
+                radius: 14,
+              ),
             ),
           ),
         ),
@@ -174,10 +200,9 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
 
     final services = (<String>{for (final it in all) it.categoryLabel}.toList())
       ..sort();
-    final barbers =
-        (<String>{for (final it in all) it.barberFullName ?? ''}..remove(''))
-            .toList()
-          ..sort();
+    final barbers = (<String>{
+      for (final it in all) it.barberFullName ?? '',
+    }..remove('')).toList()..sort();
     if (_service != null && !services.contains(_service)) _service = null;
     if (_barber != null && !barbers.contains(_barber)) _barber = null;
 
@@ -220,8 +245,10 @@ class _GalleryScaffoldState extends State<_GalleryScaffold> {
           child: Padding(
             padding: EdgeInsets.only(top: 60),
             child: Center(
-              child: Text('Sin resultados',
-                  style: TextStyle(color: Colors.white38)),
+              child: Text(
+                'Sin resultados',
+                style: TextStyle(color: Colors.white38),
+              ),
             ),
           ),
         )
@@ -353,8 +380,11 @@ class _SearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.search_rounded,
-              size: 19, color: Colors.white.withValues(alpha: 0.5)),
+          Icon(
+            Icons.search_rounded,
+            size: 19,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -388,8 +418,11 @@ class _SearchField extends StatelessWidget {
                   controller.clear();
                   onChanged('');
                 },
-                child: Icon(Icons.close_rounded,
-                    size: 18, color: Colors.white.withValues(alpha: 0.5)),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
               );
             },
           ),
@@ -417,17 +450,32 @@ class _ModeToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _seg(context, 'Servicios', Icons.content_cut_rounded, !byBarber,
-              () => onChanged(false)),
-          _seg(context, 'Barberos', Icons.person_rounded, byBarber,
-              () => onChanged(true)),
+          _seg(
+            context,
+            'Servicios',
+            Icons.content_cut_rounded,
+            !byBarber,
+            () => onChanged(false),
+          ),
+          _seg(
+            context,
+            'Barberos',
+            Icons.person_rounded,
+            byBarber,
+            () => onChanged(true),
+          ),
         ],
       ),
     );
   }
 
-  Widget _seg(BuildContext context, String label, IconData icon, bool active,
-      VoidCallback onTap) {
+  Widget _seg(
+    BuildContext context,
+    String label,
+    IconData icon,
+    bool active,
+    VoidCallback onTap,
+  ) {
     final gold = context.primaryGold;
     return Expanded(
       child: PremiumPressable(
@@ -446,11 +494,13 @@ class _ModeToggle extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon,
-                  size: 15,
-                  color: active
-                      ? premiumOnAccent(gold)
-                      : Colors.white.withValues(alpha: 0.6)),
+              Icon(
+                icon,
+                size: 15,
+                color: active
+                    ? premiumOnAccent(gold)
+                    : Colors.white.withValues(alpha: 0.6),
+              ),
               const SizedBox(width: 7),
               Text(
                 label,
@@ -575,8 +625,11 @@ class _WorkCard extends StatelessWidget {
                 const Positioned(
                   top: 12,
                   right: 12,
-                  child: Icon(Icons.star_rounded,
-                      size: 19, color: Color(0xFFFFC93C)),
+                  child: Icon(
+                    Icons.star_rounded,
+                    size: 19,
+                    color: Color(0xFFFFC93C),
+                  ),
                 ),
               Positioned(
                 left: 13,
@@ -606,7 +659,9 @@ class _WorkCard extends StatelessWidget {
                         Flexible(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 4),
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: gold,
                               borderRadius: BorderRadius.circular(999),
@@ -647,8 +702,11 @@ class _WorkCard extends StatelessWidget {
                 Positioned(
                   top: 8,
                   left: 8,
-                  child: _circleBtn(Icons.close_rounded, onDelete!,
-                      color: const Color(0xFFE53935)),
+                  child: _circleBtn(
+                    Icons.close_rounded,
+                    onDelete!,
+                    color: const Color(0xFFE53935),
+                  ),
                 ),
             ],
           ),
@@ -672,7 +730,9 @@ class _WorkCard extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.6),
           shape: BoxShape.circle,
           border: Border.all(
-              color: (color ?? Colors.white).withValues(alpha: 0.6), width: 1.1),
+            color: (color ?? Colors.white).withValues(alpha: 0.6),
+            width: 1.1,
+          ),
         ),
         child: Icon(icon, size: 15, color: color ?? Colors.white),
       ),

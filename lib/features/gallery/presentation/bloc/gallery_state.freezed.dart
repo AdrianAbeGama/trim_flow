@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GalleryState {
 
- GalleryStatus get status; List<GalleryItem> get allItems; List<GalleryCategory> get categories; String? get selectedCategorySlug; String get searchQuery; bool get isEditing; bool get showOnlyFeatured; GalleryFilterMode get filterMode; String? get selectedBarberName; String? get errorMessage;
+ GalleryStatus get status; List<GalleryItem> get allItems; List<GalleryCategory> get categories; String? get selectedCategorySlug; String get searchQuery; bool get isEditing; bool get showOnlyFeatured; GalleryFilterMode get filterMode; String? get selectedBarberName; String? get errorMessage; String? get actionError;
 /// Create a copy of GalleryState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $GalleryStateCopyWith<GalleryState> get copyWith => _$GalleryStateCopyWithImpl<G
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GalleryState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.allItems, allItems)&&const DeepCollectionEquality().equals(other.categories, categories)&&(identical(other.selectedCategorySlug, selectedCategorySlug) || other.selectedCategorySlug == selectedCategorySlug)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.showOnlyFeatured, showOnlyFeatured) || other.showOnlyFeatured == showOnlyFeatured)&&(identical(other.filterMode, filterMode) || other.filterMode == filterMode)&&(identical(other.selectedBarberName, selectedBarberName) || other.selectedBarberName == selectedBarberName)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GalleryState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.allItems, allItems)&&const DeepCollectionEquality().equals(other.categories, categories)&&(identical(other.selectedCategorySlug, selectedCategorySlug) || other.selectedCategorySlug == selectedCategorySlug)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.showOnlyFeatured, showOnlyFeatured) || other.showOnlyFeatured == showOnlyFeatured)&&(identical(other.filterMode, filterMode) || other.filterMode == filterMode)&&(identical(other.selectedBarberName, selectedBarberName) || other.selectedBarberName == selectedBarberName)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.actionError, actionError) || other.actionError == actionError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(allItems),const DeepCollectionEquality().hash(categories),selectedCategorySlug,searchQuery,isEditing,showOnlyFeatured,filterMode,selectedBarberName,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(allItems),const DeepCollectionEquality().hash(categories),selectedCategorySlug,searchQuery,isEditing,showOnlyFeatured,filterMode,selectedBarberName,errorMessage,actionError);
 
 @override
 String toString() {
-  return 'GalleryState(status: $status, allItems: $allItems, categories: $categories, selectedCategorySlug: $selectedCategorySlug, searchQuery: $searchQuery, isEditing: $isEditing, showOnlyFeatured: $showOnlyFeatured, filterMode: $filterMode, selectedBarberName: $selectedBarberName, errorMessage: $errorMessage)';
+  return 'GalleryState(status: $status, allItems: $allItems, categories: $categories, selectedCategorySlug: $selectedCategorySlug, searchQuery: $searchQuery, isEditing: $isEditing, showOnlyFeatured: $showOnlyFeatured, filterMode: $filterMode, selectedBarberName: $selectedBarberName, errorMessage: $errorMessage, actionError: $actionError)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $GalleryStateCopyWith<$Res>  {
   factory $GalleryStateCopyWith(GalleryState value, $Res Function(GalleryState) _then) = _$GalleryStateCopyWithImpl;
 @useResult
 $Res call({
- GalleryStatus status, List<GalleryItem> allItems, List<GalleryCategory> categories, String? selectedCategorySlug, String searchQuery, bool isEditing, bool showOnlyFeatured, GalleryFilterMode filterMode, String? selectedBarberName, String? errorMessage
+ GalleryStatus status, List<GalleryItem> allItems, List<GalleryCategory> categories, String? selectedCategorySlug, String searchQuery, bool isEditing, bool showOnlyFeatured, GalleryFilterMode filterMode, String? selectedBarberName, String? errorMessage, String? actionError
 });
 
 
@@ -62,7 +62,7 @@ class _$GalleryStateCopyWithImpl<$Res>
 
 /// Create a copy of GalleryState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? allItems = null,Object? categories = null,Object? selectedCategorySlug = freezed,Object? searchQuery = null,Object? isEditing = null,Object? showOnlyFeatured = null,Object? filterMode = null,Object? selectedBarberName = freezed,Object? errorMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? allItems = null,Object? categories = null,Object? selectedCategorySlug = freezed,Object? searchQuery = null,Object? isEditing = null,Object? showOnlyFeatured = null,Object? filterMode = null,Object? selectedBarberName = freezed,Object? errorMessage = freezed,Object? actionError = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as GalleryStatus,allItems: null == allItems ? _self.allItems : allItems // ignore: cast_nullable_to_non_nullable
@@ -74,6 +74,7 @@ as bool,showOnlyFeatured: null == showOnlyFeatured ? _self.showOnlyFeatured : sh
 as bool,filterMode: null == filterMode ? _self.filterMode : filterMode // ignore: cast_nullable_to_non_nullable
 as GalleryFilterMode,selectedBarberName: freezed == selectedBarberName ? _self.selectedBarberName : selectedBarberName // ignore: cast_nullable_to_non_nullable
 as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as String?,actionError: freezed == actionError ? _self.actionError : actionError // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage,  String? actionError)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GalleryState() when $default != null:
-return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage);case _:
+return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage,_that.actionError);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.status,_that.allItems,_that.categories,_that.selectedCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage,  String? actionError)  $default,) {final _that = this;
 switch (_that) {
 case _GalleryState():
-return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage);case _:
+return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage,_that.actionError);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.status,_that.allItems,_that.categories,_that.selectedCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GalleryStatus status,  List<GalleryItem> allItems,  List<GalleryCategory> categories,  String? selectedCategorySlug,  String searchQuery,  bool isEditing,  bool showOnlyFeatured,  GalleryFilterMode filterMode,  String? selectedBarberName,  String? errorMessage,  String? actionError)?  $default,) {final _that = this;
 switch (_that) {
 case _GalleryState() when $default != null:
-return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage);case _:
+return $default(_that.status,_that.allItems,_that.categories,_that.selectedCategorySlug,_that.searchQuery,_that.isEditing,_that.showOnlyFeatured,_that.filterMode,_that.selectedBarberName,_that.errorMessage,_that.actionError);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.status,_that.allItems,_that.categories,_that.selectedCateg
 
 
 class _GalleryState extends GalleryState {
-  const _GalleryState({this.status = GalleryStatus.initial, final  List<GalleryItem> allItems = const <GalleryItem>[], final  List<GalleryCategory> categories = const <GalleryCategory>[], this.selectedCategorySlug, this.searchQuery = '', this.isEditing = false, this.showOnlyFeatured = false, this.filterMode = GalleryFilterMode.styles, this.selectedBarberName, this.errorMessage}): _allItems = allItems,_categories = categories,super._();
+  const _GalleryState({this.status = GalleryStatus.initial, final  List<GalleryItem> allItems = const <GalleryItem>[], final  List<GalleryCategory> categories = const <GalleryCategory>[], this.selectedCategorySlug, this.searchQuery = '', this.isEditing = false, this.showOnlyFeatured = false, this.filterMode = GalleryFilterMode.styles, this.selectedBarberName, this.errorMessage, this.actionError}): _allItems = allItems,_categories = categories,super._();
   
 
 @override@JsonKey() final  GalleryStatus status;
@@ -240,6 +241,7 @@ class _GalleryState extends GalleryState {
 @override@JsonKey() final  GalleryFilterMode filterMode;
 @override final  String? selectedBarberName;
 @override final  String? errorMessage;
+@override final  String? actionError;
 
 /// Create a copy of GalleryState
 /// with the given fields replaced by the non-null parameter values.
@@ -251,16 +253,16 @@ _$GalleryStateCopyWith<_GalleryState> get copyWith => __$GalleryStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GalleryState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._allItems, _allItems)&&const DeepCollectionEquality().equals(other._categories, _categories)&&(identical(other.selectedCategorySlug, selectedCategorySlug) || other.selectedCategorySlug == selectedCategorySlug)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.showOnlyFeatured, showOnlyFeatured) || other.showOnlyFeatured == showOnlyFeatured)&&(identical(other.filterMode, filterMode) || other.filterMode == filterMode)&&(identical(other.selectedBarberName, selectedBarberName) || other.selectedBarberName == selectedBarberName)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GalleryState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._allItems, _allItems)&&const DeepCollectionEquality().equals(other._categories, _categories)&&(identical(other.selectedCategorySlug, selectedCategorySlug) || other.selectedCategorySlug == selectedCategorySlug)&&(identical(other.searchQuery, searchQuery) || other.searchQuery == searchQuery)&&(identical(other.isEditing, isEditing) || other.isEditing == isEditing)&&(identical(other.showOnlyFeatured, showOnlyFeatured) || other.showOnlyFeatured == showOnlyFeatured)&&(identical(other.filterMode, filterMode) || other.filterMode == filterMode)&&(identical(other.selectedBarberName, selectedBarberName) || other.selectedBarberName == selectedBarberName)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.actionError, actionError) || other.actionError == actionError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_allItems),const DeepCollectionEquality().hash(_categories),selectedCategorySlug,searchQuery,isEditing,showOnlyFeatured,filterMode,selectedBarberName,errorMessage);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_allItems),const DeepCollectionEquality().hash(_categories),selectedCategorySlug,searchQuery,isEditing,showOnlyFeatured,filterMode,selectedBarberName,errorMessage,actionError);
 
 @override
 String toString() {
-  return 'GalleryState(status: $status, allItems: $allItems, categories: $categories, selectedCategorySlug: $selectedCategorySlug, searchQuery: $searchQuery, isEditing: $isEditing, showOnlyFeatured: $showOnlyFeatured, filterMode: $filterMode, selectedBarberName: $selectedBarberName, errorMessage: $errorMessage)';
+  return 'GalleryState(status: $status, allItems: $allItems, categories: $categories, selectedCategorySlug: $selectedCategorySlug, searchQuery: $searchQuery, isEditing: $isEditing, showOnlyFeatured: $showOnlyFeatured, filterMode: $filterMode, selectedBarberName: $selectedBarberName, errorMessage: $errorMessage, actionError: $actionError)';
 }
 
 
@@ -271,7 +273,7 @@ abstract mixin class _$GalleryStateCopyWith<$Res> implements $GalleryStateCopyWi
   factory _$GalleryStateCopyWith(_GalleryState value, $Res Function(_GalleryState) _then) = __$GalleryStateCopyWithImpl;
 @override @useResult
 $Res call({
- GalleryStatus status, List<GalleryItem> allItems, List<GalleryCategory> categories, String? selectedCategorySlug, String searchQuery, bool isEditing, bool showOnlyFeatured, GalleryFilterMode filterMode, String? selectedBarberName, String? errorMessage
+ GalleryStatus status, List<GalleryItem> allItems, List<GalleryCategory> categories, String? selectedCategorySlug, String searchQuery, bool isEditing, bool showOnlyFeatured, GalleryFilterMode filterMode, String? selectedBarberName, String? errorMessage, String? actionError
 });
 
 
@@ -288,7 +290,7 @@ class __$GalleryStateCopyWithImpl<$Res>
 
 /// Create a copy of GalleryState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? allItems = null,Object? categories = null,Object? selectedCategorySlug = freezed,Object? searchQuery = null,Object? isEditing = null,Object? showOnlyFeatured = null,Object? filterMode = null,Object? selectedBarberName = freezed,Object? errorMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? allItems = null,Object? categories = null,Object? selectedCategorySlug = freezed,Object? searchQuery = null,Object? isEditing = null,Object? showOnlyFeatured = null,Object? filterMode = null,Object? selectedBarberName = freezed,Object? errorMessage = freezed,Object? actionError = freezed,}) {
   return _then(_GalleryState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as GalleryStatus,allItems: null == allItems ? _self._allItems : allItems // ignore: cast_nullable_to_non_nullable
@@ -300,6 +302,7 @@ as bool,showOnlyFeatured: null == showOnlyFeatured ? _self.showOnlyFeatured : sh
 as bool,filterMode: null == filterMode ? _self.filterMode : filterMode // ignore: cast_nullable_to_non_nullable
 as GalleryFilterMode,selectedBarberName: freezed == selectedBarberName ? _self.selectedBarberName : selectedBarberName // ignore: cast_nullable_to_non_nullable
 as String?,errorMessage: freezed == errorMessage ? _self.errorMessage : errorMessage // ignore: cast_nullable_to_non_nullable
+as String?,actionError: freezed == actionError ? _self.actionError : actionError // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

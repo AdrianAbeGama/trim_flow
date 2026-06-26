@@ -23,7 +23,6 @@ abstract class GalleryRepository {
   Future<void> addItem(GalleryItem item);
   Future<void> updateItem(GalleryItem item);
   Future<void> deleteItem(int isarId);
-  Future<void> reorderItems(List<int> orderedIsarIds);
 
   Future<void> addCategory(GalleryCategory category);
   Future<void> updateCategory(String oldSlug, GalleryCategory newCategory);

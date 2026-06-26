@@ -8,6 +8,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/core/di/injection.dart';
+import 'package:trim_flow/core/theme/tenant_contact.dart';
+import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart';
@@ -255,56 +258,7 @@ class ProfileSettingsView extends StatelessWidget {
                 onTap: () => _push(context, const SupportFaqView()),
               ),
               const SettingsRowDivider(),
-              SettingsExpandableRow(
-                iconColor: _icon,
-                iconBg: _iconBg,
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Contactar por WhatsApp',
-                subtitle: 'Elige el motivo',
-                options: [
-                  SettingsOption(
-                    icon: Icons.bug_report_outlined,
-                    label: 'Errores en la app',
-                    onTap: () => _launch(
-                        'https://wa.me/51999000111?text=Hola,%20tengo%20un%20error%20en%20TrimFlow'),
-                  ),
-                  SettingsOption(
-                    icon: Icons.report_gmailerrorred_outlined,
-                    label: 'Reclamaciones',
-                    onTap: () => _launch(
-                        'https://wa.me/51999000111?text=Hola,%20tengo%20un%20reclamo'),
-                  ),
-                  SettingsOption(
-                    icon: Icons.rocket_launch_outlined,
-                    label: '¿Quieres una app como esta?',
-                    highlight: true,
-                    onTap: () => _launch(
-                        'https://wa.me/51999000222?text=Hola,%20quiero%20una%20app%20como%20TrimFlow%20para%20mi%20negocio'),
-                  ),
-                ],
-              ),
-              const SettingsRowDivider(),
-              SettingsExpandableRow(
-                iconColor: _icon,
-                iconBg: _iconBg,
-                icon: Icons.flag_outlined,
-                label: 'Reportar un problema',
-                subtitle: 'Escríbenos por correo',
-                options: [
-                  SettingsOption(
-                    icon: Icons.headset_mic_outlined,
-                    label: 'Soporte técnico',
-                    onTap: () => _launch(
-                        'mailto:soporte@trimflow.app?subject=Soporte%20-%20TrimFlow'),
-                  ),
-                  SettingsOption(
-                    icon: Icons.mail_outline_rounded,
-                    label: 'Reclamos y sugerencias',
-                    onTap: () => _launch(
-                        'mailto:reclamos@trimflow.app?subject=Reclamo%20-%20TrimFlow'),
-                  ),
-                ],
-              ),
+              _SupportContactRows(iconColor: _icon, iconBg: _iconBg),
               const SettingsRowDivider(),
               SettingsActionRow(
                 iconColor: _icon,
@@ -361,6 +315,82 @@ class ProfileSettingsView extends StatelessWidget {
   Widget _section(String title, int delay, List<Widget> children) {
     return SliverToBoxAdapter(
       child: SettingsSection(title: title, delay: delay, children: children),
+    );
+  }
+}
+
+/// Filas de soporte que leen el contacto real del negocio
+/// (`tenants.branding.contact`). WhatsApp usa `contact.phone`; el reporte usa
+/// `contact.email`. Si el dato no esta cargado en la web admin, queda como
+/// "No configurado aun".
+class _SupportContactRows extends StatefulWidget {
+  const _SupportContactRows({required this.iconColor, required this.iconBg});
+
+  final Color iconColor;
+  final Color iconBg;
+
+  @override
+  State<_SupportContactRows> createState() => _SupportContactRowsState();
+}
+
+class _SupportContactRowsState extends State<_SupportContactRows> {
+  late final Future<TenantContact> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = getIt<TenantThemeBloc>().fetchActiveTenantContact();
+  }
+
+  Future<void> _launch(String url) async {
+    HapticFeedback.selectionClick();
+    try {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<TenantContact>(
+      future: _future,
+      builder: (context, snapshot) {
+        final contact = snapshot.data ?? const TenantContact();
+        final loading = snapshot.connectionState == ConnectionState.waiting;
+        return Column(
+          children: [
+            SettingsActionRow(
+              iconColor: widget.iconColor,
+              iconBg: widget.iconBg,
+              icon: Icons.chat_bubble_outline_rounded,
+              label: 'Contactar por WhatsApp',
+              subtitle: loading
+                  ? 'Cargando…'
+                  : contact.hasPhone
+                      ? 'Escríbenos por WhatsApp'
+                      : 'No configurado aún',
+              onTap: contact.hasPhone
+                  ? () => _launch('https://wa.me/${contact.phoneDigits}')
+                  : () {},
+            ),
+            const SettingsRowDivider(),
+            SettingsActionRow(
+              iconColor: widget.iconColor,
+              iconBg: widget.iconBg,
+              icon: Icons.flag_outlined,
+              label: 'Reportar un problema',
+              subtitle: loading
+                  ? 'Cargando…'
+                  : contact.hasEmail
+                      ? 'Escríbenos por correo'
+                      : 'No configurado aún',
+              onTap: contact.hasEmail
+                  ? () => _launch(
+                      'mailto:${contact.email!.trim()}?subject=Soporte%20-%20TrimFlow')
+                  : () {},
+            ),
+          ],
+        );
+      },
     );
   }
 }

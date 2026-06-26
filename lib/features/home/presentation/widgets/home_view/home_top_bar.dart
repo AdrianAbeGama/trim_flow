@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
+import 'package:trim_flow/core/constants/app_roles.dart';
 import 'package:trim_flow/core/theme/tenant_theme_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
@@ -74,11 +75,15 @@ class HomeTopBar extends StatelessWidget {
                       },
                     ),
                   ),
-                  // Edit toggle — solo en modo barbero y si tiene permiso
+                  // Edit toggle — solo en modo barbero, con permiso y rol admin
                   BlocBuilder<AppModeBloc, AppModeState>(
                     buildWhen: (a, b) => a.mode != b.mode,
                     builder: (_, appState) {
                       if (appState.mode != AppMode.barber) {
+                        return const SizedBox.shrink();
+                      }
+                      final role = context.watch<ProfileBloc>().state.user?.role;
+                      if (!isAdminRole(role)) {
                         return const SizedBox.shrink();
                       }
                       return ValueListenableBuilder<PreviewRole?>(

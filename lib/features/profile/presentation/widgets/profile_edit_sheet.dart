@@ -33,6 +33,7 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
   late final TextEditingController _lastNameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _birthDateController;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -154,25 +155,38 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                     },
                   ),
                 const SizedBox(height: 32),
-                BlocBuilder<ProfileBloc, ProfileState>(
+                BlocConsumer<ProfileBloc, ProfileState>(
+                  listenWhen: (prev, curr) =>
+                      _saving && prev.status != curr.status,
+                  listener: (context, state) {
+                    if (state.status == ProfileStatus.loading) return;
+                    _saving = false;
+                    final overlay = Overlay.of(context, rootOverlay: true);
+                    if (state.status == ProfileStatus.error) {
+                      AppToast.showOn(overlay,
+                          type: AppToastType.error,
+                          title: 'No se pudo guardar',
+                          message: 'Revisa tu conexión e intenta otra vez.');
+                      return;
+                    }
+                    Navigator.pop(context);
+                    AppToast.showOn(overlay,
+                        type: AppToastType.success,
+                        title: 'Perfil actualizado',
+                        message: 'Tus datos se guardaron.');
+                  },
                   builder: (context, state) {
                     final isLoading = state.status == ProfileStatus.loading;
                     return ElevatedButton(
                       onPressed: isLoading ? null : () {
                         if (_formKey.currentState?.validate() ?? false) {
-                          final overlay =
-                              Overlay.of(context, rootOverlay: true);
+                          _saving = true;
                           context.read<ProfileBloc>().add(SaveProfileData(
                             firstName: _nameController.text,
                             lastName: _lastNameController.text,
                             phone: _phoneController.text,
                             birthDate: widget.isBarber ? '' : _birthDateController.text,
                           ));
-                          Navigator.pop(context);
-                          AppToast.showOn(overlay,
-                              type: AppToastType.success,
-                              title: 'Perfil actualizado',
-                              message: 'Tus datos se guardaron.');
                         }
                       },
                       style: ElevatedButton.styleFrom(

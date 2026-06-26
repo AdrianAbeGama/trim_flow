@@ -8,6 +8,7 @@ import 'package:trim_flow/core/widgets/premium/premium_quick_action_card.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:core/core.dart';
+import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
 import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
@@ -109,7 +110,9 @@ class _ProductsViewState extends State<ProductsView> {
   }
 
   Widget _buildQuickActions(BuildContext context, ProductState productState, AppModeState modeState) {
-    if (modeState.mode != AppMode.barber || !productState.isEditing) {
+    if (modeState.mode != AppMode.barber ||
+        !productState.isEditing ||
+        !PermissionsStore.instance.can('products_manage')) {
       return const SizedBox.shrink();
     }
     final pb = context.read<ProductBloc>();

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
@@ -29,16 +28,11 @@ class Phase3ProfessionalSelector extends StatefulWidget {
 }
 
 class _Phase3ProfessionalSelectorState extends State<Phase3ProfessionalSelector> {
-  bool _showUnavailable = false;
-
   @override
   Widget build(BuildContext context) {
     if (widget.isCompleted && widget.hasSelectedAny) {
       return _buildCompletedState(context);
     }
-
-    final available = widget.professionals.where((p) => p.isAvailable).toList();
-    final unavailable = widget.professionals.where((p) => !p.isAvailable).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,45 +41,13 @@ class _Phase3ProfessionalSelectorState extends State<Phase3ProfessionalSelector>
         const SizedBox(height: 18),
         _buildAnyAvailableOption(context),
         const SizedBox(height: 12),
-        ...available.asMap().entries.map((e) {
+        ...widget.professionals.asMap().entries.map((e) {
           return _buildProfessionalCard(context, e.value)
               .animate()
               .fadeIn(delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms)
               .slideY(begin: -0.06, end: 0, delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms, curve: Curves.easeOutCubic);
         }),
-        if (unavailable.isNotEmpty) ...[
-          _buildUnavailableToggle(context, unavailable.length),
-          if (_showUnavailable)
-            ...unavailable.map((p) => _buildUnavailableCard(context, p)),
-        ],
       ],
-    );
-  }
-
-  Widget _buildUnavailableToggle(BuildContext context, int count) {
-    return PremiumPressable(
-      pressedScale: 0.98,
-      onTap: () {
-        HapticFeedback.lightImpact();
-        setState(() => _showUnavailable = !_showUnavailable);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            Text(
-              _showUnavailable ? 'Ocultar los que no atienden hoy' : 'Ver los que no atienden hoy ($count)',
-              style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: 4),
-            AnimatedRotation(
-              turns: _showUnavailable ? 0.5 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Colors.white.withValues(alpha: 0.4)),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -247,47 +209,6 @@ class _Phase3ProfessionalSelectorState extends State<Phase3ProfessionalSelector>
               size: 22,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUnavailableCard(BuildContext context, Professional professional) {
-    final specialties = professional.specialties.join(' · ');
-    return Opacity(
-      opacity: 0.45,
-      child: IgnorePointer(
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: Row(
-            children: [
-              AvatarPremium(displayName: professional.name, photoUrl: professional.imageUrl, size: 48),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(professional.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
-                    const SizedBox(height: 3),
-                    if (specialties.isNotEmpty)
-                      Text(specialties,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 11.5, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

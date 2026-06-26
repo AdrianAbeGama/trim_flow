@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
 
@@ -82,83 +81,58 @@ class CopyBadgeButton extends StatelessWidget {
   }
 }
 
-class YapePaymentDetails extends StatelessWidget {
-  const YapePaymentDetails({super.key});
+class _PaymentNotConfigured extends StatelessWidget {
+  const _PaymentNotConfigured({required this.method});
+
+  final String method;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 15,
-                    ),
-                  ],
-                ),
-                child: QrImageView(
-                  data: 'https://yape.pe/pay?to=987654321',
-                  version: QrVersions.auto,
-                  size: 96,
-                  gapless: false,
-                ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.account_balance_wallet_outlined,
+                color: Colors.white.withValues(alpha: 0.25), size: 32),
+            const SizedBox(height: 12),
+            Text(
+              '$method no configurado',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'PAGO INSTANTÁNEO YAPE',
-                      style: TextStyle(
-                        color: context.primaryGold,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'TITULAR',
-                      style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1),
-                    ),
-                    const Text(
-                      'Carlos',
-                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'NÚMERO DE TELÉFONO',
-                      style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1),
-                    ),
-                    const Text(
-                      '987654321',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                    ),
-                  ],
-                ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'El negocio aún no ha registrado sus datos de $method.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.3),
+                fontSize: 12,
+                height: 1.4,
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const SizedBox(
-            width: double.infinity,
-            child: CopyBadgeButton(value: '987654321', label: 'NÚMERO DE YAPE'),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class YapePaymentDetails extends StatelessWidget {
+  const YapePaymentDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _PaymentNotConfigured(method: 'Yape');
   }
 }
 
@@ -167,46 +141,7 @@ class BcpPaymentDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'TRANSFERENCIA BANCARIA BCP',
-            style: TextStyle(
-              color: context.primaryGold,
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'TITULAR',
-            style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1),
-          ),
-          const Text(
-            'Carlos',
-            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'NÚMERO DE CUENTA CORRIENTE',
-            style: TextStyle(color: Colors.white38, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1),
-          ),
-          const Text(
-            '191-98765432-1-01',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
-          ),
-          const SizedBox(height: 24),
-          const SizedBox(
-            width: double.infinity,
-            child: CopyBadgeButton(value: '191-98765432-1-01', label: 'CUENTA BCP'),
-          ),
-        ],
-      ),
-    );
+    return const _PaymentNotConfigured(method: 'BCP');
   }
 }
 

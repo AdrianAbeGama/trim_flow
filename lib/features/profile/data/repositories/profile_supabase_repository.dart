@@ -73,11 +73,34 @@ class ProfileSupabaseRepository implements ProfileRepository {
 
     if (row == null) return null;
 
-    return StaffProfileMapper.fromRow(
+    final result = StaffProfileMapper.fromRow(
       row: row,
       authUser: user,
       fallbackTenantId: fallbackTenantId,
     );
+
+    // Rol autoritativo via RPC SECURITY DEFINER (resuelve por auth.uid()).
+    // Si la RPC falla o devuelve null, se mantiene el role del row (fallback).
+    final authoritativeRole = await _fetchMyRole();
+    if (authoritativeRole == null) return result;
+
+    return ProfileLoadResult(
+      user: result.user.copyWith(role: authoritativeRole),
+      loyaltyPoints: result.loyaltyPoints,
+      isRewardAvailable: result.isRewardAvailable,
+      clientCode: result.clientCode,
+      lastVisit: result.lastVisit,
+      branchName: result.branchName,
+    );
+  }
+
+  Future<String?> _fetchMyRole() async {
+    try {
+      final res = await _client.rpc('get_my_role');
+      return (res is String && res.isNotEmpty) ? res : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -125,15 +148,21 @@ class ProfileSupabaseRepository implements ProfileRepository {
     required ProfileUpdateInput input,
   }) async {
     final fullName = '${input.firstName} ${input.lastName}'.trim();
+    // Mismo formato +51 que el cliente (ver updateCustomerProfile).
+    final phone =
+        input.phone.isEmpty ? null : _withPeruPrefix(input.phone);
     // Mutacion via RPC SECURITY DEFINER (ADR-0015).
     await _client.rpc(
       'update_staff_self',
       params: {
         'p_full_name': fullName,
-        'p_phone': input.phone.isEmpty ? null : input.phone,
+        'p_phone': phone,
       },
     );
   }
+
+  String _withPeruPrefix(String phone) =>
+      phone.startsWith('+51') ? phone : '+51$phone';
 
   @override
   Future<void> updateStaffAvatar({required String localImagePath}) async {

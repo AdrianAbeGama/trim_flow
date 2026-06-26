@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:trim_flow/core/constants/app_roles.dart';
 import 'package:trim_flow/core/staff/domain/models/staff_member.dart';
 import 'package:trim_flow/core/staff/domain/repositories/staff_repository.dart';
-
-const List<String> _kAcceptedRoles = ['barber', 'tenant_admin', 'super_admin'];
 
 @LazySingleton(as: StaffRepository)
 class StaffSupabaseRepository implements StaffRepository {
@@ -25,7 +24,7 @@ class StaffSupabaseRepository implements StaffRepository {
 
       final rows = await filtered
           .eq('is_active', true)
-          .inFilter('role', _kAcceptedRoles)
+          .inFilter('role', AppRoles.accepted)
           .filter('deleted_at', 'is', null)
           .order('full_name', ascending: true);
 
@@ -36,7 +35,7 @@ class StaffSupabaseRepository implements StaffRepository {
           specialty: row['specialty'] as String?,
           avatarUrl: row['avatar_url'] as String?,
           phone: row['phone'] as String?,
-          role: (row['role'] as String?) ?? 'barber',
+          role: (row['role'] as String?) ?? AppRoles.barber,
           isActive: (row['is_active'] as bool?) ?? true,
         );
       }).toList();

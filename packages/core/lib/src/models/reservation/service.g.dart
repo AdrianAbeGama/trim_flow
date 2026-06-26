@@ -14,6 +14,7 @@ _Service _$ServiceFromJson(Map<String, dynamic> json) => _Service(
   durationInMinutes: (json['durationInMinutes'] as num).toInt(),
   category: json['category'] as String,
   isFeatured: json['isFeatured'] as bool? ?? false,
+  description: json['description'] as String? ?? '',
 );
 
 Map<String, dynamic> _$ServiceToJson(_Service instance) => <String, dynamic>{
@@ -24,4 +25,5 @@ Map<String, dynamic> _$ServiceToJson(_Service instance) => <String, dynamic>{
   'durationInMinutes': instance.durationInMinutes,
   'category': instance.category,
   'isFeatured': instance.isFeatured,
+  'description': instance.description,
 };

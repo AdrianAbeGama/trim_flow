@@ -9,14 +9,18 @@ import 'package:trim_flow/features/profile/presentation/widgets/profile_view/pro
 
 class ProfileHistoryTimeline extends StatelessWidget {
   const ProfileHistoryTimeline({
-    super.key,required this.history});
+    super.key,
+    required this.history,
+    this.hasMore = false,
+  });
 
   final List<PastAppointment> history;
+  final bool hasMore;
 
   @override
   Widget build(BuildContext context) {
     final preview = history.take(3).toList();
-    final hasMore = history.length > 3;
+    final showViewAll = history.length > 3 && hasMore;
     final gold = context.primaryGold;
 
     return SliverToBoxAdapter(
@@ -37,16 +41,16 @@ class ProfileHistoryTimeline extends StatelessWidget {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
               ),
               child: history.isEmpty
-                  ? _HistoryEmpty(gold: gold)
+                  ? const _HistoryEmpty()
                   : Column(
                       children: [
                         for (var i = 0; i < preview.length; i++)
                           ProfileHistoryRowItem(
                             item: preview[i],
-                            isLast: i == preview.length - 1 && !hasMore,
+                            isLast: i == preview.length - 1 && !showViewAll,
                             onTap: () => ProfileHistoryDetailSheet.show(context, preview[i]),
                           ),
-                        if (hasMore)
+                        if (showViewAll)
                           _ViewAllRow(
                             total: history.length,
                             history: history,
@@ -64,200 +68,24 @@ class ProfileHistoryTimeline extends StatelessWidget {
   }
 }
 
-/// Empty state premium del historial — muestra 2 ejemplos muted con
-/// label "VISTA PREVIA" arriba + descripción debajo.
+/// Empty state premium del historial — sin cortes todavía.
 class _HistoryEmpty extends StatelessWidget {
-  const _HistoryEmpty({required this.gold});
-
-  final Color gold;
-
-  // Ejemplos: mezclamos completados + uno cancelado + uno con descuento.
-  static final List<_HistoryExample> _samples = [
-    _HistoryExample(
-      service: 'Corte Clásico',
-      barber: 'Carlos Mendoza',
-      dateStr: 'Hace 2 días',
-      price: 35,
-      isCompleted: true,
-      wasDiscounted: false,
-    ),
-    _HistoryExample(
-      service: 'Barba Premium',
-      barber: 'Miguel Soto',
-      dateStr: 'Hace 1 semana',
-      price: null,
-      isCompleted: false,
-      wasDiscounted: false,
-    ),
-    _HistoryExample(
-      service: 'Corte + Barba',
-      barber: 'Carlos Mendoza',
-      dateStr: 'Hace 3 semanas',
-      price: 30,
-      isCompleted: true,
-      wasDiscounted: true,
-    ),
-  ];
+  const _HistoryEmpty();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Pill label "VISTA PREVIA"
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: gold.withValues(alpha: 0.18)),
-                ),
-                child: Text(
-                  'VISTA PREVIA',
-                  style: GoogleFonts.inter(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w800,
-                    color: gold,
-                    letterSpacing: 1.4,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Así se verá cuando hagas tu primer corte',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.42),
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Text(
+        'Aún no tienes historial',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.inter(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Colors.white.withValues(alpha: 0.3),
         ),
-
-        // Sample rows con fade overlay para indicar que son ejemplo
-        Stack(
-          children: [
-            Opacity(
-              opacity: 0.55,
-              child: Column(
-                children: [
-                  for (var i = 0; i < _samples.length; i++)
-                    _HistoryExampleRow(
-                      item: _samples[i],
-                      gold: gold,
-                      isLast: i == _samples.length - 1,
-                    ),
-                ],
-              ),
-            ),
-            // Gradient fade overlay para reforzar visualmente que es preview
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        const Color(0xFF111111).withValues(alpha: 0.4),
-                      ],
-                      stops: const [0.5, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Modelo simple solo para el preview del empty state.
-class _HistoryExample {
-  final String service;
-  final String barber;
-  final String dateStr;
-  final double? price;
-  final bool isCompleted;
-  final bool wasDiscounted;
-
-  _HistoryExample({
-    required this.service,
-    required this.barber,
-    required this.dateStr,
-    required this.price,
-    required this.isCompleted,
-    required this.wasDiscounted,
-  });
-}
-
-/// Render row del preview — igual visual al row real pero usa _HistoryExample.
-class _HistoryExampleRow extends StatelessWidget {
-  const _HistoryExampleRow({
-    required this.item,
-    required this.gold,
-    this.isLast = false,
-  });
-
-  final _HistoryExample item;
-  final Color gold;
-  final bool isLast;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent =
-        item.isCompleted ? context.primaryGold : const Color(0xFFCF6679);
-
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          HistoryStatusCircle(accent: accent, isCompleted: item.isCompleted),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.service,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.3),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${item.barber} · ${item.dateStr}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.4)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          HistoryTrailing(
-            price: item.price,
-            accent: accent,
-            gold: gold,
-            discounted: item.wasDiscounted,
-            isCompleted: item.isCompleted,
-          ),
-        ],
       ),
     );
-    if (isLast) return row;
-    return Column(children: [row, const HistoryRowDivider()]);
   }
 }
 

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:trim_flow/core/theme/default_tenant_colors.dart';
 import 'package:trim_flow/core/theme/tenant_branding_colors.dart';
+import 'package:trim_flow/core/theme/tenant_contact.dart';
 import 'package:trim_flow/core/theme/tenant_info.dart';
 
 const String kDefaultTenantId = 'default';
@@ -128,6 +129,33 @@ class TenantThemeBloc extends Cubit<TenantThemeState> {
 
   void loadTenant(String tenantId) {
     emit(state.copyWith(tenantId: tenantId));
+  }
+
+  /// Lee el contacto del negocio activo desde `tenants.branding.contact`.
+  /// La politica `tenants_select_public` permite esta lectura a cliente y
+  /// staff. Si no hay tenant resuelto o falla, devuelve un contacto vacio.
+  Future<TenantContact> fetchActiveTenantContact() async {
+    final tenantId = state.tenantId;
+    if (tenantId.isEmpty || tenantId == kDefaultTenantId) {
+      return const TenantContact();
+    }
+    try {
+      final row = await Supabase.instance.client
+          .from('tenants')
+          .select('branding')
+          .eq('id', tenantId)
+          .filter('deleted_at', 'is', null)
+          .maybeSingle();
+      final branding = row?['branding'] as Map<String, dynamic>?;
+      final contact = branding?['contact'] as Map<String, dynamic>?;
+      if (contact == null) return const TenantContact();
+      return TenantContact(
+        phone: contact['phone'] as String?,
+        email: contact['email'] as String?,
+      );
+    } catch (_) {
+      return const TenantContact();
+    }
   }
 
   Future<void> loadTenantFromAuth() async {

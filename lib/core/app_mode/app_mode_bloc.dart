@@ -218,6 +218,9 @@ class AppModeBloc extends Bloc<AppModeEvent, AppModeState> {
     }
   }
 
+  // El flavor (app.dart) sigue forzando el modo barbero via setAccessCode('2');
+  // este mapeo traduce ese codigo (y el persistido en instalaciones viejas) a
+  // un AppMode antes de resolver el modo final. No es ruta muerta.
   AppMode? _mapLegacyCodeToMode(String code) {
     switch (code) {
       case '1':

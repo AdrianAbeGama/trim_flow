@@ -6,47 +6,6 @@ import 'package:trim_flow/features/profile/presentation/bloc/profile_state.dart'
 const int kLoyaltyRewardThreshold = 7;
 
 class CustomerProfileMapper {
-  static ProfileLoadResult fromRow({
-    required Map<String, dynamic> row,
-    required User authUser,
-    required String fallbackTenantId,
-  }) {
-    final fullName = (row['full_name'] as String?) ?? _metaFullName(authUser) ?? 'Usuario';
-    final parts = _splitName(fullName);
-    final tenantId = (row['tenant_id'] as String?) ?? fallbackTenantId;
-    final pointsRaw = row['points'];
-    final points = pointsRaw is int ? pointsRaw : int.tryParse('$pointsRaw') ?? 0;
-    final loyaltyCount = points.clamp(0, kLoyaltyRewardThreshold);
-    final birthDate = (row['birth_date'] as String?) ?? '';
-    final email = (row['email'] as String?) ?? authUser.email ?? '';
-    final whatsapp = (row['whatsapp'] as String?) ?? '';
-    final phone = _normalizeWhatsapp(whatsapp);
-
-    final user = UserProfile(
-      tenantId: tenantId,
-      id: authUser.id,
-      customerId: row['id'] as String?,
-      firstName: parts.$1,
-      lastName: parts.$2,
-      email: email,
-      photoUrl: _metaAvatar(authUser) ?? '',
-      phone: phone,
-      birthDate: birthDate,
-      notificationsEnabled: true,
-      completedCuts: loyaltyCount,
-    );
-
-    return ProfileLoadResult(
-      user: user,
-      loyaltyPoints: loyaltyCount,
-      isRewardAvailable: points >= kLoyaltyRewardThreshold,
-      clientCode: (row['client_code'] as String?)?.trim().isNotEmpty == true
-          ? row['client_code'] as String?
-          : null,
-      lastVisit: _formatLastVisit(row['last_visit_at'] as String?),
-    );
-  }
-
   /// Mapea la respuesta de la RPC get_my_profile (backend) a ProfileLoadResult.
   static ProfileLoadResult fromMyProfile({
     required Map<String, dynamic> json,
@@ -195,7 +154,8 @@ class ReservationMapper {
 
     final branchName = json['branchName'] as String?;
     final center = (branchName == null || branchName.trim().isEmpty)
-        ? const BarberCenter(tenantId: '', id: '', name: '', location: '')
+        ? const BarberCenter(
+            tenantId: '', id: '', name: '', location: '')
         : BarberCenter(
             tenantId: tenantId,
             id: (json['branchId'] as String?) ?? '',
@@ -351,9 +311,3 @@ String _formatDate(DateTime dt) {
   return '$dd / $mm / ${dt.year}';
 }
 
-String? _formatLastVisit(String? raw) {
-  if (raw == null || raw.isEmpty) return null;
-  final dt = DateTime.tryParse(raw)?.toLocal();
-  if (dt == null) return null;
-  return _formatDate(dt);
-}

@@ -23,20 +23,6 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
     on<GalleryCategoryDeleted>(_onCategoryDeleted);
     on<GalleryFilterModeChanged>(_onFilterModeChanged);
     on<GalleryBarberSelected>(_onBarberSelected);
-    on<GalleryItemsReordered>(_onItemsReordered);
-  }
-
-  Future<void> _onItemsReordered(
-    GalleryItemsReordered event,
-    Emitter<GalleryState> emit,
-  ) async {
-    try {
-      await _repository.reorderItems(event.orderedBoxKeys);
-      final items = await _repository.loadAll();
-      emit(state.copyWith(allItems: items));
-    } catch (e) {
-      debugPrint('GalleryBloc.reorder error: $e');
-    }
   }
 
   void _onFilterModeChanged(GalleryFilterModeChanged event, Emitter<GalleryState> emit) {
@@ -91,9 +77,10 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
       await _repository.addItem(event.item);
       final items = await _repository.loadAll();
       final cats = await _repository.loadCategories();
-      emit(state.copyWith(allItems: items, categories: cats));
+      emit(state.copyWith(allItems: items, categories: cats, actionError: null));
     } catch (e) {
       debugPrint('GalleryBloc.add error: $e');
+      emit(state.copyWith(actionError: 'No pudimos subir la foto.'));
     }
   }
 
@@ -102,9 +89,10 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
       await _repository.deleteItem(event.boxKey);
       final items = await _repository.loadAll();
       final cats = await _repository.loadCategories();
-      emit(state.copyWith(allItems: items, categories: cats));
+      emit(state.copyWith(allItems: items, categories: cats, actionError: null));
     } catch (e) {
       debugPrint('GalleryBloc.delete error: $e');
+      emit(state.copyWith(actionError: 'No pudimos eliminar la foto.'));
     }
   }
 
@@ -121,11 +109,12 @@ class GalleryBloc extends Bloc<GalleryEvent, GalleryState> {
       final updated = current.copyWith(isFeatured: !current.isFeatured);
       
       await _repository.updateItem(updated);
-      
+
       final items = await _repository.loadAll();
-      emit(state.copyWith(allItems: items));
+      emit(state.copyWith(allItems: items, actionError: null));
     } catch (e) {
       debugPrint('GalleryBloc.toggleFeatured error: $e');
+      emit(state.copyWith(actionError: 'No pudimos actualizar el destacado.'));
     }
   }
 

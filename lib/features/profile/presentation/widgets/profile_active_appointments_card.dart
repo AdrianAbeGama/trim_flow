@@ -241,7 +241,11 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
         ? DateFormat("EEE d 'de' MMM", 'es').format(widget.record.date!)
         : '—';
     final timeStr = widget.record.time ?? '—';
-    final centerName = widget.record.center?.name ?? 'Sede Principal';
+    final rawCenterName = widget.record.center?.name.trim() ?? '';
+    final hasSede = rawCenterName.isNotEmpty &&
+        rawCenterName != 'Sede por confirmar';
+    final centerName =
+        hasSede ? rawCenterName : 'Sede no disponible';
     final professionalName = widget.record.professional?.name ?? 'Disponible';
     final serviceNames = widget.record.services.map((s) => s.name).join(', ');
     final priceStr = 'S/ ${widget.record.totalPrice.toStringAsFixed(2)}';
@@ -381,12 +385,16 @@ class _GlassmorphicAppointmentCardState extends State<_GlassmorphicAppointmentCa
                           // Sede + Precio
                           Row(
                             children: [
-                              const Icon(Icons.place_outlined, color: Colors.white38, size: 13),
+                              Icon(Icons.place_outlined, color: Colors.white.withValues(alpha: hasSede ? 0.5 : 0.25), size: 13),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   centerName,
-                                  style: const TextStyle(color: Colors.white38, fontSize: 11),
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: hasSede ? 0.55 : 0.3),
+                                    fontSize: 11,
+                                    fontStyle: hasSede ? FontStyle.normal : FontStyle.italic,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),

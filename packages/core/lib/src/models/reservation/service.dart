@@ -13,6 +13,7 @@ abstract class Service with _$Service {
     required int durationInMinutes,
     required String category,
     @Default(false) bool isFeatured,
+    @Default('') String description,
   }) = _Service;
 
   factory Service.fromJson(Map<String, dynamic> json) =>

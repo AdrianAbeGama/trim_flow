@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_event.dart';
+import 'package:trim_flow/core/constants/app_roles.dart';
 import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/app_toast.dart';
@@ -187,25 +188,15 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
 
   Future<void> _confirmLogout() async {
     HapticFeedback.mediumImpact();
-    final ok = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Seguro que quieres salir de tu cuenta?'),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
-      ),
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Cerrar sesión',
+      message:
+          '¿Seguro que quieres salir de tu cuenta? Tendrás que volver a iniciar sesión.',
+      confirmLabel: 'CERRAR SESIÓN',
+      icon: Icons.logout_rounded,
     );
-    if (ok == true && mounted) {
+    if (ok && mounted) {
       context.read<AppModeBloc>().add(const AppModeEvent.requestLogout());
     }
   }
@@ -242,8 +233,7 @@ class _BarberProfileBodyState extends State<_BarberProfileBody> {
                   context.read<ProfileBloc>().add(const ProfileEvent.load()),
             );
           }
-          final isAdmin =
-              user.role == 'tenant_admin' || user.role == 'super_admin';
+          final isAdmin = isAdminRole(user.role);
 
           return RefreshIndicator(
             onRefresh: _onRefresh,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/gallery/data/gallery_favorites_store.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
@@ -15,9 +16,11 @@ import 'package:trim_flow/features/gallery/presentation/widgets/gallery_primitiv
 /// pero con tokens del nuevo design language: Inter typography, dark cards,
 /// dorado #D4AF37, sin opacity deprecated.
 class GalleryFavoritesSheet extends StatelessWidget {
-  const GalleryFavoritesSheet({super.key});
+  const GalleryFavoritesSheet({super.key, this.isBarberMode = false});
 
-  static void show(BuildContext context) {
+  final bool isBarberMode;
+
+  static void show(BuildContext context, {bool isBarberMode = false}) {
     final bloc = context.read<GalleryBloc>();
     showModalBottomSheet<void>(
       context: context,
@@ -28,7 +31,7 @@ class GalleryFavoritesSheet extends StatelessWidget {
       ),
       builder: (_) => BlocProvider.value(
         value: bloc,
-        child: const GalleryFavoritesSheet(),
+        child: GalleryFavoritesSheet(isBarberMode: isBarberMode),
       ),
     );
   }
@@ -36,70 +39,85 @@ class GalleryFavoritesSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final gold = context.primaryGold;
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.78),
       child: BlocBuilder<GalleryBloc, GalleryState>(
         builder: (context, state) {
+          if (!isBarberMode) {
+            return ValueListenableBuilder<Set<String>>(
+              valueListenable: GalleryFavoritesStore.instance.favorites,
+              builder: (context, favs, _) {
+                final favorites = state.allItems
+                    .where((p) => favs.contains(galleryFavoriteId(p)))
+                    .toList();
+                return _buildBody(context, favorites);
+              },
+            );
+          }
           final favorites = state.allItems.where((p) => p.isFeatured).toList();
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Grab handle
-                Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                // === Header centrado: spacer | título | fullscreen icon ===
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 44), // spacer simétrico
-                    Text(
-                      'MIS DESTACADOS',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                    _IconBtn(
-                      icon: Icons.fullscreen_rounded,
-                      onTap: () => _openFullView(context),
-                    ),
-                  ],
-                ),
-                if (favorites.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  _PulsingInstruction(
-                    text: 'Desliza a la izquierda para eliminar',
-                    color: gold,
-                  ),
-                ],
-                const SizedBox(height: 16),
-                // === Contenido ===
-                if (favorites.isEmpty)
-                  _EmptyBlock(gold: gold)
-                else
-                  Flexible(
-                    child: _CompactList(items: favorites),
-                  ),
-                const SizedBox(height: 22),
-                // === CTA SEGUIR EXPLORANDO ===
-                _SeguirExplorandoButton(
-                  onTap: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          );
+          return _buildBody(context, favorites);
         },
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, List<GalleryItem> favorites) {
+    final gold = context.primaryGold;
+    final title = isBarberMode ? 'MIS DESTACADOS' : 'MIS FAVORITOS';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Grab handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 14),
+          // === Header centrado: spacer | título | fullscreen icon ===
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const SizedBox(width: 44), // spacer simétrico
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 2,
+                ),
+              ),
+              _IconBtn(
+                icon: Icons.fullscreen_rounded,
+                onTap: () => _openFullView(context),
+              ),
+            ],
+          ),
+          if (favorites.isNotEmpty && isBarberMode) ...[
+            const SizedBox(height: 10),
+            _PulsingInstruction(
+              text: 'Desliza a la izquierda para eliminar',
+              color: gold,
+            ),
+          ],
+          const SizedBox(height: 16),
+          // === Contenido ===
+          if (favorites.isEmpty)
+            _EmptyBlock(gold: gold, isBarberMode: isBarberMode)
+          else
+            Flexible(
+              child: _CompactList(items: favorites, isBarberMode: isBarberMode),
+            ),
+          const SizedBox(height: 22),
+          // === CTA SEGUIR EXPLORANDO ===
+          _SeguirExplorandoButton(onTap: () => Navigator.pop(context)),
+        ],
       ),
     );
   }
@@ -113,7 +131,7 @@ class GalleryFavoritesSheet extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (_) => BlocProvider.value(
           value: bloc,
-          child: const GalleryFavoritesFullView(),
+          child: GalleryFavoritesFullView(isBarberMode: isBarberMode),
         ),
       ),
     );
@@ -125,8 +143,9 @@ class GalleryFavoritesSheet extends StatelessWidget {
 // ============================================================================
 
 class _CompactList extends StatelessWidget {
-  const _CompactList({required this.items});
+  const _CompactList({required this.items, required this.isBarberMode});
   final List<GalleryItem> items;
+  final bool isBarberMode;
 
   @override
   Widget build(BuildContext context) {
@@ -136,13 +155,85 @@ class _CompactList extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
-      separatorBuilder: (_, _) => Divider(
-        color: Colors.white.withValues(alpha: 0.04),
-        height: 14,
-      ),
+      separatorBuilder: (_, _) =>
+          Divider(color: Colors.white.withValues(alpha: 0.04), height: 14),
       itemBuilder: (context, index) {
         final item = items[index];
         final itemId = item.id;
+        final row = GestureDetector(
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => BlocProvider.value(
+                  value: context.read<GalleryBloc>(),
+                  child: GalleryFullscreenViewer(
+                    items: items,
+                    initialIndex: index,
+                    isBarberMode: isBarberMode,
+                  ),
+                ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: GalleryItemImage(item: item, width: 48, height: 48),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (item.barberFullName ?? 'Tu portafolio').toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item.categoryLabel.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: gold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isBarberMode)
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.star_rounded,
+                    color: Color(0xFFFFC93C),
+                    size: 22,
+                  ),
+                  onPressed: () {
+                    if (itemId != null) {
+                      HapticFeedback.lightImpact();
+                      context.read<GalleryBloc>().add(
+                        GalleryEvent.itemToggledFeatured(itemId),
+                      );
+                    }
+                  },
+                ),
+            ],
+          ),
+        );
+        if (!isBarberMode) return row;
         return Dismissible(
           key: ValueKey('fav_compact_${itemId ?? item.externalId}'),
           direction: DismissDirection.endToStart,
@@ -162,77 +253,11 @@ class _CompactList extends StatelessWidget {
             if (itemId != null) {
               HapticFeedback.lightImpact();
               context.read<GalleryBloc>().add(
-                    GalleryEvent.itemToggledFeatured(itemId),
-                  );
+                GalleryEvent.itemToggledFeatured(itemId),
+              );
             }
           },
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => BlocProvider.value(
-                    value: context.read<GalleryBloc>(),
-                    child: GalleryFullscreenViewer(
-                      items: items,
-                      initialIndex: index,
-                    ),
-                  ),
-                ),
-              );
-            },
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: GalleryItemImage(item: item, width: 48, height: 48),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        (item.barberFullName ?? 'Tu portafolio').toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item.categoryLabel.toUpperCase(),
-                        style: GoogleFonts.inter(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          color: gold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.star_rounded, color: Color(0xFFFFC93C), size: 22),
-                  onPressed: () {
-                    if (itemId != null) {
-                      HapticFeedback.lightImpact();
-                      context
-                          .read<GalleryBloc>()
-                          .add(GalleryEvent.itemToggledFeatured(itemId));
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
+          child: row,
         );
       },
     );
@@ -244,8 +269,9 @@ class _CompactList extends StatelessWidget {
 // ============================================================================
 
 class _EmptyBlock extends StatelessWidget {
-  const _EmptyBlock({required this.gold});
+  const _EmptyBlock({required this.gold, this.isBarberMode = false});
   final Color gold;
+  final bool isBarberMode;
 
   @override
   Widget build(BuildContext context) {
@@ -255,13 +281,17 @@ class _EmptyBlock extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.star_border_rounded,
+            isBarberMode
+                ? Icons.star_border_rounded
+                : Icons.bookmark_border_rounded,
             color: Colors.white.withValues(alpha: 0.22),
             size: 36,
           ),
           const SizedBox(height: 12),
           Text(
-            'AÚN NO TIENES DESTACADOS',
+            isBarberMode
+                ? 'AÚN NO TIENES DESTACADOS'
+                : 'AÚN NO TIENES FAVORITOS',
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w900,
@@ -271,7 +301,9 @@ class _EmptyBlock extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Toca la estrella en cualquier corte para marcarlo.',
+            isBarberMode
+                ? 'Toca la estrella en cualquier corte para marcarlo.'
+                : 'Toca el marcador en cualquier corte para guardarlo.',
             style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.w500,
@@ -345,7 +377,8 @@ class _SeguirExplorandoButton extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_SeguirExplorandoButton> createState() => _SeguirExplorandoButtonState();
+  State<_SeguirExplorandoButton> createState() =>
+      _SeguirExplorandoButtonState();
 }
 
 class _SeguirExplorandoButtonState extends State<_SeguirExplorandoButton> {
@@ -417,7 +450,8 @@ class _IconBtnState extends State<_IconBtn> {
         scale: _pressed ? 0.85 : 1,
         duration: const Duration(milliseconds: 140),
         child: SizedBox(
-          width: 44, height: 44,
+          width: 44,
+          height: 44,
           child: Icon(
             widget.icon,
             color: Colors.white.withValues(alpha: 0.72),
@@ -451,7 +485,8 @@ class GalleryFavoritesActionIcon extends StatelessWidget {
         GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFF161616),
               shape: BoxShape.circle,
@@ -460,13 +495,16 @@ class GalleryFavoritesActionIcon extends StatelessWidget {
             child: Icon(
               Icons.star_rounded,
               size: 17,
-              color: count > 0 ? const Color(0xFFFFC93C) : Colors.white.withValues(alpha: 0.5),
+              color: count > 0
+                  ? const Color(0xFFFFC93C)
+                  : Colors.white.withValues(alpha: 0.5),
             ),
           ),
         ),
         if (count > 0)
           Positioned(
-            top: -2, right: -2,
+            top: -2,
+            right: -2,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               constraints: const BoxConstraints(minWidth: 16),

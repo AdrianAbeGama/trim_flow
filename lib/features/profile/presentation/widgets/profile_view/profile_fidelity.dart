@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/core/widgets/premium/ripple_border_card.dart';
+import 'package:trim_flow/features/profile/data/mappers/profile_mappers.dart';
 import 'package:trim_flow/features/profile/presentation/widgets/profile_view/profile_primitives.dart';
 
 class ProfileFidelityHero extends StatefulWidget {
@@ -20,7 +21,7 @@ class ProfileFidelityHero extends StatefulWidget {
   final bool isRewardAvailable;
   final VoidCallback onClaim;
 
-  static const int _goal = 8;
+  static const int _goal = kLoyaltyRewardThreshold;
 
   @override
   State<ProfileFidelityHero> createState() => _FidelityHeroState();
@@ -144,7 +145,7 @@ class _FidelityHeroState extends State<ProfileFidelityHero>
               ),
               const SizedBox(height: 22),
 
-              // 8 círculos con wave
+              // Círculos con wave
               AnimatedBuilder(
                 animation: _waveCtrl,
                 builder: (_, _) {
@@ -221,7 +222,7 @@ class _FidelityHeroState extends State<ProfileFidelityHero>
   }
 }
 
-/// Fila de 8 círculos con water effect — cada círculo lleno tiene una
+/// Fila de círculos con water effect — cada círculo lleno tiene una
 /// onda animada continua dentro (simulando agua moviéndose).
 class _CirclesRow extends StatelessWidget {
   const _CirclesRow({

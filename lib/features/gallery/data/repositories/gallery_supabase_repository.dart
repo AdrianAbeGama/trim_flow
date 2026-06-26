@@ -290,9 +290,6 @@ class GallerySupabaseRepository implements GalleryRepository {
     await _client.rpc('delete_gallery_item', params: {'p_item_id': remote});
   }
 
-  @override
-  Future<void> reorderItems(List<int> orderedIsarIds) async {}
-
   // Categorías = servicios reales del catálogo (solo lectura desde la app).
   @override
   Future<void> addCategory(GalleryCategory category) async {}

@@ -18,14 +18,9 @@ class CatalogMappers {
         .whereType<Map<String, dynamic>>()
         .map((r) => _teamMember(r, tenantId))
         .toList();
-    // Solo sedes con al menos un barbero: una sede sin barberos no es reservable
-    // (si no, el paso de barbero/hora se queda sin opciones y nunca carga).
-    final branchesWithBarbers =
-        team.map((m) => m.branchId).whereType<String>().toSet();
     final centers = branchRows
         .whereType<Map<String, dynamic>>()
         .map((r) => _center(r, tenantId))
-        .where((c) => branchesWithBarbers.contains(c.id))
         .toList();
     return TenantCatalog(centers: centers, services: services, team: team);
   }
@@ -41,26 +36,44 @@ class CatalogMappers {
   }
 
   static Service _service(Map<String, dynamic> r, String tenantId) {
+    final categoryName = _categoryName(r['categories']);
     return Service(
       tenantId: tenantId,
       id: r['id'] as String,
       name: (r['name'] as String?) ?? 'Servicio',
       price: (r['price_pen'] as num?)?.toDouble() ?? 0,
       durationInMinutes: (r['duration_minutes'] as num?)?.toInt() ?? 0,
-      category: 'Servicios',
+      category: (categoryName != null && categoryName.trim().isNotEmpty)
+          ? categoryName.trim()
+          : 'Otros',
       isFeatured: (r['is_featured'] as bool?) ?? false,
+      description: (r['description'] as String?)?.trim() ?? '',
     );
   }
 
+  /// El embed `categories(name)` de PostgREST suele venir como objeto, pero
+  /// puede venir como lista; soportamos ambos para no romper la reserva.
+  static String? _categoryName(dynamic raw) {
+    if (raw is Map) return raw['name'] as String?;
+    if (raw is List && raw.isNotEmpty && raw.first is Map) {
+      return (raw.first as Map)['name'] as String?;
+    }
+    return null;
+  }
+
+  /// Filas de get_public_barbers (camelCase: fullName/avatarUrl/branchId, sin
+  /// specialty ni hired_at). Aceptamos tambien las claves snake_case por
+  /// compatibilidad. branchId se preserva porque reservation_view filtra el
+  /// equipo por sucursal.
   static TeamMember _teamMember(Map<String, dynamic> r, String tenantId) {
     return TeamMember(
       tenantId: tenantId,
       id: r['id'] as String,
-      fullName: (r['full_name'] as String?) ?? 'Barbero',
+      fullName: (r['fullName'] ?? r['full_name']) as String? ?? 'Barbero',
       yearsOfExperience: _yearsFrom(r['hired_at'] as String?),
       specialty: r['specialty'] as String?,
-      avatarUrl: r['avatar_url'] as String?,
-      branchId: r['branch_id'] as String?,
+      avatarUrl: (r['avatarUrl'] ?? r['avatar_url']) as String?,
+      branchId: (r['branchId'] ?? r['branch_id']) as String?,
     );
   }
 

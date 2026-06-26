@@ -118,6 +118,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           isRewardAvailable: false,
           scheduledAppointments: const [],
           appointmentHistory: const [],
+          recentHasMore: false,
         ));
         return;
       }
@@ -139,6 +140,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: reservations.upcoming,
           appointmentHistory: reservations.recent,
+          recentHasMore: reservations.recentHasMore,
           coupons: coupons,
           clientCode: result.clientCode,
           lastVisit: result.lastVisit,
@@ -153,6 +155,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           isRewardAvailable: result.isRewardAvailable,
           scheduledAppointments: const [],
           appointmentHistory: const [],
+          recentHasMore: false,
           clientCode: result.clientCode,
           lastVisit: result.lastVisit,
           branchName: result.branchName,
@@ -164,6 +167,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         status: ProfileStatus.error,
         scheduledAppointments: const [],
         appointmentHistory: const [],
+        recentHasMore: false,
       ));
     }
   }
@@ -213,11 +217,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final mode = _currentMode();
 
     final isBarberMode = mode == AppMode.barber;
+    final birthDate = isBarberMode ? '' : _toIsoDate(event.birthDate);
     final input = ProfileUpdateInput(
       firstName: event.firstName,
       lastName: event.lastName,
       phone: event.phone,
-      birthDate: isBarberMode ? '' : event.birthDate,
+      birthDate: birthDate,
     );
 
     try {
@@ -239,7 +244,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         firstName: event.firstName,
         lastName: event.lastName,
         phone: event.phone,
-        birthDate: isBarberMode ? currentUser.birthDate : event.birthDate,
+        birthDate: isBarberMode ? currentUser.birthDate : birthDate,
       );
 
       emit(state.copyWith(
@@ -418,6 +423,26 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       default:
         return ('Alerta de Sistema', '¡Hola! Tu administrador ha actualizado el catálogo de servicios de la sede.');
     }
+  }
+
+  /// Normaliza la fecha de nacimiento a ISO (YYYY-MM-DD) para Postgres `date`.
+  /// El input del formulario llega como DD/MM/AAAA; lo vacio o incompleto se
+  /// envia como '' para no romper ni la RPC ni el render con DateTime.parse.
+  String _toIsoDate(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return '';
+    if (DateTime.tryParse(value) != null) return value;
+    final parts = value.split('/');
+    if (parts.length != 3) return '';
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (day == null || month == null || year == null) return '';
+    if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+    final dd = day.toString().padLeft(2, '0');
+    final mm = month.toString().padLeft(2, '0');
+    final yyyy = year.toString().padLeft(4, '0');
+    return '$yyyy-$mm-$dd';
   }
 
   UserProfile _fallbackUser(String authUserId, String? email, String tenantId) {

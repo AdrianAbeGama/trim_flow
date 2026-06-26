@@ -29,6 +29,7 @@ class GalleryCreateFormView extends StatefulWidget {
 class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
   final List<PendingShot> _shots = [];
   GalleryCategory? _selectedCategory;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -95,14 +96,18 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
   }
 
   Future<void> _submit() async {
-    if (_shots.isEmpty || _selectedCategory == null) return;
+    if (_shots.isEmpty || _selectedCategory == null || _submitting) return;
     final bloc = context.read<GalleryBloc>();
     final overlay = Overlay.of(context, rootOverlay: true);
     final count = _shots.length;
     final now = DateTime.now();
     HapticFeedback.mediumImpact();
+    setState(() => _submitting = true);
+
+    var failed = false;
     for (var i = 0; i < _shots.length; i++) {
       final shot = _shots[i];
+      final added = bloc.stream.first;
       bloc.add(GalleryEvent.itemAdded(GalleryItem(
         externalId: 'local_${now.microsecondsSinceEpoch}_$i',
         imageUrl: shot.path,
@@ -112,8 +117,21 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
         createdAt: now.add(Duration(milliseconds: i)),
         displayOrder: i,
       )));
+      if ((await added).actionError != null) {
+        failed = true;
+        break;
+      }
     }
+
     if (!mounted) return;
+    setState(() => _submitting = false);
+    if (failed) {
+      AppToast.showOn(overlay,
+          type: AppToastType.error,
+          title: 'No pudimos subir',
+          message: 'Revisa tu conexión e inténtalo de nuevo.');
+      return;
+    }
     Navigator.pop(context);
     AppToast.showOn(overlay,
         type: AppToastType.success,
@@ -129,7 +147,8 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
         backgroundColor: const Color(0xFF0A0A0A),
         body: BlocBuilder<GalleryBloc, GalleryState>(
           builder: (context, state) {
-            final canSubmit = _shots.isNotEmpty && _selectedCategory != null;
+            final canSubmit =
+                _shots.isNotEmpty && _selectedCategory != null && !_submitting;
             return SafeArea(
               bottom: false,
               child: Column(
@@ -183,11 +202,11 @@ class _GalleryCreateFormViewState extends State<GalleryCreateFormView> {
         ],
         const SizedBox(height: 24),
         GallerySubmitButton(
-          label: 'PUBLICAR EN PORTAFOLIO',
+          label: _submitting ? 'PUBLICANDO…' : 'PUBLICAR EN PORTAFOLIO',
           enabled: canSubmit,
           onTap: _submit,
         ),
-        if (!canSubmit) ...[
+        if (_shots.isEmpty || _selectedCategory == null) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),

@@ -5,7 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:core/core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:trim_flow/core/di/injection.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/features/barber/agenda/domain/models/agenda_appointment.dart';
+import 'package:trim_flow/features/barber/agenda/domain/repositories/agenda_repository.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_profile_stats.dart';
+import 'package:trim_flow/features/barber/view/widgets/barber_profile_today_agenda.dart';
 import 'package:trim_flow/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/features/reviews/presentation/widgets/review_prompt_card.dart';
@@ -54,42 +60,30 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  Future<AgendaTodaySummary>? _summaryFuture;
+  Future<List<AgendaAppointment>>? _agendaFuture;
+
   @override
   void initState() {
     super.initState();
     // Asegura que el catálogo (servicios/sedes reales) esté cargado para Inicio.
     context.read<CatalogBloc>().add(const CatalogEvent.load());
+    if (widget.isBarberMode) _loadBarberDay();
   }
 
-  // === MOCKS de fallback (solo si state.content.services/products vacíos) ===
-  static const List<HomeStyleItem> _fallbackServices = [
-    HomeStyleItem(name: 'Corte Clásico', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600', price: '35', duration: '30 min', featured: true),
-    HomeStyleItem(name: 'Barba Premium', image: 'https://images.unsplash.com/photo-1621605815841-2dddbaa20b2a?w=600', price: '25', duration: '20 min'),
-    HomeStyleItem(name: 'Corte + Barba', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600', price: '50', duration: '45 min'),
-    HomeStyleItem(name: 'Diseño Detalle', image: 'https://images.unsplash.com/photo-1521322800607-8c38375eef04?w=600', price: '45', duration: '40 min'),
-    HomeStyleItem(name: 'Fade Premium', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600', price: '40', duration: '35 min'),
-  ];
+  void _loadBarberDay() {
+    final barberId = Supabase.instance.client.auth.currentUser?.id;
+    if (barberId == null) return;
+    final repo = getIt<AgendaRepository>();
+    _summaryFuture = repo.fetchTodaySummary(barberId: barberId);
+    _agendaFuture =
+        repo.fetchAgendaForDay(barberId: barberId, day: DateTime.now());
+  }
 
-  static const List<HomeProductSpotlightItem> _fallbackProducts = [
-    HomeProductSpotlightItem(
-      name: 'Pomada Premium',
-      image: 'https://images.unsplash.com/photo-1581002527063-9d6e8e92e9aa?w=400',
-      price: '45',
-      description: 'Fijación fuerte con acabado mate. Para estilos definidos que duran todo el día.',
-    ),
-    HomeProductSpotlightItem(
-      name: 'Aceite de Barba',
-      image: 'https://images.unsplash.com/photo-1621607512214-68297480165e?w=400',
-      price: '38',
-      description: 'Suaviza, hidrata y perfuma. Ideal para barbas que necesitan cuidado diario.',
-    ),
-    HomeProductSpotlightItem(
-      name: 'Cera Mate',
-      image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400',
-      price: '32',
-      description: 'Textura ligera, sin brillo. Reactivable con agua durante el día.',
-    ),
-  ];
+  String _nextLabel(DateTime? next) {
+    if (next == null) return '—';
+    return '${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
+  }
 
   /// Servicios REALES del catálogo del tenant. Es la fuente principal para la
   /// sección "Servicios" de Inicio (los que configuró la barbería).
@@ -109,7 +103,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   List<HomeStyleItem> _servicesFrom(HomeContent c) {
-    if (c.services.isEmpty) return _fallbackServices;
+    if (c.services.isEmpty) return [];
     return c.services.map((s) {
       final priceRaw = s['price'] ?? '';
       final price = priceRaw.replaceAll('S/', '').replaceAll(RegExp(r'\s+'), '').trim();
@@ -124,7 +118,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   List<HomeProductSpotlightItem> _productsFrom(HomeContent c) {
-    if (c.products.isEmpty) return _fallbackProducts;
+    if (c.products.isEmpty) return [];
     return c.products.map((p) {
       final priceRaw = p['price'] ?? '';
       final price = priceRaw.replaceAll('S/', '').replaceAll(RegExp(r'\s+'), '').trim();
@@ -140,6 +134,7 @@ class _HomeViewState extends State<HomeView> {
   Future<void> _onRefresh() async {
     HapticFeedback.lightImpact();
     context.read<HomeBloc>().add(const HomeEvent.load());
+    if (widget.isBarberMode && mounted) setState(_loadBarberDay);
     await Future<void>.delayed(const Duration(milliseconds: 800));
   }
 
@@ -170,6 +165,33 @@ class _HomeViewState extends State<HomeView> {
               slivers: [
                 HomeTopBar(),
                 HomeBrandHero(content: state.content),
+                if (widget.isBarberMode && _summaryFuture != null)
+                  SliverToBoxAdapter(
+                    child: FutureBuilder<AgendaTodaySummary>(
+                      future: _summaryFuture,
+                      builder: (context, snap) {
+                        final s = snap.data;
+                        return BarberProfileStatsRow(
+                          cutsToday: s?.completedCuts ?? 0,
+                          revenueToday: s?.revenue ?? 0,
+                          nextLabel: _nextLabel(s?.nextStart),
+                        );
+                      },
+                    ),
+                  ),
+                if (widget.isBarberMode && _agendaFuture != null)
+                  SliverToBoxAdapter(
+                    child: FutureBuilder<List<AgendaAppointment>>(
+                      future: _agendaFuture,
+                      builder: (context, snap) {
+                        return BarberProfileTodayAgenda(
+                          appointments: snap.data ?? const [],
+                          loading:
+                              snap.connectionState == ConnectionState.waiting,
+                        );
+                      },
+                    ),
+                  ),
                 if (!widget.isBarberMode)
                   HomeNextAppointmentWidget(
                     onTap: widget.onNavigateToAppointments,

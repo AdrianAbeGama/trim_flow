@@ -6,12 +6,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
+import 'package:trim_flow/core/widgets/app_toast.dart';
+import 'package:trim_flow/features/gallery/data/gallery_favorites_store.dart';
 import 'package:trim_flow/features/gallery/domain/models/gallery_item.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart';
 import 'package:trim_flow/features/gallery/presentation/widgets/gallery_fullscreen_bottom_info.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
+
+/// Identificador estable de un item para favoritos locales del cliente: usa el
+/// boxKey remoto si existe, si no el externalId (items semilla/asset).
+String galleryFavoriteId(GalleryItem item) =>
+    item.id?.toString() ?? item.externalId;
 
 /// Visor a pantalla completa — limpio y premium. Swipe lateral entre fotos con
 /// flechas indicadoras izq/der, volver con flecha (arriba izq) y destacado
@@ -71,7 +78,9 @@ class _GalleryFullscreenViewerState extends State<GalleryFullscreenViewer> {
   Widget build(BuildContext context) {
     if (widget.items.isEmpty) {
       return const Scaffold(
-          backgroundColor: Colors.black, body: SizedBox.shrink());
+        backgroundColor: Colors.black,
+        body: SizedBox.shrink(),
+      );
     }
 
     final topPad = MediaQuery.of(context).padding.top;
@@ -81,139 +90,174 @@ class _GalleryFullscreenViewerState extends State<GalleryFullscreenViewer> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: widget.items.length,
-            physics: const BouncingScrollPhysics(),
-            onPageChanged: (i) => setState(() => _currentIndex = i),
-            itemBuilder: (_, i) => _FullImage(item: widget.items[i]),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.55),
-                      Colors.transparent,
-                    ],
+      body: BlocListener<GalleryBloc, GalleryState>(
+        listenWhen: (prev, curr) =>
+            curr.actionError != null && curr.actionError != prev.actionError,
+        listener: (context, state) {
+          AppToast.showOn(
+            Overlay.of(context, rootOverlay: true),
+            type: AppToastType.error,
+            title: 'No se pudo completar la acción',
+          );
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: widget.items.length,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: (i) => setState(() => _currentIndex = i),
+              itemBuilder: (_, i) => _FullImage(item: widget.items[i]),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.55),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: 420,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.5),
-                      Colors.black.withValues(alpha: 0.92),
-                      Colors.black,
-                    ],
-                    stops: const [0.0, 0.42, 0.78, 1.0],
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Container(
+                  height: 420,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.5),
+                        Colors.black.withValues(alpha: 0.92),
+                        Colors.black,
+                      ],
+                      stops: const [0.0, 0.42, 0.78, 1.0],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (canPrev)
-            Positioned(
-              left: 4,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _NavHint(
-                  icon: Icons.chevron_left_rounded,
-                  toRight: false,
-                  onTap: () => _goTo(_currentIndex - 1),
+            if (canPrev)
+              Positioned(
+                left: 4,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _NavHint(
+                    icon: Icons.chevron_left_rounded,
+                    toRight: false,
+                    onTap: () => _goTo(_currentIndex - 1),
+                  ),
                 ),
               ),
-            ),
-          if (canNext)
-            Positioned(
-              right: 4,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: _NavHint(
-                  icon: Icons.chevron_right_rounded,
-                  toRight: true,
-                  onTap: () => _goTo(_currentIndex + 1),
+            if (canNext)
+              Positioned(
+                right: 4,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: _NavHint(
+                    icon: Icons.chevron_right_rounded,
+                    toRight: true,
+                    onTap: () => _goTo(_currentIndex + 1),
+                  ),
                 ),
               ),
-            ),
-          Positioned(
-            top: topPad + 12,
-            left: 14,
-            child: _CircleButton(
-              icon: Icons.arrow_back_ios_new_rounded,
-              iconSize: 17,
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
-          if (currentItem.id != null)
             Positioned(
               top: topPad + 12,
-              right: 14,
-              child: BlocBuilder<GalleryBloc, GalleryState>(
-                buildWhen: (a, b) => a.allItems != b.allItems,
-                builder: (context, state) {
-                  final fresh = state.allItems.firstWhere(
-                    (it) => it.id == currentItem.id,
-                    orElse: () => currentItem,
-                  );
-                  return _CircleButton(
-                    icon: fresh.isFeatured
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    iconSize: 20,
-                    iconColor: fresh.isFeatured
-                        ? const Color(0xFFFFC93C)
-                        : Colors.white,
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      context
-                          .read<GalleryBloc>()
-                          .add(GalleryEvent.itemToggledFeatured(fresh.id!));
-                    },
-                  );
-                },
+              left: 14,
+              child: _CircleButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                iconSize: 17,
+                onTap: () => Navigator.of(context).pop(),
               ),
             ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: GalleryFullscreenBottomInfo(
-                  item: currentItem,
-                  onReserve: () => _reserve(currentItem),
+            if (widget.isBarberMode && currentItem.id != null)
+              Positioned(
+                top: topPad + 12,
+                right: 14,
+                child: BlocBuilder<GalleryBloc, GalleryState>(
+                  buildWhen: (a, b) => a.allItems != b.allItems,
+                  builder: (context, state) {
+                    final fresh = state.allItems.firstWhere(
+                      (it) => it.id == currentItem.id,
+                      orElse: () => currentItem,
+                    );
+                    return _CircleButton(
+                      icon: fresh.isFeatured
+                          ? Icons.star_rounded
+                          : Icons.star_outline_rounded,
+                      iconSize: 20,
+                      iconColor: fresh.isFeatured
+                          ? const Color(0xFFFFC93C)
+                          : Colors.white,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.read<GalleryBloc>().add(
+                          GalleryEvent.itemToggledFeatured(fresh.id!),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            if (!widget.isBarberMode)
+              Positioned(
+                top: topPad + 12,
+                right: 14,
+                child: ValueListenableBuilder<Set<String>>(
+                  valueListenable: GalleryFavoritesStore.instance.favorites,
+                  builder: (context, favs, _) {
+                    final favId = galleryFavoriteId(currentItem);
+                    final saved = favs.contains(favId);
+                    return _CircleButton(
+                      icon: saved
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      iconSize: 20,
+                      iconColor: saved ? context.primaryGold : Colors.white,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        GalleryFavoritesStore.instance.toggle(favId);
+                      },
+                    );
+                  },
+                ),
+              ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  child: GalleryFullscreenBottomInfo(
+                    item: currentItem,
+                    isBarberMode: widget.isBarberMode,
+                    onReserve: () => _reserve(currentItem),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -268,19 +312,20 @@ class _NavHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hint = Icon(
-      icon,
-      size: 30,
-      color: Colors.white.withValues(alpha: 0.45),
-      shadows: const [Shadow(blurRadius: 8, color: Color(0xCC000000))],
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .moveX(
-          begin: 0,
-          end: toRight ? 5 : -5,
-          duration: 900.ms,
-          curve: Curves.easeInOut,
-        );
+    final hint =
+        Icon(
+              icon,
+              size: 30,
+              color: Colors.white.withValues(alpha: 0.45),
+              shadows: const [Shadow(blurRadius: 8, color: Color(0xCC000000))],
+            )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .moveX(
+              begin: 0,
+              end: toRight ? 5 : -5,
+              duration: 900.ms,
+              curve: Curves.easeInOut,
+            );
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();

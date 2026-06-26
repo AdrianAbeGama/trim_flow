@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:trim_flow/core/theme/tenant_theme_extension.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
+import 'package:trim_flow/features/gallery/data/gallery_favorites_store.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_bloc.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_event.dart';
 import 'package:trim_flow/features/gallery/presentation/bloc/gallery_state.dart';
@@ -35,85 +36,110 @@ class GalleryTopBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: [
-                  Expanded(
-                    child: state.isEditing
-                        ? const GalleryEditingBadge()
-                        : const GalleryPill(
-                            icon: Icons.photo_library_outlined,
-                            label: 'GALERÍA · PORTAFOLIO',
+                    children: [
+                      Expanded(
+                        child: state.isEditing
+                            ? const GalleryEditingBadge()
+                            : const GalleryPill(
+                                icon: Icons.photo_library_outlined,
+                                label: 'GALERÍA · PORTAFOLIO',
+                              ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (isBarberMode)
+                        _FavoritesIconButton(
+                          count: state.allItems
+                              .where((it) => it.isFeatured)
+                              .length,
+                          onTap: () => GalleryFavoritesSheet.show(
+                            context,
+                            isBarberMode: isBarberMode,
                           ),
-                  ),
-                  const SizedBox(width: 8),
-                  _FavoritesIconButton(
-                    count: state.allItems.where((it) => it.isFeatured).length,
-                    onTap: () => GalleryFavoritesSheet.show(context),
-                  ),
-                  if (isBarberMode)
-                    ValueListenableBuilder<PreviewRole?>(
-                      valueListenable: PermissionsStore.instance.preview,
-                      builder: (context, _, _) {
-                        if (!PermissionsStore.instance.can('gallery_manage')) {
-                          return const SizedBox.shrink();
-                        }
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(width: 8),
-                            _EditToggleButton(
-                              isEditing: state.isEditing,
-                              onTap: () => context
-                                  .read<GalleryBloc>()
-                                  .add(const GalleryEvent.editModeToggled()),
+                        )
+                      else
+                        ValueListenableBuilder<Set<String>>(
+                          valueListenable:
+                              GalleryFavoritesStore.instance.favorites,
+                          builder: (context, favs, _) => _FavoritesIconButton(
+                            count: favs.length,
+                            onTap: () => GalleryFavoritesSheet.show(
+                              context,
+                              isBarberMode: isBarberMode,
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                ],
-              )
+                          ),
+                        ),
+                      if (isBarberMode)
+                        ValueListenableBuilder<PreviewRole?>(
+                          valueListenable: PermissionsStore.instance.preview,
+                          builder: (context, _, _) {
+                            if (!PermissionsStore.instance.can(
+                              'gallery_manage',
+                            )) {
+                              return const SizedBox.shrink();
+                            }
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(width: 8),
+                                _EditToggleButton(
+                                  isEditing: state.isEditing,
+                                  onTap: () => context.read<GalleryBloc>().add(
+                                    const GalleryEvent.editModeToggled(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                    ],
+                  )
                   .animate()
                   .fadeIn(duration: 400.ms)
                   .slideY(
-                    begin: -0.4, end: 0,
+                    begin: -0.4,
+                    end: 0,
                     duration: 500.ms,
                     curve: Curves.easeOutCubic,
                   ),
               const SizedBox(height: 22),
               Text(
-                'Nuestra',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  letterSpacing: -0.2,
-                ),
-              )
+                    'Nuestra',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.55),
+                      letterSpacing: -0.2,
+                    ),
+                  )
                   .animate()
                   .fadeIn(delay: 120.ms, duration: 500.ms)
                   .slideY(
-                    begin: 0.3, end: 0,
-                    delay: 120.ms, duration: 500.ms,
+                    begin: 0.3,
+                    end: 0,
+                    delay: 120.ms,
+                    duration: 500.ms,
                     curve: Curves.easeOutCubic,
                   ),
               const SizedBox(height: 4),
               Text(
-                'Galería',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1.6,
-                  height: 1.05,
-                ),
-              )
+                    'Galería',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -1.6,
+                      height: 1.05,
+                    ),
+                  )
                   .animate()
                   .fadeIn(delay: 200.ms, duration: 600.ms)
                   .slideY(
-                    begin: 0.2, end: 0,
-                    delay: 200.ms, duration: 600.ms,
+                    begin: 0.2,
+                    end: 0,
+                    delay: 200.ms,
+                    duration: 600.ms,
                     curve: Curves.easeOutCubic,
                   ),
               const SizedBox(height: 6),
@@ -171,7 +197,8 @@ class _EditToggleButtonState extends State<_EditToggleButton> {
         duration: const Duration(milliseconds: 140),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: active
                 ? color.withValues(alpha: 0.12)
@@ -225,7 +252,8 @@ class _FavoritesIconButtonState extends State<_FavoritesIconButton> {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: const Color(0xFF161616),
                 shape: BoxShape.circle,
@@ -241,14 +269,21 @@ class _FavoritesIconButtonState extends State<_FavoritesIconButton> {
             ),
             if (widget.count > 0)
               Positioned(
-                top: -2, right: -2,
+                top: -2,
+                right: -2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1.5,
+                  ),
                   constraints: const BoxConstraints(minWidth: 16),
                   decoration: BoxDecoration(
                     color: starYellow,
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFF0A0A0A), width: 1.5),
+                    border: Border.all(
+                      color: const Color(0xFF0A0A0A),
+                      width: 1.5,
+                    ),
                   ),
                   child: Text(
                     '${widget.count}',

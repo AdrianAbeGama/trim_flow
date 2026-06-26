@@ -30,11 +30,26 @@ class Phase1CenterSelector extends StatelessWidget {
       children: [
         const PremiumSectionLabel('1 · Elige tu centro'),
         const SizedBox(height: 18),
-        ...centers.asMap().entries.map((e) => _buildCenterCard(context, e.value)
-            .animate()
-            .fadeIn(delay: (70 * e.key).clamp(0, 300).ms, duration: 400.ms)
-            .slideY(begin: -0.06, end: 0, delay: (70 * e.key).clamp(0, 300).ms, duration: 400.ms, curve: Curves.easeOutCubic)),
+        if (centers.isEmpty)
+          _buildEmptyState(context)
+        else
+          ...centers.asMap().entries.map((e) => _buildCenterCard(context, e.value)
+              .animate()
+              .fadeIn(delay: (70 * e.key).clamp(0, 300).ms, duration: 400.ms)
+              .slideY(begin: -0.06, end: 0, delay: (70 * e.key).clamp(0, 300).ms, duration: 400.ms, curve: Curves.easeOutCubic)),
       ],
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: Text(
+          'No hay sedes disponibles por ahora',
+          style: GoogleFonts.inter(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ),
     );
   }
 

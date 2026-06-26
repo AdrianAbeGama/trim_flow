@@ -72,14 +72,64 @@ class _Phase2ServiceSelectorState extends State<Phase2ServiceSelector> {
             ),
           )
         else
-          ...filteredServices.asMap().entries.map((e) {
-            return _buildServiceCard(context, e.value)
-                .animate()
-                .fadeIn(delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms)
-                .slideY(begin: -0.06, end: 0, delay: (60 * e.key).clamp(0, 450).ms, duration: 400.ms, curve: Curves.easeOutCubic);
-          }),
+          ..._buildServiceList(context, filteredServices),
         const SizedBox(height: 160),
       ],
+    );
+  }
+
+  /// Lista de servicios. En la vista "Todos" con varias categorias, los agrupa
+  /// bajo un encabezado por categoria. Con un filtro especifico, lista plano.
+  List<Widget> _buildServiceList(BuildContext context, List<Service> services) {
+    if (_selectedFilter != 'Todos') {
+      return [
+        for (final e in services.asMap().entries) _animatedCard(context, e.key, e.value),
+      ];
+    }
+
+    final order = <String>[];
+    final byCategory = <String, List<Service>>{};
+    for (final s in services) {
+      if (!byCategory.containsKey(s.category)) {
+        order.add(s.category);
+        byCategory[s.category] = <Service>[];
+      }
+      byCategory[s.category]!.add(s);
+    }
+    final showHeaders = order.length > 1;
+
+    final widgets = <Widget>[];
+    var index = 0;
+    for (final category in order) {
+      if (showHeaders) widgets.add(_categoryHeader(context, category));
+      for (final service in byCategory[category]!) {
+        widgets.add(_animatedCard(context, index, service));
+        index++;
+      }
+    }
+    return widgets;
+  }
+
+  Widget _animatedCard(BuildContext context, int index, Service service) {
+    final delay = (60 * index).clamp(0, 450).ms;
+    return _buildServiceCard(context, service)
+        .animate()
+        .fadeIn(delay: delay, duration: 400.ms)
+        .slideY(begin: -0.06, end: 0, delay: delay, duration: 400.ms, curve: Curves.easeOutCubic);
+  }
+
+  Widget _categoryHeader(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 10, left: 2),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.inter(
+          color: context.primaryGold,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+        ),
+      ),
     );
   }
 
@@ -231,6 +281,20 @@ class _Phase2ServiceSelectorState extends State<Phase2ServiceSelector> {
                     '${service.durationInMinutes} min · ${service.category}',
                     style: GoogleFonts.inter(color: Colors.white.withValues(alpha: 0.4), fontSize: 12, fontWeight: FontWeight.w500),
                   ),
+                  if (service.description.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      service.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
