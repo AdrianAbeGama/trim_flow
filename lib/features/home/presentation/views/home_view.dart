@@ -214,17 +214,20 @@ class _HomeViewState extends State<HomeView> {
                           widget.onNavigateToAppointments!();
                         },
                 ),
-                HomeProductSpotlightSection(
-                  products: _productsFrom(state.content),
-                  onSeeAll: widget.onNavigateToProducts,
-                  onItemTap: widget.onNavigateToProducts == null
-                      ? null
-                      : (item) {
-                          HomePage.requestedProductId.value = item.name;
-                          widget.onNavigateToProducts!();
-                        },
-                ),
-                HomeAboutSection(content: state.content),
+                if (_productsFrom(state.content).isNotEmpty)
+                  HomeProductSpotlightSection(
+                    products: _productsFrom(state.content),
+                    onSeeAll: widget.onNavigateToProducts,
+                    onItemTap: widget.onNavigateToProducts == null
+                        ? null
+                        : (item) {
+                            HomePage.requestedProductId.value = item.name;
+                            widget.onNavigateToProducts!();
+                          },
+                  ),
+                if (state.content.aboutUsTitle.isNotEmpty ||
+                    state.content.aboutUsText.isNotEmpty)
+                  HomeAboutSection(content: state.content),
                 HomeLocationsSection(
                   content: state.content,
                   onReserve: (branch) {
@@ -232,7 +235,9 @@ class _HomeViewState extends State<HomeView> {
                     widget.onNavigateToAppointments?.call();
                   },
                 ),
-                HomeSocialFooter(content: state.content),
+                if (state.content.socialLinks.values
+                    .any((v) => v.isNotEmpty))
+                  HomeSocialFooter(content: state.content),
                 const SliverToBoxAdapter(child: SizedBox(height: 140)),
               ],
             ),

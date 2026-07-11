@@ -7,36 +7,8 @@ class OffersStore {
   OffersStore._();
   static final OffersStore instance = OffersStore._();
 
-  final ValueNotifier<List<PromoOffer>> offers = ValueNotifier<List<PromoOffer>>([
-    const PromoOffer(
-      id: 'seed-1',
-      iconKey: 'offer',
-      eyebrow: 'OFERTA DE LA SEMANA',
-      title: '20% DESCUENTO',
-      caption: 'En toda nuestra línea de pomadas y ceras mate.',
-    ),
-    const PromoOffer(
-      id: 'seed-2',
-      iconKey: 'redeem',
-      eyebrow: 'KIT PREMIUM',
-      title: 'LLEVA 3, PAGA 2',
-      caption: 'En tónicos para el cuidado de barba.',
-    ),
-    const PromoOffer(
-      id: 'seed-3',
-      iconKey: 'new',
-      eyebrow: 'NUEVO INGRESO',
-      title: 'SHAMPOO ANTICASPA',
-      caption: 'Fórmula enriquecida con carbón activado.',
-    ),
-    const PromoOffer(
-      id: 'seed-4',
-      iconKey: 'drop',
-      eyebrow: 'CUIDADO INTEGRAL',
-      title: '-15% EN ACEITES',
-      caption: 'Aceites esenciales para suavizar el vello facial.',
-    ),
-  ]);
+  final ValueNotifier<List<PromoOffer>> offers =
+      ValueNotifier<List<PromoOffer>>([]);
 
   int _seq = 0;
 

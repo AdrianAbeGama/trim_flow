@@ -146,6 +146,7 @@ class _ProfileEditSheetState extends State<ProfileEditSheet> {
                     controller: _birthDateController,
                     hintText: 'DD / MM / AAAA',
                     readOnly: birthLocked,
+                    locked: birthLocked,
                     keyboardType: TextInputType.number,
                     inputFormatters: birthLocked ? null : [DateInputFormatter()],
                     validator: (val) {

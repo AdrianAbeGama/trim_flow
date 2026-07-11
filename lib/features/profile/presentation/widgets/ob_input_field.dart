@@ -20,6 +20,7 @@ class ObInputField extends StatelessWidget {
     this.validator,
     this.maxLines = 1,
     this.minLines,
+    this.locked = false,
     super.key,
   });
 
@@ -39,6 +40,7 @@ class ObInputField extends StatelessWidget {
   final String? Function(String?)? validator;
   final int? maxLines;
   final int? minLines;
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -91,10 +93,21 @@ class ObInputField extends StatelessWidget {
           maxLength: maxLength,
           maxLines: maxLines,
           minLines: minLines,
-          style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+          style: TextStyle(
+            color: locked ? Colors.white.withValues(alpha: 0.4) : Colors.white,
+            fontSize: 16,
+            height: 1.5,
+          ),
           cursorColor: context.primaryGold,
           decoration: InputDecoration(
-            counterText: "", 
+            counterText: "",
+            suffixIcon: locked
+                ? Icon(
+                    Icons.lock_outline_rounded,
+                    size: 18,
+                    color: Colors.white.withValues(alpha: 0.3),
+                  )
+                : null,
             prefixIcon: prefix != null
                 ? Container(
                     padding: const EdgeInsets.only(left: 16, right: 12),
@@ -117,13 +130,15 @@ class ObInputField extends StatelessWidget {
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.15)),
             filled: true,
-            fillColor: const Color(0xFF1A1A1A),
+            fillColor: locked ? const Color(0xFF121212) : const Color(0xFF1A1A1A),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 10),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.redAccent.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1),
+                color: errorText != null
+                    ? Colors.redAccent.withValues(alpha: 0.5)
+                    : Colors.white.withValues(alpha: locked ? 0.05 : 0.1),
               ),
             ),
             focusedBorder: OutlineInputBorder(

@@ -331,16 +331,21 @@ class _AvatarChip extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? gold : Colors.white70,
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
+          SizedBox(
+            width: 76,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? gold : Colors.white70,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+                height: 1.25,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

@@ -10,24 +10,15 @@ import '../../domain/repositories/home_repository.dart';
 /// Hasta que el backend del socio entregue la tabla `tenant_branding` o
 /// similar, los cambios de edición del Home viven en el dispositivo. Sobrevive
 /// al cierre de la app y a hot-restarts.
-const String _kHomeContentKey = 'home_content_json_v1';
+///
+/// La version de la clave se sube cuando hay que invalidar contenido viejo
+/// cacheado en dispositivos (ej. al quitar el contenido mock): v2 ignora el
+/// `_v1` que algunos celulares tenian guardado.
+const String _kHomeContentKey = 'home_content_json_v2';
 
 @LazySingleton(as: HomeRepository)
 class HomeRepositoryImpl implements HomeRepository {
-  static const HomeContent _seed = HomeContent(
-    heroTitle: 'Barbería Ocean',
-    heroSubtitle: 'Donde el estilo se encuentra con la precisión.',
-    heroTag1: 'PREMIUM',
-    heroTag2: 'STUDIO',
-    stories: [
-      {'label': 'Fade', 'image': 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800'},
-      {'label': 'Clásico', 'image': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'},
-      {'label': 'Barba', 'image': 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800'},
-      {'label': 'Diseño', 'image': 'https://images.unsplash.com/photo-1512690196252-741ef2ae7626?w=800'},
-    ],
-    aboutUsTitle: 'Sobre Nosotros',
-    aboutUsText: 'Pasión por el detalle, respeto por la tradición y compromiso con tu estilo.',
-  );
+  static const HomeContent _seed = HomeContent();
 
   @override
   Future<HomeContent> getHomeContent() async {
