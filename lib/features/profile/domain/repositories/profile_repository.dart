@@ -117,4 +117,9 @@ abstract class ProfileRepository {
   Future<List<CustomerCoupon>> loadCustomerCoupons({
     required String tenantId,
   });
+
+  /// Elimina la cuenta del usuario logueado (auth + sus datos) via RPC
+  /// `delete_my_account` (SECURITY DEFINER). Requisito de Google Play para
+  /// apps con login. La sesion se cierra despues desde la UI.
+  Future<void> deleteMyAccount();
 }

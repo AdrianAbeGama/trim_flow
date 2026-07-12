@@ -29,6 +29,11 @@ class ProfileSupabaseRepository implements ProfileRepository {
   ProfileSupabaseRepository(this._client);
 
   @override
+  Future<void> deleteMyAccount() async {
+    await _client.rpc('delete_my_account');
+  }
+
+  @override
   Future<ProfileLoadResult?> loadCustomerProfile({
     required String authUserId,
     required String fallbackTenantId,

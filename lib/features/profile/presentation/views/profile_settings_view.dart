@@ -15,6 +15,7 @@ import 'package:trim_flow/core/widgets/app_toast.dart';
 import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/features/barber/view/barber_home_page.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
+import 'package:trim_flow/features/profile/domain/repositories/profile_repository.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/views/about_view.dart';
 import 'package:trim_flow/features/profile/presentation/views/legal_view.dart';
@@ -91,6 +92,42 @@ class ProfileSettingsView extends StatelessWidget {
     if (ok && context.mounted) {
       Navigator.pop(context);
       context.read<AppModeBloc>().add(const AppModeEvent.requestLogout());
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final ok = await PremiumConfirmDelete.show(
+      context,
+      title: 'Eliminar cuenta',
+      message:
+          'Se borrarán tu cuenta y todos tus datos de forma permanente. '
+          'Esta acción no se puede deshacer.',
+      confirmLabel: 'ELIMINAR MI CUENTA',
+      icon: Icons.delete_forever_rounded,
+    );
+    if (!ok || !context.mounted) return;
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final navigator = Navigator.of(context);
+    final appMode = context.read<AppModeBloc>();
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      ),
+    );
+    try {
+      await getIt<ProfileRepository>().deleteMyAccount();
+      navigator.pop();
+      navigator.pop();
+      appMode.add(const AppModeEvent.requestLogout());
+    } catch (_) {
+      navigator.pop();
+      AppToast.showOn(overlay,
+          type: AppToastType.error, title: 'No se pudo eliminar la cuenta');
     }
   }
 
@@ -302,6 +339,26 @@ class ProfileSettingsView extends StatelessWidget {
                 child: SettingsLogoutButton(onTap: () => _confirmLogout(context))
                     .animate()
                     .fadeIn(delay: 660.ms, duration: 500.ms),
+              ),
+            ),
+
+            // === ELIMINAR CUENTA ===
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Center(
+                  child: TextButton(
+                    onPressed: () => _confirmDeleteAccount(context),
+                    child: const Text(
+                      'Eliminar mi cuenta',
+                      style: TextStyle(
+                        color: Color(0xFFCF6679),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ).animate().fadeIn(delay: 720.ms, duration: 500.ms),
               ),
             ),
 
