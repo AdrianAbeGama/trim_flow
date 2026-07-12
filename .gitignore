@@ -49,3 +49,8 @@ env/
 
 # Reportes de bug locales
 bugreport-*.zip
+
+# Release signing (NO versionar)
+android/key.properties
+**/*.jks
+**/*.keystore
