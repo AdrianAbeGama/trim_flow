@@ -50,6 +50,7 @@ class ReservationSupabaseRepository implements ReservationRepository {
     required String customerPhone,
     required String idempotencyKey,
     String? couponCode,
+    List<Map<String, dynamic>> productItems = const [],
   }) async {
     final startIso = startUtc.toUtc().toIso8601String();
     final isLoggedIn = _client.auth.currentUser != null;
@@ -68,6 +69,7 @@ class ReservationSupabaseRepository implements ReservationRepository {
             'p_start_time': startIso,
             'p_idempotency_key': idempotencyKey,
             'p_coupon_code': coupon,
+            'p_product_items': productItems,
           })
         : await _client.rpc('create_anonymous_booking', params: {
             'p_tenant_id': tenantId,

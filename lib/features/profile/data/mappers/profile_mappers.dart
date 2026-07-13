@@ -141,7 +141,7 @@ class ReservationMapper {
   }
 
   /// Mapea un item de get_my_reservations (proximas) al modelo Reservation.
-  /// El backend manda nombres ya resueltos; no hay sede en este payload.
+  /// El backend manda nombres ya resueltos, incluyendo la sede (branchName).
   static Reservation fromMyReservation(
       Map<String, dynamic> json, String tenantId) {
     final startRaw = json['startTime'] as String?;
@@ -229,9 +229,10 @@ class PastAppointmentMapper {
     final isCancelled = status == 'cancelled' || status == 'no_show';
     final priceRaw = json['pricePaid'];
     final price = (priceRaw is num) ? priceRaw.toDouble() : null;
+    final branchName = (json['branchName'] as String?)?.trim();
 
     return PastAppointment(
-      centerName: 'Sede',
+      centerName: (branchName == null || branchName.isEmpty) ? 'Sede' : branchName,
       dateStr: start != null ? _formatDate(start) : '—',
       serviceName: (json['serviceName'] as String?) ?? 'Servicio',
       professionalName: (json['barberName'] as String?) ?? 'Barbero',

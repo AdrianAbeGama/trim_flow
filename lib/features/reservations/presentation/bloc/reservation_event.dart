@@ -18,6 +18,8 @@ abstract class ReservationEvent with _$ReservationEvent {
     required String customerName,
     required String customerPhone,
   }) = _ConfirmReservation;
+  const factory ReservationEvent.setProductQuantity(
+      String productId, int quantity) = _SetProductQuantity;
   const factory ReservationEvent.activateDiscount() = _ActivateDiscount;
   const factory ReservationEvent.deactivateDiscount() = _DeactivateDiscount;
   const factory ReservationEvent.reset() = _Reset;

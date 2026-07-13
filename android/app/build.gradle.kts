@@ -54,13 +54,13 @@ android {
     productFlavors {
         create("client") {
             dimension = "edition"
-            applicationId = "com.trimflow.app"
+            applicationId = "com.dcgtriak.trimflow"
             resValue("string", "app_name", "TrimFlow")
             manifestPlaceholders["deepLinkScheme"] = "io.supabase.trimflow"
         }
         create("business") {
             dimension = "edition"
-            applicationId = "com.trimflow.business"
+            applicationId = "com.dcgtriak.trimflowbusiness"
             resValue("string", "app_name", "TrimFlow Business")
             manifestPlaceholders["deepLinkScheme"] = "io.supabase.trimflowbusiness"
         }

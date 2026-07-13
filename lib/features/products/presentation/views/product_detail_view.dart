@@ -10,6 +10,7 @@ import 'package:trim_flow/core/widgets/premium/premium_primitives.dart';
 import 'package:trim_flow/core/widgets/safe_image.dart';
 import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/domain/models/inventory_item.dart';
+import 'package:trim_flow/features/products/products_config.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
@@ -310,6 +311,7 @@ class ProductDetailView extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context, bool isOutOfStock) {
+    if (!kProductPurchaseEnabled) return _buildReserveHint(context);
     final gold = context.primaryGold;
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, cartState) {
@@ -387,6 +389,35 @@ class ProductDetailView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildReserveHint(BuildContext context) {
+    final gold = context.primaryGold;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: gold.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.content_cut_rounded, color: gold, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Agrega este producto al reservar tu cita.',
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

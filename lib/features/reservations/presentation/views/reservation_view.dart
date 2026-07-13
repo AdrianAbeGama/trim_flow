@@ -21,6 +21,7 @@ import 'package:trim_flow/features/reservations/presentation/widgets/phase_3_pro
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_4_datetime_selector.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/phase_5_confirmation_receipt.dart';
 import 'package:trim_flow/features/reservations/presentation/widgets/reservation_coupon_selector.dart';
+import 'package:trim_flow/features/reservations/presentation/widgets/reservation_products_selector.dart';
 import 'package:trim_flow/features/home/view/home_page.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:trim_flow/features/profile/presentation/bloc/profile_event.dart';
@@ -475,8 +476,10 @@ class _ReservationContent extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                if (state.status != ReservationStatus.success)
+                                if (state.status != ReservationStatus.success) ...[
                                   ReservationCouponSelector(state: state),
+                                  const ReservationProductsSelector(),
+                                ],
                                 Phase5ConfirmationReceipt(
                                   reservation: state.reservation,
                                   isSuccess: state.status ==

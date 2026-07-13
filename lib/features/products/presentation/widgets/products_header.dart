@@ -13,6 +13,7 @@ import 'package:trim_flow/features/products/presentation/bloc/product_event.dart
 import 'package:trim_flow/features/products/presentation/bloc/product_state.dart';
 import 'package:trim_flow/features/products/presentation/widgets/cart_bottom_sheet.dart';
 import 'package:trim_flow/features/products/presentation/widgets/favorites_bottom_sheet.dart';
+import 'package:trim_flow/features/products/products_config.dart';
 
 class ProductsHeader extends StatelessWidget {
   const ProductsHeader({super.key, required this.isBarber});
@@ -46,13 +47,15 @@ class ProductsHeader extends StatelessWidget {
                       count: favCount,
                       onTap: () => FavoritesBottomSheet.show(context),
                     ),
-                    const SizedBox(width: 8),
-                    BlocBuilder<CartBloc, CartState>(
-                      builder: (context, cart) => _CartIconButton(
-                        count: cart.totalItems,
-                        onTap: () => CartBottomSheet.show(context),
+                    if (kProductPurchaseEnabled) ...[
+                      const SizedBox(width: 8),
+                      BlocBuilder<CartBloc, CartState>(
+                        builder: (context, cart) => _CartIconButton(
+                          count: cart.totalItems,
+                          onTap: () => CartBottomSheet.show(context),
+                        ),
                       ),
-                    ),
+                    ],
                     if (isBarber)
                       ValueListenableBuilder<PreviewRole?>(
                         valueListenable: PermissionsStore.instance.preview,

@@ -55,7 +55,7 @@ extension ReservationEventPatterns on ReservationEvent {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _LoadSlots value)?  loadSlots,TResult Function( _SelectSlot value)?  selectSlot,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _LoadCoupons value)?  loadCoupons,TResult Function( _SelectCoupon value)?  selectCoupon,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _ActivateDiscount value)?  activateDiscount,TResult Function( _DeactivateDiscount value)?  deactivateDiscount,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _SelectCenter value)?  selectCenter,TResult Function( _ToggleService value)?  toggleService,TResult Function( _SelectProfessional value)?  selectProfessional,TResult Function( _LoadSlots value)?  loadSlots,TResult Function( _SelectSlot value)?  selectSlot,TResult Function( _GoToPhase value)?  goToPhase,TResult Function( _LoadCoupons value)?  loadCoupons,TResult Function( _SelectCoupon value)?  selectCoupon,TResult Function( _ConfirmReservation value)?  confirmReservation,TResult Function( _SetProductQuantity value)?  setProductQuantity,TResult Function( _ActivateDiscount value)?  activateDiscount,TResult Function( _DeactivateDiscount value)?  deactivateDiscount,TResult Function( _Reset value)?  reset,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
@@ -67,7 +67,8 @@ return selectSlot(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _LoadCoupons() when loadCoupons != null:
 return loadCoupons(_that);case _SelectCoupon() when selectCoupon != null:
 return selectCoupon(_that);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that);case _SetProductQuantity() when setProductQuantity != null:
+return setProductQuantity(_that);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount(_that);case _Reset() when reset != null:
 return reset(_that);case _:
@@ -88,7 +89,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _LoadSlots value)  loadSlots,required TResult Function( _SelectSlot value)  selectSlot,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _LoadCoupons value)  loadCoupons,required TResult Function( _SelectCoupon value)  selectCoupon,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _ActivateDiscount value)  activateDiscount,required TResult Function( _DeactivateDiscount value)  deactivateDiscount,required TResult Function( _Reset value)  reset,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _SelectCenter value)  selectCenter,required TResult Function( _ToggleService value)  toggleService,required TResult Function( _SelectProfessional value)  selectProfessional,required TResult Function( _LoadSlots value)  loadSlots,required TResult Function( _SelectSlot value)  selectSlot,required TResult Function( _GoToPhase value)  goToPhase,required TResult Function( _LoadCoupons value)  loadCoupons,required TResult Function( _SelectCoupon value)  selectCoupon,required TResult Function( _ConfirmReservation value)  confirmReservation,required TResult Function( _SetProductQuantity value)  setProductQuantity,required TResult Function( _ActivateDiscount value)  activateDiscount,required TResult Function( _DeactivateDiscount value)  deactivateDiscount,required TResult Function( _Reset value)  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter():
@@ -100,7 +101,8 @@ return selectSlot(_that);case _GoToPhase():
 return goToPhase(_that);case _LoadCoupons():
 return loadCoupons(_that);case _SelectCoupon():
 return selectCoupon(_that);case _ConfirmReservation():
-return confirmReservation(_that);case _ActivateDiscount():
+return confirmReservation(_that);case _SetProductQuantity():
+return setProductQuantity(_that);case _ActivateDiscount():
 return activateDiscount(_that);case _DeactivateDiscount():
 return deactivateDiscount(_that);case _Reset():
 return reset(_that);case _:
@@ -120,7 +122,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _LoadSlots value)?  loadSlots,TResult? Function( _SelectSlot value)?  selectSlot,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _LoadCoupons value)?  loadCoupons,TResult? Function( _SelectCoupon value)?  selectCoupon,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _ActivateDiscount value)?  activateDiscount,TResult? Function( _DeactivateDiscount value)?  deactivateDiscount,TResult? Function( _Reset value)?  reset,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _SelectCenter value)?  selectCenter,TResult? Function( _ToggleService value)?  toggleService,TResult? Function( _SelectProfessional value)?  selectProfessional,TResult? Function( _LoadSlots value)?  loadSlots,TResult? Function( _SelectSlot value)?  selectSlot,TResult? Function( _GoToPhase value)?  goToPhase,TResult? Function( _LoadCoupons value)?  loadCoupons,TResult? Function( _SelectCoupon value)?  selectCoupon,TResult? Function( _ConfirmReservation value)?  confirmReservation,TResult? Function( _SetProductQuantity value)?  setProductQuantity,TResult? Function( _ActivateDiscount value)?  activateDiscount,TResult? Function( _DeactivateDiscount value)?  deactivateDiscount,TResult? Function( _Reset value)?  reset,}){
 final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
@@ -132,7 +134,8 @@ return selectSlot(_that);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that);case _LoadCoupons() when loadCoupons != null:
 return loadCoupons(_that);case _SelectCoupon() when selectCoupon != null:
 return selectCoupon(_that);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that);case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that);case _SetProductQuantity() when setProductQuantity != null:
+return setProductQuantity(_that);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount(_that);case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount(_that);case _Reset() when reset != null:
 return reset(_that);case _:
@@ -152,7 +155,7 @@ return reset(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String barberId)?  loadSlots,TResult Function( DateTime startUtc)?  selectSlot,TResult Function( int phase)?  goToPhase,TResult Function()?  loadCoupons,TResult Function( CustomerCoupon? coupon)?  selectCoupon,TResult Function( String customerName,  String customerPhone)?  confirmReservation,TResult Function()?  activateDiscount,TResult Function()?  deactivateDiscount,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( BarberCenter center)?  selectCenter,TResult Function( Service service)?  toggleService,TResult Function( Professional? professional)?  selectProfessional,TResult Function( DateTime date,  String barberId)?  loadSlots,TResult Function( DateTime startUtc)?  selectSlot,TResult Function( int phase)?  goToPhase,TResult Function()?  loadCoupons,TResult Function( CustomerCoupon? coupon)?  selectCoupon,TResult Function( String customerName,  String customerPhone)?  confirmReservation,TResult Function( String productId,  int quantity)?  setProductQuantity,TResult Function()?  activateDiscount,TResult Function()?  deactivateDiscount,TResult Function()?  reset,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
@@ -163,7 +166,8 @@ return selectSlot(_that.startUtc);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _LoadCoupons() when loadCoupons != null:
 return loadCoupons();case _SelectCoupon() when selectCoupon != null:
 return selectCoupon(_that.coupon);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that.customerName,_that.customerPhone);case _SetProductQuantity() when setProductQuantity != null:
+return setProductQuantity(_that.productId,_that.quantity);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
@@ -184,7 +188,7 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String barberId)  loadSlots,required TResult Function( DateTime startUtc)  selectSlot,required TResult Function( int phase)  goToPhase,required TResult Function()  loadCoupons,required TResult Function( CustomerCoupon? coupon)  selectCoupon,required TResult Function( String customerName,  String customerPhone)  confirmReservation,required TResult Function()  activateDiscount,required TResult Function()  deactivateDiscount,required TResult Function()  reset,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( BarberCenter center)  selectCenter,required TResult Function( Service service)  toggleService,required TResult Function( Professional? professional)  selectProfessional,required TResult Function( DateTime date,  String barberId)  loadSlots,required TResult Function( DateTime startUtc)  selectSlot,required TResult Function( int phase)  goToPhase,required TResult Function()  loadCoupons,required TResult Function( CustomerCoupon? coupon)  selectCoupon,required TResult Function( String customerName,  String customerPhone)  confirmReservation,required TResult Function( String productId,  int quantity)  setProductQuantity,required TResult Function()  activateDiscount,required TResult Function()  deactivateDiscount,required TResult Function()  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter():
 return selectCenter(_that.center);case _ToggleService():
@@ -195,7 +199,8 @@ return selectSlot(_that.startUtc);case _GoToPhase():
 return goToPhase(_that.phase);case _LoadCoupons():
 return loadCoupons();case _SelectCoupon():
 return selectCoupon(_that.coupon);case _ConfirmReservation():
-return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount():
+return confirmReservation(_that.customerName,_that.customerPhone);case _SetProductQuantity():
+return setProductQuantity(_that.productId,_that.quantity);case _ActivateDiscount():
 return activateDiscount();case _DeactivateDiscount():
 return deactivateDiscount();case _Reset():
 return reset();case _:
@@ -215,7 +220,7 @@ return reset();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String barberId)?  loadSlots,TResult? Function( DateTime startUtc)?  selectSlot,TResult? Function( int phase)?  goToPhase,TResult? Function()?  loadCoupons,TResult? Function( CustomerCoupon? coupon)?  selectCoupon,TResult? Function( String customerName,  String customerPhone)?  confirmReservation,TResult? Function()?  activateDiscount,TResult? Function()?  deactivateDiscount,TResult? Function()?  reset,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( BarberCenter center)?  selectCenter,TResult? Function( Service service)?  toggleService,TResult? Function( Professional? professional)?  selectProfessional,TResult? Function( DateTime date,  String barberId)?  loadSlots,TResult? Function( DateTime startUtc)?  selectSlot,TResult? Function( int phase)?  goToPhase,TResult? Function()?  loadCoupons,TResult? Function( CustomerCoupon? coupon)?  selectCoupon,TResult? Function( String customerName,  String customerPhone)?  confirmReservation,TResult? Function( String productId,  int quantity)?  setProductQuantity,TResult? Function()?  activateDiscount,TResult? Function()?  deactivateDiscount,TResult? Function()?  reset,}) {final _that = this;
 switch (_that) {
 case _SelectCenter() when selectCenter != null:
 return selectCenter(_that.center);case _ToggleService() when toggleService != null:
@@ -226,7 +231,8 @@ return selectSlot(_that.startUtc);case _GoToPhase() when goToPhase != null:
 return goToPhase(_that.phase);case _LoadCoupons() when loadCoupons != null:
 return loadCoupons();case _SelectCoupon() when selectCoupon != null:
 return selectCoupon(_that.coupon);case _ConfirmReservation() when confirmReservation != null:
-return confirmReservation(_that.customerName,_that.customerPhone);case _ActivateDiscount() when activateDiscount != null:
+return confirmReservation(_that.customerName,_that.customerPhone);case _SetProductQuantity() when setProductQuantity != null:
+return setProductQuantity(_that.productId,_that.quantity);case _ActivateDiscount() when activateDiscount != null:
 return activateDiscount();case _DeactivateDiscount() when deactivateDiscount != null:
 return deactivateDiscount();case _Reset() when reset != null:
 return reset();case _:
@@ -837,6 +843,74 @@ class __$ConfirmReservationCopyWithImpl<$Res>
 customerName: null == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
 as String,customerPhone: null == customerPhone ? _self.customerPhone : customerPhone // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class _SetProductQuantity implements ReservationEvent {
+  const _SetProductQuantity(this.productId, this.quantity);
+  
+
+ final  String productId;
+ final  int quantity;
+
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SetProductQuantityCopyWith<_SetProductQuantity> get copyWith => __$SetProductQuantityCopyWithImpl<_SetProductQuantity>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SetProductQuantity&&(identical(other.productId, productId) || other.productId == productId)&&(identical(other.quantity, quantity) || other.quantity == quantity));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,productId,quantity);
+
+@override
+String toString() {
+  return 'ReservationEvent.setProductQuantity(productId: $productId, quantity: $quantity)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SetProductQuantityCopyWith<$Res> implements $ReservationEventCopyWith<$Res> {
+  factory _$SetProductQuantityCopyWith(_SetProductQuantity value, $Res Function(_SetProductQuantity) _then) = __$SetProductQuantityCopyWithImpl;
+@useResult
+$Res call({
+ String productId, int quantity
+});
+
+
+
+
+}
+/// @nodoc
+class __$SetProductQuantityCopyWithImpl<$Res>
+    implements _$SetProductQuantityCopyWith<$Res> {
+  __$SetProductQuantityCopyWithImpl(this._self, this._then);
+
+  final _SetProductQuantity _self;
+  final $Res Function(_SetProductQuantity) _then;
+
+/// Create a copy of ReservationEvent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? productId = null,Object? quantity = null,}) {
+  return _then(_SetProductQuantity(
+null == productId ? _self.productId : productId // ignore: cast_nullable_to_non_nullable
+as String,null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

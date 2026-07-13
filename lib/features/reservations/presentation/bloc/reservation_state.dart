@@ -26,5 +26,6 @@ abstract class ReservationState with _$ReservationState {
     CustomerCoupon? selectedCoupon,
     @Default(0) double couponDiscount,
     double? finalPrice,
+    @Default(<String, int>{}) Map<String, int> productQuantities,
   }) = _ReservationState;
 }

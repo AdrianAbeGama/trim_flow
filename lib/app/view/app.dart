@@ -31,7 +31,7 @@ import 'package:trim_flow/features/products/presentation/bloc/orders_event.dart'
 import 'package:core/core.dart';
 
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
-import 'package:trim_flow/features/products/data/repositories/product_repository_impl.dart';
+import 'package:trim_flow/features/products/data/repositories/product_supabase_repository.dart';
 import 'package:trim_flow/features/products/domain/usecases/product_usecases.dart';
 
 class DeferredWidget extends StatefulWidget {
@@ -275,7 +275,7 @@ class _AppState extends State<App> {
         BlocProvider(create: (_) => getIt<CatalogBloc>()),
         BlocProvider(
           create: (_) {
-            final repo = ProductRepositoryImpl();
+            final repo = ProductSupabaseRepository();
             return ProductBloc(
               getProducts: GetProductsUseCase(repo),
               getCategories: GetCategoriesUseCase(repo),

@@ -60,15 +60,15 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         _getCategories(),
       ]);
       final products = results[0] as List<Product>;
-      final datasource = ProductMockDatasource();
+      final categories = results[1] as List<ProductCategory>;
+      const allCategory =
+          ProductCategory(id: 'todos', name: 'TODOS', icon: 'all');
 
       emit(state.copyWith(
         isLoading: false,
         allProducts: products,
         products: products,
-        categories: datasource.categories,
-        catalogs: datasource.catalogs,
-        inventoryItems: datasource.inventoryItems,
+        categories: [allCategory, ...categories],
       ));
     } catch (e) {
       emit(state.copyWith(isLoading: false, error: e.toString()));

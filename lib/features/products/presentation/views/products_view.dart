@@ -9,6 +9,8 @@ import 'package:trim_flow/core/app_mode/app_mode_bloc.dart';
 import 'package:trim_flow/core/app_mode/app_mode_state.dart';
 import 'package:core/core.dart';
 import 'package:trim_flow/features/admin/presentation/permissions/permissions_store.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:trim_flow/features/products/products_config.dart';
 import 'package:trim_flow/features/products/domain/models/product.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_bloc.dart';
 import 'package:trim_flow/features/products/presentation/bloc/product_event.dart';
@@ -74,7 +76,10 @@ class _ProductsViewState extends State<ProductsView> {
                   SliverToBoxAdapter(
                     child: _buildQuickActions(context, state, modeState),
                   ),
-                  const SliverToBoxAdapter(child: RotatingProductsBanner()),
+                  if (kProductPurchaseEnabled)
+                    const SliverToBoxAdapter(child: RotatingProductsBanner())
+                  else
+                    const SliverToBoxAdapter(child: _BrowseOnlyHint()),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -178,7 +183,10 @@ class _ProductsViewState extends State<ProductsView> {
                 isInCart: isInCart,
                 imageAspectRatio: ratio,
                 onFavorite: () => context.read<ProductBloc>().add(ProductEvent.toggleFavorite(product.id)),
-                onAddToCart: () => context.read<CartBloc>().add(CartEvent.addItem(product)),
+                onAddToCart: kProductPurchaseEnabled
+                    ? () => context.read<CartBloc>().add(CartEvent.addItem(product))
+                    : () => AppToast.info(context, 'Al reservar',
+                        message: 'Agrega los productos al reservar tu cita.'),
                 onTap: () => _openProductDetail(context, product),
               )
                   .animate()
@@ -207,6 +215,42 @@ class _ProductsViewState extends State<ProductsView> {
             BlocProvider.value(value: cb),
           ],
           child: ProductDetailView(product: product),
+        ),
+      ),
+    );
+  }
+}
+
+class _BrowseOnlyHint extends StatelessWidget {
+  const _BrowseOnlyHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = context.primaryGold;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: gold.withValues(alpha: 0.22)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.content_cut_rounded, color: gold, size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Explora los productos y agrégalos al reservar tu cita.',
+                style: GoogleFonts.inter(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

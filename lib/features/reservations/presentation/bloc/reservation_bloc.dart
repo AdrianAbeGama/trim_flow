@@ -152,6 +152,13 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
             return;
           }
           final key = state.idempotencyKey ?? _genKey();
+          final productItems = state.productQuantities.entries
+              .where((en) => en.value > 0)
+              .map((en) => <String, dynamic>{
+                    'productId': en.key,
+                    'quantity': en.value,
+                  })
+              .toList();
           emit(state.copyWith(
             status: ReservationStatus.loading,
             idempotencyKey: key,
@@ -168,6 +175,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
               customerPhone: e.customerPhone,
               idempotencyKey: key,
               couponCode: state.selectedCoupon?.code,
+              productItems: productItems,
             );
             emit(state.copyWith(
               status: ReservationStatus.success,
@@ -181,6 +189,15 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
               errorMessage: _friendlyError(err),
             ));
           }
+        },
+        setProductQuantity: (e) async {
+          final quantities = Map<String, int>.from(state.productQuantities);
+          if (e.quantity <= 0) {
+            quantities.remove(e.productId);
+          } else {
+            quantities[e.productId] = e.quantity;
+          }
+          emit(state.copyWith(productQuantities: quantities));
         },
         activateDiscount: (e) async {
           final basePrice =

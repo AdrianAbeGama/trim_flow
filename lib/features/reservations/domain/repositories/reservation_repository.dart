@@ -22,6 +22,7 @@ abstract class ReservationRepository {
     required String customerPhone,
     required String idempotencyKey,
     String? couponCode,
+    List<Map<String, dynamic>> productItems = const [],
   });
 
   /// Cupones del cliente usables en este tenant (via RPC get_my_coupons).
