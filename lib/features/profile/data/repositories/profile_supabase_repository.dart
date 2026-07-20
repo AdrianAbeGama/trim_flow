@@ -136,7 +136,12 @@ class ProfileSupabaseRepository implements ProfileRepository {
         'p_birth_date': birth,
       });
     } on PostgrestException catch (e) {
-      if (!e.message.contains('customer_not_found')) rethrow;
+      // Cliente nuevo sin ficha en este tenant: update_customer_profile lanza
+      // 'customer_not_linked' cuando se pasa p_tenant_id, o 'customer_not_found'
+      // en el camino sin tenant. Ambos significan "aun no existe" -> bootstrap.
+      final needsBootstrap = e.message.contains('customer_not_found') ||
+          e.message.contains('customer_not_linked');
+      if (!needsBootstrap) rethrow;
       await _client.rpc('bootstrap_customer_self', params: {
         'p_tenant_id': tenantId,
         'p_full_name': fullName,
